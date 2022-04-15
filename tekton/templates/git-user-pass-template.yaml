@@ -1,0 +1,13 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: git-user-pass
+  annotations:
+    tekton.dev/git-0: #@ "https://" + data.values.git.host
+type: kubernetes.io/basic-auth
+stringData:
+  username: #@ data.values.git.username
+  password: #@ data.values.git.password
+

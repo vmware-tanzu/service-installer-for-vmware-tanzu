@@ -1,0 +1,4 @@
+---
+version:
+  tkg: 1.4.1
+bomImageTag: v1.4.1-patch1

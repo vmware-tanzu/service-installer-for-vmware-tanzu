@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mynginx1-deployment
+  labels:
+    app: nginx1
+    type: front-end-web
+    env: dev
+spec:
+  selector:
+    matchLabels:
+      tier: front-end-web
+  replicas: 1
+  template:
+    metadata:
+      name: mynginx1-pod
+      labels:
+        app: nginx1
+        tier: front-end-web
+        env: dev
+    spec:
+      containers:
+        - name: nginx-container
+          image: nginx:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mynginx1-service
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      protocol: TCP
+  selector:
+    app: nginx1
