@@ -1,15 +1,15 @@
-# Deploying VMware Tanzu for Kubernetes Operations on VMware Cloud on AWS Using VMware Service Installer for VMware Tanzu
-The following provides the steps for deploying Tanzu for Kubernetes Operations on VMware Cloud on AWS using VMware Service Installer for VMware Tanzu.
+# Deploying VMware Tanzu for Kubernetes Operations on VMware Cloud on AWS Using Service Installer for VMware Tanzu
+The following provides the steps for deploying Tanzu for Kubernetes Operations on VMware Cloud on AWS using Service Installer for VMware Tanzu.
 
 This deployment references the design provided in [VMware Tanzu for Kubernetes Operations on VMware Cloud on AWS Reference Design](https://docs.vmware.com/en/VMware-Tanzu/services/tanzu-reference-architecture/GUID-reference-designs-tko-on-vmc-aws.html).
 
 ## Network Design
-The following diagram represents the network design required for deploying Tanzu for Kubernetes Operations on VMware Cloud on AWS using VMware Service Installer for VMware Tanzu.
+The following diagram represents the network design required for deploying Tanzu for Kubernetes Operations on VMware Cloud on AWS using Service Installer for VMware Tanzu.
 
 ![VMC Network Design](./images/VMC_Network_Design.png)
 
 ## Prerequisites
-Before deploying Tanzu for Kubernetes Operations on VMware Cloud on AWS using VMware Service Installer for VMware Tanzu, ensure the following:
+Before deploying Tanzu for Kubernetes Operations on VMware Cloud on AWS using Service Installer for VMware Tanzu, ensure the following:
 - A Software-Defined Data Center (SDDC) is running in VMC on an AWS instance.
 - A public IP address is reserved in VMC on AWS.
 
@@ -17,12 +17,12 @@ Before deploying Tanzu for Kubernetes Operations on VMware Cloud on AWS using VM
 
    For information about requesting a public IP address on VMware Cloud, see [Request or Release a Public IP Address](https://docs.vmware.com/en/VMware-Cloud-on-AWS/services/com.vmware.vmc-aws-networking-security/GUID-0E34C56D-C49C-49B6-A9CF-FBFAF14A126C.html).
 
-- You have installed VMware Service Installer for VMware Tanzu.
+- You have installed Service Installer for VMware Tanzu.
 
-   For information on how to download and deploy VMware Service Installer for VMware Tanzu, see [Service Installer for VMware Tanzu](./DeployServiceInstaller.md).
+   For information on how to download and deploy Service Installer for VMware Tanzu, see [Service Installer for VMware Tanzu](../index.md).
 
 ## Overview of Steps
-The following are the main steps for deploying VMware Tanzu for Kubernetes  Operations on VMware Cloud on AWS using VMware Service Installer for VMware Tanzu:
+The following are the main steps for deploying VMware Tanzu for Kubernetes  Operations on VMware Cloud on AWS using Service Installer for VMware Tanzu:
 1. [Create a Network Segment](#create-network-segment)
 1. [Enable External Access](#enable-external-access)
 1. [Download NSX Advanced Load Balancer Controller](#download-avi-controller)
@@ -50,7 +50,7 @@ Create a network segment for Tanzu Kubernetes Grid. The Tanzu Kubernetes Grid ma
 For additional product documentation, see [Create or Modify a Network Segment](https://docs.vmware.com/en/VMware-Cloud-on-AWS/services/com.vmware.vmc-aws-networking-security/GUID-267DEADB-BD01-46B7-82D5-B9AA210CA9EE.html).
 
 ## <a id=enable-external-access> </a> Enable External Access
-VMware Service Installer for VMware Tanzu acts as a bootstrap machine. Set up Internet access for the Service Installer VM from the VMware Cloud portal. The Service Installer VM needs a connection to VMware Public [Image Registry](https://projects.registry.vmware.com/) to pull the required container images for Tanzu Kubernetes Grid deployment.
+Service Installer for VMware Tanzu acts as a bootstrap machine. Set up Internet access for the Service Installer VM from the VMware Cloud portal. The Service Installer VM needs a connection to VMware Public [Image Registry](https://projects.registry.vmware.com/) to pull the required container images for Tanzu Kubernetes Grid deployment.
 
 1. Create and configure an inventory group for the bootstrap VM.
 
@@ -139,7 +139,7 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
 - If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
 
 ## Sample Input file
-The VMware Service Installer for Tanzu for Kubernetes Operations user interface automatically generates the JSON file for deploying Tanzu Kubernetes Grid. The following is an example of an automatically generated JSON file.
+The Service Installer for Tanzu for Kubernetes Operations user interface automatically generates the JSON file for deploying Tanzu Kubernetes Grid. The following is an example of an automatically generated JSON file.
 
 **Note:** This sample file is also available in the Service Installer VM under **/opt/vmware/arcas/src/vmc/vmc-tkgm.json.sample**
 
@@ -309,4 +309,3 @@ The VMware Service Installer for Tanzu for Kubernetes Operations user interface 
     }
 }
 ```
-

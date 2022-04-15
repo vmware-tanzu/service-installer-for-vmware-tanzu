@@ -1,4 +1,4 @@
-# Deploying VMware Tanzu for Kubernetes Operations on vSphere with NSX-T Using VMware Service Installer for VMware Tanzu
+# Deploying VMware Tanzu for Kubernetes Operations on vSphere with NSX-T Using Service Installer for VMware Tanzu
 
 The following provides the steps for installing Service Installer for VMware Tanzu on vSphere with NSX-T and setting up a Tanzu for Kubernetes Operations environment.
 
@@ -44,12 +44,12 @@ Before you install Service Installer for VMware Tanzu, ensure the following:
 - (Optional) If you are using a custom certificate for deploying Harbor on a shared services cluster, import the certificate and private key to the Service Installer VM. The certificate and private key must be in PEM format.
 
 - DNS Name resolution for NSX Advanced Load Balancer Controller.
-- You have installed VMware Service Installer for VMware Tanzu.
+- You have installed Service Installer for VMware Tanzu.
 
-  For information on how to download and deploy VMware Service Installer for VMware Tanzu, see [Service Installer for VMware Tanzu](./DeployServiceInstaller.md).
+  For information on how to download and deploy Service Installer for VMware Tanzu, see [Service Installer for VMware Tanzu](../index.md).
 
 ## Considerations
-Consider the following when deploying VMware Tanzu for Kubernetes Operations using VMware Service Installer for VMware Tanzu.
+Consider the following when deploying VMware Tanzu for Kubernetes Operations using Service Installer for VMware Tanzu.
 
 - If you set http-proxy, you must also set https-proxy and vice-versa.
     - NSX Advanced Load Balancer Controller must be able to communicate with vCenter directly without a proxy.
@@ -65,7 +65,7 @@ Consider the following when deploying VMware Tanzu for Kubernetes Operations usi
 
 ## <a id=deploy-tko></a> Deploy Tanzu for Kubernetes Operations
 
-Do the following to deploy Tanzu for Kubernetes Operations using VMware Service Installer for VMware Tanzu.
+Do the following to deploy Tanzu for Kubernetes Operations using Service Installer for VMware Tanzu.
 
 1. Enter ssh root@_Service-Installer-IP_ in a terminal window to log in to Service Installer for VMware Tanzu. Replace Service-Installer-IP with the IP address for your Service Installer installation.
 
@@ -355,4 +355,3 @@ Do the following to deploy Tanzu for Kubernetes Operations using VMware Service 
     }
 }
 ```
-

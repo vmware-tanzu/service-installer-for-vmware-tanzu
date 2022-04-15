@@ -1,5 +1,5 @@
-# Deploying VMware Tanzu for Kubernetes Operations on vSphere with vSphere Distributed Switch Using VMware Service Installer for VMware Tanzu
-The following provides the steps for deploying VMware Tanzu for Kubernetes Operations on vSphere with vSphere Distributed Switch using VMware Service Installer for VMware Tanzu.
+# Deploying VMware Tanzu for Kubernetes Operations on vSphere with vSphere Distributed Switch Using Service Installer for VMware Tanzu
+The following provides the steps for deploying VMware Tanzu for Kubernetes Operations on vSphere with vSphere Distributed Switch using Service Installer for VMware Tanzu.
 
 This deployment uses Tanzu Kubernetes Grid and references the design provided in [VMware Tanzu for Kubernetes Operations on vSphere Reference Design](https://docs.vmware.com/en/VMware-Tanzu/services/tanzu-reference-architecture/GUID-reference-designs-tko-on-vsphere.html).
 
@@ -9,7 +9,7 @@ The following diagram represents the network design required for installing and 
 ![vSphere_Network_design](./images/vSphere_Network_design.jpeg)
 
 ## Prerequisites
-Before you deploy Tanzu for Kubernetes Operations using VMware Service Installer for VMware Tanzu, ensure the following:
+Before you deploy Tanzu for Kubernetes Operations using Service Installer for VMware Tanzu, ensure the following:
 
 -  You have created the following port groups:
     -   Management port group/NSX Advanced Load Balancer management: You will connect the VMware NSX Advanced Load Balancer Controller and an interface of NSX Advanced Load Balancer Service Engines (SEs) to this port group.
@@ -59,9 +59,9 @@ Before you deploy Tanzu for Kubernetes Operations using VMware Service Installer
 
 - DNS Name resolution for NSX Advanced Load Balancer Controller.
 
-- You have installed VMware Service Installer for VMware Tanzu.
+- You have installed Service Installer for VMware Tanzu.
 
-   For information on how to download and deploy VMware Service Installer for VMware Tanzu, see [Service Installer for VMware Tanzu](./DeployServiceInstaller.md).
+   For information on how to download and deploy Service Installer for VMware Tanzu, see [Service Installer for VMware Tanzu](../../index.md).
 
 ## Ports for Tanzu for Kubernetes Operations Deployment
 
@@ -82,7 +82,7 @@ Service installer VM                 | vCenter                             | TCP
 Service installer VM                 | NSX Advanced Load Balancer Controller                      | TCP: 443        |
 
 ## Considerations
-Consider the following when deploying VMware Tanzu for Kubernetes Operations using VMware Service Installer for VMware Tanzu.
+Consider the following when deploying VMware Tanzu for Kubernetes Operations using Service Installer for VMware Tanzu.
 
 - If you set http-proxy, you must also set https-proxy and vice-versa.
     - NSX Advanced Load Balancer Controller must be able to communicate with vCenter directly without a proxy.
@@ -372,4 +372,3 @@ The Service Installer user interface generates the JSON file based on your input
 }
 
 ```
-
