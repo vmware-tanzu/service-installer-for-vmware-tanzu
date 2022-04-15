@@ -1,0 +1,28 @@
+apiVersion: vendir.k14s.io/v1alpha1
+directories:
+- contents:
+  - git:
+      commitTitle: Add prefix to data hash, so it cannot be parsed as integer. (#2694)
+      sha: 3b497a299c4d67377ca30036bd38e934794ca0f8
+      tags:
+      - v0.10.0-dev.4-29-g3b497a29
+    path: .
+  path: ytt/vendir/vsphere_cpi/_ytt_lib
+- contents:
+  - git:
+      commitTitle: Antrea disable UDP tunnel offload (#2723)
+      sha: daa90ee40f373474c7714e72182b7ad784c2ffaf
+      tags:
+      - v0.10.0-dev.4-36-gdaa90ee4
+    path: .
+  path: ytt/vendir/cni/_ytt_lib
+- contents:
+  - git:
+      commitTitle: Add kapp controller init container to configure core DNS for cluster
+        IP access (#2727)...
+      sha: 1ce18be43347405d3dfbde4ba2cbb0d1e2fa0b41
+      tags:
+      - v0.10.0-dev.4-39-g1ce18be4
+    path: .
+  path: ytt/vendir/kapp-controller/_ytt_lib
+kind: LockConfig

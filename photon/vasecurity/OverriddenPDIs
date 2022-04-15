@@ -1,0 +1,8 @@
+# The hardening scripts corresponding to these PDIs will not be run during
+# postinstall. A PDI to be overridden must be listed on its own line.
+# Example:
+# GEN000540
+# Please refer to the Virtual Appliance Development Guide on the wiki for a
+# listing of potential PDIs you may want to override
+GEN003619
+GEN000740
