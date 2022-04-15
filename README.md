@@ -30,7 +30,7 @@ as an open-source patch. For more detailed information, refer to [CONTRIBUTING](
 
 1. Download latest Service Installer OVA: This should be production marketplace link.
 2. Getting started with Service Installer for VMware Tanzu 
-- [Product Documentation](docs/product/index.md)
+- [Product Documentation](docs/product/v1.5.1-1.1/index.md)
 - [TKGm on vSphere backed by VDS](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/docs/product/v1.5.1-1.1/vSphere%20-%20Backed%20by%20VDS/TKGm/TKOonVsphereVDStkg.md)
 - [TKGs on vSphere backed by VDS](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/docs/product/v1.5.1-1.1/vSphere%20-%20Backed%20by%20VDS/TKGs/TKOonVsphereVDStkgs.md)
 - [TKGm on vSphere backed by NSX-T](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/docs/product/v1.5.1-1.1/vSphere%20-%20Backed%20by%20NSX-T/tkoVsphereNSXT.md)

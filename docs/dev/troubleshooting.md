@@ -10,9 +10,3 @@ The following tips may be useful when troubleshooting aspects of Tanzu Framework
 The Tanzu CLI provides a flag to enable verbose logging output. Using this command-line option can provide valuable information when you're investigating unexpected behavior or results.
 
 `--verbose      For log verbosity`
-
-## Open an Issue
-
-If you run into a situation where the main branch will not
-build cleanly, open an issue for Framework so the team can help.
-
