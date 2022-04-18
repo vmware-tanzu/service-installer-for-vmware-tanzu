@@ -19,7 +19,7 @@ Before deploying Tanzu for Kubernetes Operations on VMware Cloud on AWS using Se
 
 - You have installed Service Installer for VMware Tanzu.
 
-   For information on how to download and deploy VMware Service Installer for VMware Tanzu, see [Service Installer for VMware Tanzu](./index.md).
+   For information on how to download and deploy VMware Service Installer for VMware Tanzu, see [Service Installer for VMware Tanzu](../index.md).
 
 ## Overview of Steps
 The following are the main steps for deploying VMware Tanzu for Kubernetes  Operations on VMware Cloud on AWS using Service Installer for VMware Tanzu:
@@ -309,4 +309,3 @@ The Service Installer for Tanzu for Kubernetes Operations user interface automat
     }
 }
 ```
-
