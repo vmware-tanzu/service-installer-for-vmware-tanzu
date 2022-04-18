@@ -1,0 +1,14 @@
+#  Copyright 2021 VMware, Inc
+#  SPDX-License-Identifier: BSD-2-Clause
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tekton-day0
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
