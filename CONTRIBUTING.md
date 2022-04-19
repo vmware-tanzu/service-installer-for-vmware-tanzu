@@ -24,7 +24,7 @@ to follow these guidelines in order to make a contribution. Most contributions a
 ## Communication
 
 Communicate with other members of the community through the following channels:
-* Slack - Use the 'service-installer-assist' Slack channel.
+* Slack - Use the 'service-installer-assist-external' Slack channel.
 * Github issue - Use the Github Issues area for asynchronous communication.
 
 ## Propose a Change
@@ -190,22 +190,9 @@ git push --force-with-lease origin my-new-feature
 Be sure to add a comment to the PR indicating your new changes are ready to review, as GitHub does not generate a
 notification when you git push.
 
-## Contributor License Agreement
+## Developer Certificate of Origin 
 
-All contributors to this project must have a signed Contributor License
-Agreement (**"CLA"**) on file with us. The CLA grants us the permissions we
-need to use and redistribute your contributions as part of the project; you or
-your employer retains the copyright to your contribution. Before a PR can pass
-all required checks, our CLA action will prompt you to accept the agreement.
-Head over to [https://cla.vmware.com/](https://cla.vmware.com/) to see your
-current agreement(s) on file or to sign a new one.
-
-We generally need you (or your employer) to sign our CLA only once. After signing, you'll able to submit contributions to any VMware project.
-
-**Note:** A signed CLA is required even for minor updates. If you notice something
-trivial that should be fixed, but you are unable or unwilling to sign a CLA, the
-maintainers will be happy to make the change on your behalf. If you can
-describe the change in a [bug
-report](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/issues/new/choose),
-it would be greatly appreciated.
-
+The service-installer-for-vmware-tanzu project team welcomes contributions from the community. 
+Before you start working with service-installer-for-vmware-tanzu, please read our Developer Certificate of Origin.
+All contributions to this repository must be signed as described on that page. Your signature certifies that you 
+wrote the patch or have the right to pass it on as an open-source patch.

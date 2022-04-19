@@ -10,7 +10,7 @@
 
 ## Communication channel
 
-Our team is reachable on slack channel `service-installer-assist`. It can be used for any querries/clarifications, etc. 
+Our team is reachable on slack channel `service-installer-assist-external`. It can be used for any querries/clarifications, etc. 
 
 ## Weekly rotation
 

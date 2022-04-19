@@ -1,4 +1,4 @@
-# VMware Service Installer for VMware Tanzu
+# Service Installer for VMware Tanzu
 
 Service Installer for VMware Tanzu seeks to provide a one-click automation solution to enable our VMware engineers and field teams to install and configure Tanzu Services across a variety of cloud infrastructures easily and rapidly, and in conformance with prescribed [Tanzu Reference Architecture](https://docs.vmware.com/en/VMware-Tanzu/services/tanzu-reference-architecture/GUID-reference-designs-index.html)
 
