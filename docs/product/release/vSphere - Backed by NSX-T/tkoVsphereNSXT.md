@@ -46,7 +46,7 @@ Before you install Service Installer for VMware Tanzu, ensure the following:
 - DNS Name resolution for NSX Advanced Load Balancer Controller.
 - You have installed Service Installer for VMware Tanzu.
 
-  For information on how to download and deploy Service Installer for VMware Tanzu, see [Service Installer for VMware Tanzu](./index.md).
+  For information on how to download and deploy Service Installer for VMware Tanzu, see [Service Installer for VMware Tanzu](../index.md).
 
 ## Considerations
 Consider the following when deploying VMware Tanzu for Kubernetes Operations using Service Installer for VMware Tanzu.
@@ -355,4 +355,3 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
     }
 }
 ```
-
