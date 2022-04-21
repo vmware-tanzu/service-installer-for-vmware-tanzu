@@ -14,7 +14,7 @@
 * [Contribution Flow](#contribution-flow)
   * [Staying In Sync With Upstream](#staying-in-sync-with-upstream)
   * [Updating pull requests](#updating-pull-requests)  
-* [Contributor License Agreement](#contributor-license-agreement)
+* [Developer Certificate of Origin](#developer-certificate-of-origin)
 
 --------------
 
@@ -193,6 +193,6 @@ notification when you git push.
 ## Developer Certificate of Origin 
 
 The service-installer-for-vmware-tanzu project team welcomes contributions from the community. 
-Before you start working with service-installer-for-vmware-tanzu, please read our Developer Certificate of Origin.
+Before you start working with service-installer-for-vmware-tanzu, please read our Developer Certificate of Origin (https://cla.vmware.com/dco).
 All contributions to this repository must be signed as described on that page. Your signature certifies that you 
 wrote the patch or have the right to pass it on as an open-source patch.
