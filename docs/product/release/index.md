@@ -14,7 +14,7 @@ Service Installer simplifies the deployment of a Kubernetes environment. It uses
 - Integration with Tanzu Mission Controller
 
 ## Download Service Installer for VMware Tanzu
-Download the latest Service Installer for VMware Tanzu for Kubernetes Operations OVA(v1.1-1.5.1) [here](http://build-squid.eng.vmware.com/build/mts/release/bora-19543941/publish/service-installer-for-VMware-Tanzu-1.1.0.30-19543941_OVF10.ova).
+Download the latest Service Installer for VMware Tanzu OVA(v1.1-1.5.1) [here](https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true)
 
 ## Deploy Service Installer for VMware Tanzu
 1. Download the Service Installer OVA from **VMware Marketplace**.

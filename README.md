@@ -34,3 +34,6 @@ as an open-source patch. For more detailed information, refer to [CONTRIBUTING](
 - [TKGs on vSphere backed by VDS](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/docs/product/release/vSphere%20-%20Backed%20by%20VDS/TKGs/TKOonVsphereVDStkgs.md)
 - [TKGm on vSphere backed by NSX-T](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/docs/product/release/vSphere%20-%20Backed%20by%20NSX-T/tkoVsphereNSXT.md)
 - [TKGm on VMC](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/docs/product/release/VMware%20Cloud%20on%20AWS%20-%20VMC/TKOonVMConAWS.md)
+
+2. Service Installer for VMware Tanzu download [link](https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true)
+ 
