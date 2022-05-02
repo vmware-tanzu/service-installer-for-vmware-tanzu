@@ -54,7 +54,7 @@ All these JSON files for different platforms are available at,
 - [MAPBUA-366](https://jira.eng.vmware.com/browse/MAPBUA-366)	TKG_TSL_Feedback: Logging improvements
 
 ## Important Links
-- Download latest Arcas OVA from [here](http://build-squid.eng.vmware.com/build/mts/release/bora-19543941/publish/service-installer-for-VMware-Tanzu-1.1.0.30-19543941_OVF10.ova)
+- Download latest Arcas OVA from [here](https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true)
 
 ## Known Issues
 - Bring your own certificate feature for AVI controller is not working as expected. We will address this in patch release.
