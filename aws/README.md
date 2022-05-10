@@ -54,7 +54,7 @@ This repository is designed to be customizable -- especially at the root `main.t
 
 You can add Tanzu packages configurations as needed into templates files to make them functional. Otherwise they will installed with default values as defined into template files. 
   ## Pinniped 
-  Add following external Identity provider(IDP) details into cluster config file(**mgmt.tpl**) to integrate Pinniped with external IDP.
+  Add following external Identity provider(IDP) details into cluster config file(**tkg_vpc/templates/mgmt.tpl**) to integrate Pinniped with external IDP.
 
 ```yaml
     * OIDC_IDENTITY_PROVIDER_CLIENT_ID: ""

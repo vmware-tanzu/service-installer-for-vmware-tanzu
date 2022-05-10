@@ -20,7 +20,7 @@ cat <<'EOF' > /home/ubuntu/tkg-install/finish-install.sh
 # - yq
 # Copyright 2021 VMware, Inc
 # SPDX-License-Identifier: BSD-2-Clause
-export MGMT_CLUSTER_NAME=tkg-mgmt-aws
+export MGMT_CLUSTER_NAME=${management_cluster_name}
 if [[ ! -f vmw-cli ]]; then 
     if [[ $1 == "" || $2 == "" ]]; then
         echo "Usage: $0 <myvmwuser> <myvmwpass> [or prepopulate $HOME/vmw-cli with the binaries]"
@@ -75,13 +75,13 @@ cd $HOME/tkg-install
 tanzu management-cluster create --file ./vpc-config-mgmt.yaml
 tanzu management-cluster kubeconfig get --admin
 
-kubectl config use-context tkg-mgmt-aws-admin@tkg-mgmt-aws
+kubectl config use-context $MGMT_CLUSTER_NAME-admin@$MGMT_CLUSTER_NAME
 
 if [[ "$TMC_API_TOKEN" != "" ]]; then
 
     # how to login to tmc with tmc token  
     tmc login --no-configure --name tkgaws-automation
-    tmc managementcluster register tkg-mgmt-aws -p TKG -o tmc-mgmt.yaml --default-cluster-group default
+    tmc managementcluster register $MGMT_CLUSTER_NAME -p TKG -o tmc-mgmt.yaml --default-cluster-group default
     kubectl apply -f tmc-mgmt.yaml
 fi
 
@@ -161,7 +161,7 @@ if [[ "$TMC_API_TOKEN" != "" ]]; then
         # check pod status 
         # kubectl get pods -n tanzu-observability-saas
         # validate TO integration status 
-        # tmc cluster integration get tanzu-observability-saas --cluster-name tkg-wl-aws -m tkg-mgmt-aws -p tkg-mgmt-aws
+        # tmc cluster integration get tanzu-observability-saas --cluster-name tkg-wl-aws -m $MGMT_CLUSTER_NAME -p $MGMT_CLUSTER_NAME
     fi
 
     if [[ "$SKIP_TSM" == "" ]]; then
@@ -176,11 +176,11 @@ fi
 shopt -s nullglob
 # Don't like the special cases here.. but we can make it better later
 for i in vpc-config-*.yaml; do
-    export NO_YAML_NAME="${i/.yaml/}"
+    export NO_YAML_NAME="$${i/.yaml/}"
     if [[ "$NO_YAML_NAME" == "vpc-config-mgmt" ]]; then
         setup_cluster $i tkg-wl-aws
     else
-        setup_cluster $i ${NO_YAML_NAME/vpc-config-/}
+        setup_cluster $i $${NO_YAML_NAME/vpc-config-/}
     fi
 
 done

@@ -10,10 +10,10 @@ AWS_VPC_ID: ${vpc_id}
 AWS_NODE_AZ: ${region}a
 AWS_NODE_AZ_1: ${region}b
 AWS_NODE_AZ_2: ${region}c
+AWS_SSH_KEY_NAME: ${kp_name}
+CLUSTER_NAME: ${cluster_name}
 
 #Everything below here doesn't change
-AWS_SSH_KEY_NAME: tkg-kp
-CLUSTER_NAME: tkg-mgmt-aws
 CLUSTER_PLAN: prod
 NAMESPACE: default
 CNI: antrea

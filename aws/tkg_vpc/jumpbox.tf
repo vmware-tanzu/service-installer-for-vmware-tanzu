@@ -93,7 +93,11 @@ resource "aws_instance" "ubuntu" {
     ]
   }
   provisioner "file" {
-    source      = "./tkg_vpc/script.sh"
+    content     = templatefile("./tkg_vpc/templates/script.sh",
+    {
+      management_cluster_name = var.cluster_name
+    }
+    )
     destination = "/home/ubuntu/tkg-install/script.sh"
   }
   provisioner "file" {
@@ -106,14 +110,17 @@ resource "aws_instance" "ubuntu" {
         region        = substr(var.azs[0], 0, length(var.azs[0]) - 1),
         priv_subnet_a = aws_subnet.priv_a.id,
         priv_subnet_b = aws_subnet.priv_b.id,
-        priv_subnet_c = aws_subnet.priv_c.id
+        priv_subnet_c = aws_subnet.priv_c.id,
         pub_subnet_a  = aws_subnet.pub_a.id,
         pub_subnet_b  = aws_subnet.pub_b.id,
-        pub_subnet_c  = aws_subnet.pub_c.id
-        vpc_id        = aws_vpc.main.id
+        pub_subnet_c  = aws_subnet.pub_c.id,
+        vpc_id        = aws_vpc.main.id,
+        kp_name       = var.jb_key_pair,
+        cluster_name  = var.cluster_name,
         az1           = var.azs[0],
         az2           = var.azs[1],
-      az3 = var.azs[2] }
+        az3           = var.azs[2],
+      }
     )
     destination = "/home/ubuntu/tkg-install/vpc-config-mgmt.yaml"
   }
@@ -200,7 +207,7 @@ resource "null_resource" "custer_config_file" {
         priv_subnet_c = aws_subnet.priv_c.id
         pub_subnet_a  = aws_subnet.pub_a.id,
         pub_subnet_b  = aws_subnet.pub_b.id,
-        pub_subnet_c  = aws_subnet.pub_c.id
+        pub_subnet_c  = aws_subnet.pub_c.id,
         vpc_id        = aws_vpc.main.id,
         kp_name       = var.jb_key_pair,
         cluster_name  = var.cluster_name,
