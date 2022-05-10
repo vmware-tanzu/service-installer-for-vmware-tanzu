@@ -32,10 +32,8 @@ export AWS_REGION=us-east-1  # ensure the region is set correctly. this must agr
 
 * First, initialize Terraform by executing `terraform init`
 * Next, set required variables in `terraform.tfvars`
-  * `to_token` Should be set to your token from Tanzu Observability
-  * `to_url` Should be set to your Tanzu Observability URL
   * `aws_region` Should be set to your AWS region
-  * `jb_key` Should be set to your jumpbox key e.g. `~/tkgkp.pem` if you need to create key pair you can use the aws cli like:
+  * `jb_key_file` Should be set to your jumpbox key e.g. `~/tkgkp.pem` if you need to create key pair you can use the aws cli like:
        `aws ec2 create-key-pair --key-name tkg-kp --query 'KeyMaterial' --output text > ~/tkgkp.pem`
   * `jb_key_pair` Should be set to your jumpbox key pair name in AWS
   * `run_id` [Optional] Can be set to a value that will be propagated as a tag to all resources created by this terraform. Primarily useful for running this in a CI/CD pipeline.
