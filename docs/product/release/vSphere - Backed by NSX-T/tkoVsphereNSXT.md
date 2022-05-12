@@ -125,6 +125,7 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
 **Note:**
 - Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
 - If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
+- When Tanzu Mission Control is enabled only Photon is supported. 
 
 ## Sample Input file
  The Service Installer user interface generates the JSON file based on your inputs and saves it to **/opt/vmware/arcas/src/** in the installer VM. Files are named based on the environment you are using.
