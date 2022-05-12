@@ -137,6 +137,7 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
 **Note:**
 - Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
 - If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
+- When Tanzu Mission Control is enabled only Photon is supported.
 
 ## Sample Input file
 The Service Installer for Tanzu for Kubernetes Operations user interface automatically generates the JSON file for deploying Tanzu Kubernetes Grid. The following is an example of an automatically generated JSON file.

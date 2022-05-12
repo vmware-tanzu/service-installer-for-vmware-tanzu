@@ -150,8 +150,10 @@ Consider the following when deploying VMware Tanzu for Kubernetes Operations usi
     - to enable or disable Prometheus and Grafana, enter `"enableExtensions": "true/false"`.
     - to enable or disable Harbor, enter `"enableHarborExtension": "true/false"`.   
 
-      **Note:** Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability. If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
-
+      **Note:** 
+      - Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability. 
+      - If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
+      - When Tanzu Mission Control is enabled only Photon is supported.
 
 ## Sample Input File
 The Service Installer user interface generates the JSON file based on your inputs and saves it to **/opt/vmware/arcas/src/** in installer VM. Files are named based on the environment:
