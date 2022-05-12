@@ -114,10 +114,10 @@ $ ssh -i "path/<keypair file name>.pem" ubuntu@<jumpbox ip>
 # Execute following script along with https://customerconnect.vmware.com/ user and password from root directory
 $ export TO_URL="http://your-wavefront-url"
 $ export TO_TOKEN="your-wavefront-token"
-$ export TMC_TOKEN="your-tmc-token"
+$ export TMC_API_TOKEN="your-tmc-token"
 $ ./tkg-install/finish-install.sh <myvmwuser> <myvmwpass>
 ```
-If you set `export SKIP_TSM=true`, the installation will skip installing TSM. If you do not set `TO_TOKEN`, the installation will skip installing Tanzu Observability. If you do not set `TMC_TOKEN`, the installation will skip TMC, TO, and TSM.
+If you set `export SKIP_TSM=true`, the installation will skip installing TSM. If you do not set `TO_TOKEN`, the installation will skip installing Tanzu Observability. If you do not set `TMC_API_TOKEN`, the installation will skip TMC, TO, and TSM.
 
 ## Delete Tanzu clusters and aws resources 
 

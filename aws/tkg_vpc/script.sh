@@ -74,6 +74,9 @@ printf "
 cd $HOME/tkg-install
 tanzu management-cluster create --file ./vpc-config-mgmt.yaml
 tanzu management-cluster kubeconfig get --admin
+
+kubectl config use-context tkg-mgmt-aws-admin@tkg-mgmt-aws
+
 if [[ "$TMC_API_TOKEN" != "" ]]; then
 
     # how to login to tmc with tmc token  
@@ -82,7 +85,6 @@ if [[ "$TMC_API_TOKEN" != "" ]]; then
     kubectl apply -f tmc-mgmt.yaml
 fi
 
-kubectl config use-context tkg-mgmt-aws-admin@tkg-mgmt-aws
 kubectl get pods -A
 
 setup_cluster() {
