@@ -7,7 +7,8 @@ sudo apt-get -y update
 sudo apt-get -y dist-upgrade
 sudo apt-get -y install docker.io jq
 
-
+# set bash flag to enable running finish-install script without errors
+echo "set +H" >> $HOME/.bash_profile
 
 cat <<'EOF' > /home/ubuntu/tkg-install/finish-install.sh
 #!/usr/bin/env bash
