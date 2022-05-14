@@ -1,0 +1,75 @@
+AVI_CA_DATA_B64: {{ cert }}
+AVI_CLOUD_NAME: tkgvmc-cloud01
+AVI_CONTROLLER: {{ ip }}
+AVI_DATA_NETWORK: tkgvmc-tkgmgmt-data-network01
+AVI_DATA_NETWORK_CIDR: {{ wipIpNetmask }}
+AVI_ENABLE: 'true'
+AVI_LABELS: |
+    '{{ avi_label_key }}': '{{ avi_label_value }}'
+AVI_PASSWORD: <encoded:{{ str_enc_avi }}>
+AVI_SERVICE_ENGINE_GROUP: tkgvmc-tkgmgmt-group01
+AVI_USERNAME: admin
+CLUSTER_CIDR: {{ config.componentSpec.tkgMgmtSpec.tkgMgmtClusterCidr }}
+CLUSTER_NAME: {{ config.componentSpec.tkgMgmtSpec.tkgMgmtClusterName }}
+CLUSTER_PLAN: {{ config.componentSpec.tkgMgmtSpec.tkgMgmtDeploymentType }}
+ENABLE_CEIP_PARTICIPATION: 'true'
+ENABLE_MHC: 'true'
+{% if identity_mgmt_type == "oidc" %}
+IDENTITY_MANAGEMENT_TYPE: {{identity_mgmt_type}}
+OIDC_IDENTITY_PROVIDER_CLIENT_ID: {{oidc_provider_client_id}}
+OIDC_IDENTITY_PROVIDER_CLIENT_SECRET: {{oidc_provider_client_secret}}
+OIDC_IDENTITY_PROVIDER_GROUPS_CLAIM: {{oidc_provider_groups_claim}}
+OIDC_IDENTITY_PROVIDER_ISSUER_URL: {{oidc_provider_issuer_url}}
+OIDC_IDENTITY_PROVIDER_SCOPES: {{oidc_provider_scopes}}
+OIDC_IDENTITY_PROVIDER_USERNAME_CLAIM: {{oidc_provider_username_claim}}
+{% elif identity_mgmt_type == "ldap" %}
+IDENTITY_MANAGEMENT_TYPE: {{identity_mgmt_type}}
+LDAP_BIND_DN: {{ ldap_bind_dn }}
+LDAP_BIND_PASSWORD: {{ ldap_endpoint_bind_pw }}
+LDAP_GROUP_SEARCH_BASE_DN: {{ ldap_grp_search_base_dn }}
+LDAP_GROUP_SEARCH_FILTER: {{ ldap_grp_search_filter }}
+LDAP_GROUP_SEARCH_GROUP_ATTRIBUTE: {{ ldap_grp_search_grp_attr }}
+LDAP_GROUP_SEARCH_NAME_ATTRIBUTE: {{ ldap_grp_search_name_attr }}
+LDAP_HOST: {{ ldap_endpoint_ip }}
+LDAP_ROOT_CA_DATA_B64: {{ ldap_root_ca_data_base64 }}
+LDAP_USER_SEARCH_BASE_DN: {{ ldap_user_search_base_dn }}
+LDAP_USER_SEARCH_EMAIL_ATTRIBUTE: 'DN'
+LDAP_USER_SEARCH_ID_ATTRIBUTE: 'DN'
+LDAP_USER_SEARCH_NAME_ATTRIBUTE: 'userPrincipalName'
+LDAP_USER_SEARCH_FILTER: {{ ldap_user_search_filter }}
+LDAP_USER_SEARCH_USERNAME: {{ ldap_user_search_uname }}
+{% else %}
+IDENTITY_MANAGEMENT_TYPE: none
+{% endif %}
+INFRASTRUCTURE_PROVIDER: vsphere
+SERVICE_CIDR: {{ config.componentSpec.tkgMgmtSpec.tkgMgmtServiceCidr }}
+TKG_HTTP_PROXY_ENABLED: false
+DEPLOY_TKG_ON_VSPHERE7: 'true'
+VSPHERE_DATACENTER: {{ datacenter }}
+VSPHERE_DATASTORE: {{ datastore_path }}
+VSPHERE_FOLDER: {{ vsphere_folder_path }}
+VSPHERE_NETWORK: {{ config.componentSpec.tkgMgmtSpec.tkgMgmtNetworkName }}
+VSPHERE_PASSWORD: <encoded:{{ vcenter_passwd }}>
+VSPHERE_RESOURCE_POOL: {{ vsphere_rp }}
+VSPHERE_SERVER: {{ vcenter_ip }}
+VSPHERE_SSH_AUTHORIZED_KEY: {{ ssh_key }}
+VSPHERE_USERNAME: {{ vcenter_username }}
+VSPHERE_INSECURE: 'true'
+AVI_CONTROL_PLANE_HA_PROVIDER: 'true'
+ENABLE_AUDIT_LOGGING: 'true'
+OS_ARCH: amd64
+OS_NAME: {{ os_name }}
+OS_VERSION: {{ os_version }}
+AVI_MANAGEMENT_CLUSTER_VIP_NETWORK_NAME: tkgvmc-cluster-data-network01
+AVI_MANAGEMENT_CLUSTER_VIP_NETWORK_CIDR: {{ avi_cluster_vip_network_gateway_cidr }}
+{% if size == "custom" %}
+VSPHERE_CONTROL_PLANE_NUM_CPUS: {{control_plane_vcpu}}
+VSPHERE_CONTROL_PLANE_DISK_GIB: {{control_plane_disk_gb}}
+VSPHERE_CONTROL_PLANE_MEM_MIB: {{control_plane_mem_mb}}
+VSPHERE_WORKER_NUM_CPUS: {{control_plane_vcpu}}
+VSPHERE_WORKER_DISK_GIB: {{control_plane_disk_gb}}
+VSPHERE_WORKER_MEM_MIB: {{control_plane_mem_mb}}
+{% else %}
+WORKER_SIZE: {{ worker_size }}
+CONTROLPLANE_SIZE: {{ control_plane_size }}
+{% endif %}

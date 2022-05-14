@@ -1,0 +1,30 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: git-pvtclone
+spec:
+  workspaces:
+    - name: task-shared-data
+  params:
+    - name: imagename
+      description: the operand image
+    - name: giturl
+      description: the git path
+    - name: branch
+      description: the branch to clone from
+      default: alpha
+
+  steps:
+    - name: step-gitclone
+      image: $(params.imagename)
+      script: |
+        cd /workspace/task-shared-data/
+        rm -rf *
+        rm -rf .tmp
+        git clone $(params.giturl) -b $(params.branch)
+        cur_dir=`ls`
+        cp -rf $cur_dir/config .
+        cp -rf $cur_dir/deployment-state .
+        cp -rf $cur_dir/desired-state .
+        cp -rf $cur_dir/kubeconfig-repo .
+        ls -la

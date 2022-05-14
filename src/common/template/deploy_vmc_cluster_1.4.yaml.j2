@@ -1,0 +1,49 @@
+#! ---------------------------------------------------------------------
+#! non proxy env configs
+#! ---------------------------------------------------------------------
+CLUSTER_CIDR: {{ clustercidr }}
+CLUSTER_NAME: {{ sharedClusterName }}
+CLUSTER_PLAN: {{ clusterPlan }}
+ENABLE_CEIP_PARTICIPATION: 'true'
+ENABLE_MHC: 'true'
+{% if identity_mgmt_type == "oidc" %}
+IDENTITY_MANAGEMENT_TYPE: {{identity_mgmt_type}}
+{% elif identity_mgmt_type == "ldap" %}
+IDENTITY_MANAGEMENT_TYPE: {{identity_mgmt_type}}
+{% else %}
+IDENTITY_MANAGEMENT_TYPE: none
+{% endif %}
+INFRASTRUCTURE_PROVIDER: vsphere
+SERVICE_CIDR: {{ servicecidr }}
+TKG_HTTP_PROXY_ENABLED: false
+DEPLOY_TKG_ON_VSPHERE7: 'true'
+VSPHERE_DATACENTER: {{ datacenter }}
+VSPHERE_DATASTORE: {{ dataStorePath }}
+VSPHERE_FOLDER: {{ folderPath }}
+VSPHERE_NETWORK: {{ mgmt_network }}
+VSPHERE_PASSWORD: <encoded:{{ vspherePassword }}>
+VSPHERE_RESOURCE_POOL: {{ sharedClusterResourcePool }}
+VSPHERE_SERVER: {{ vsphereServer }}
+VSPHERE_SSH_AUTHORIZED_KEY: {{ sshKey }}
+VSPHERE_USERNAME: {{ vsphereUseName }}
+WORKER_MACHINE_COUNT: {{ machineCount }}
+VSPHERE_INSECURE: 'true'
+ENABLE_AUDIT_LOGGING: 'true'
+ENABLE_DEFAULT_STORAGE_CLASS: 'true'
+ENABLE_AUTOSCALER: false
+AVI_CONTROL_PLANE_HA_PROVIDER: 'true'
+OS_ARCH: amd64
+OS_NAME: {{ osName }}
+OS_VERSION: {{ osVersion }}
+{% if size == "custom" %}
+VSPHERE_CONTROL_PLANE_NUM_CPUS: {{control_plane_vcpu}}
+VSPHERE_CONTROL_PLANE_DISK_GIB: {{control_plane_disk_gb}}
+VSPHERE_CONTROL_PLANE_MEM_MIB: {{control_plane_mem_mb}}
+VSPHERE_WORKER_NUM_CPUS: {{control_plane_vcpu}}
+VSPHERE_WORKER_DISK_GIB: {{control_plane_disk_gb}}
+VSPHERE_WORKER_MEM_MIB: {{control_plane_mem_mb}}
+{% else %}
+WORKER_SIZE: {{ workerSize }}
+CONTROLPLANE_SIZE: {{ controlPlaneSize }}
+{% endif %}
+

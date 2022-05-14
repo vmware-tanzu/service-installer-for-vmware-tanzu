@@ -1,0 +1,43 @@
+@import '../landing.component.scss';
+
+:host ::ng-deep log-monitor {
+  .container {
+    height: calc(100vh - 360px);
+    margin-top: 4px;
+    min-height: 570px;
+  }
+}
+
+.spinner-container {
+  margin-top: 4px;
+}
+
+.progress-div {
+  display: inline-block;
+  margin-left: 10px;
+}
+
+.clr-timeline.clr-timeline-vertical {
+  min-width: 9rem;
+}
+
+.clr-row {
+  h4 {
+    margin-top: 0;
+  }
+}
+
+.logging_window{
+  display: block;
+  padding: 9.5px;
+  font-size: 13px;
+  line-height: 1.42857143;
+  color: #333;
+  word-break: break-all;
+  word-wrap: break-word;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 70%;
+  margin: auto;
+}

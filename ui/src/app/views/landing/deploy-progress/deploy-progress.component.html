@@ -1,0 +1,231 @@
+<div class="clr-row">
+    <div class="clr-col-12">
+        <h3 i18n="deploy progress page welcome title" aria-level="1">Deploying Management, Shared Services and Workload Cluster on {{ providerType }}</h3>
+        <div>
+            {{ getStatusDescription() }}
+        </div>
+    </div>
+</div>
+<br/>
+<br/>
+<br/>
+<ul class="clr-timeline clr-timeline-vertical">
+    <li class="clr-timeline-step disabled">
+        <div class="clr-timeline-step-header">Prechecks</div>
+        <clr-icon shape="dot-circle" aria-current="true" aria-label="Current" *ngIf="precheckStatus=='not-started'"></clr-icon>
+        <clr-spinner clrMedium aria-label="In progress" *ngIf="precheckStatus=='running'"></clr-spinner>
+        <clr-icon shape="success-standard" aria-label="Completed" *ngIf="precheckStatus=='success'"></clr-icon>
+        <clr-icon shape="error-standard" aria-label="Error" *ngIf="precheckStatus=='error'"></clr-icon>
+
+        <div class="clr-timeline-step-body">
+            <span class="clr-timeline-step-title">Pre-check Configuration</span>
+            <span class="clr-timeline-step-description" *ngIf="precheckStatus=='not-started'">
+                Waiting to trigger pre-checks
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="precheckStatus=='running'">
+                Session : Performing prechecks
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="precheckStatus=='success'">
+                Session : Pre-check performed Successfully. Proceeding to AVI Configuration step.
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="precheckStatus=='error'">
+                Session : Pre-check Failed, check the logs.
+            </span>
+        </div>
+    </li>
+    <ng-container *ngIf="this.providerType=='VMC'">
+        <li class="clr-timeline-step">
+            <div class="clr-timeline-step-header">VMC PRE-CONFIGURATION</div>
+            <clr-icon shape="dot-circle" aria-current="true" aria-label="Current" *ngIf="preconfigurationStatus=='not-started'"></clr-icon>
+            <clr-spinner clrMedium aria-label="In progress" *ngIf="preconfigurationStatus=='running'"></clr-spinner>
+            <clr-icon shape="success-standard" aria-label="Completed" *ngIf="preconfigurationStatus=='success'"></clr-icon>
+            <clr-icon shape="error-standard" aria-label="Error" *ngIf="preconfigurationStatus=='error'"></clr-icon>
+            <div class="clr-timeline-step-body">
+                <span class="clr-timeline-step-title">VMC Pre-Configuration</span>
+                <span class="clr-timeline-step-description" *ngIf="aviStatus=='not-started'">
+                    Waiting to trigger VMC Pre-Configuration
+                </span>
+                <span class="clr-timeline-step-description" *ngIf="aviStatus=='running'">
+                    VMC_Pre_Configuration: Configuring VMC Pre-Configuration
+                </span>
+                <span class="clr-timeline-step-description" *ngIf="aviStatus=='success'">
+                    VMC_Pre_Configuration: VMC Pre-Configuration is Successful Proceeding to NSX ALB Configuration
+                </span>
+                <span class="clr-timeline-step-description" *ngIf="aviStatus=='error'">
+                    VMC_Pre_Configuration : VMC Pre-Configuration Failed, check the logs.
+                </span>
+            </div>
+        </li>
+    </ng-container>
+    <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header">NSX ALB</div>
+        <clr-icon shape="dot-circle" aria-current="true" aria-label="Current" *ngIf="aviStatus=='not-started'"></clr-icon>
+        <clr-spinner clrMedium aria-label="In progress" *ngIf="aviStatus=='running'"></clr-spinner>
+        <clr-icon shape="success-standard" aria-label="Completed" *ngIf="aviStatus=='success'"></clr-icon>
+        <clr-icon shape="error-standard" aria-label="Error" *ngIf="aviStatus=='error'"></clr-icon>
+
+        <div class="clr-timeline-step-body">
+            <span class="clr-timeline-step-title">AVI Configuration</span>
+            <span class="clr-timeline-step-description" *ngIf="aviStatus=='not-started'">
+                Waiting to trigger AVI Configuration
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="aviStatus=='running'">
+                AVI_Configuration: Configuring AVI
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="aviStatus=='success'">
+                AVI_Configuration: AVI configured Successfully. Proceeding to Management Cluster Configuration
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="aviStatus=='error'">
+                AVI_Configuration : AVI Configuration Failed, check the logs.
+            </span>
+        </div>
+    </li>
+    <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header">Management Cluster</div>
+        <clr-icon shape="dot-circle" aria-current="true" aria-label="Current" *ngIf="mgmtStatus=='not-started'"></clr-icon>
+        <clr-spinner clrMedium aria-label="In progress" *ngIf="mgmtStatus=='running'"></clr-spinner>
+        <clr-icon shape="success-standard" aria-label="Completed" *ngIf="mgmtStatus=='success'"></clr-icon>
+        <clr-icon shape="error-standard" aria-label="Error" *ngIf="mgmtStatus=='error'"></clr-icon>
+
+        <div class="clr-timeline-step-body">
+            <span class="clr-timeline-step-title">TKG Management Cluster Configuration</span>
+            <span class="clr-timeline-step-description" *ngIf="mgmtStatus=='not-started'">
+                Waiting to trigger Management Cluster Configuration
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="mgmtStatus=='running'">
+                TKG_Mgmt_Configuration: Configuring TKG Management Cluster
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="mgmtStatus=='success'">
+                TKG_Mgmt_Configuration: TKG Management cluster deployed and configured Successfully
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="mgmtStatus=='error'">
+                TKG_Mgmt_Configuration : TKG Management Cluster Configuration Failed, check the logs.
+            </span>
+        </div>
+    </li>
+    <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header">Shared Services Cluster</div>
+        <clr-icon shape="dot-circle" aria-current="true" aria-label="Current" *ngIf="sharedStatus=='not-started'"></clr-icon>
+        <clr-spinner clrMedium aria-label="In progress" *ngIf="sharedStatus=='running'"></clr-spinner>
+        <clr-icon shape="success-standard" aria-label="Completed" *ngIf="sharedStatus=='success'"></clr-icon>
+        <clr-icon shape="error-standard" aria-label="Error" *ngIf="sharedStatus=='error'"></clr-icon>
+
+        <div class="clr-timeline-step-body">
+            <span class="clr-timeline-step-title">TKG Shared Services Cluster Configuration</span>
+            <span class="clr-timeline-step-description" *ngIf="sharedStatus=='not-started'">
+                Waiting to trigger Shared Services Cluster Configuration
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="sharedStatus=='running'">
+                Shared_Service_Configuration: Configuring TKG Shared Services Cluster
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="sharedStatus=='success'">
+                Shared_Service_Configuration: TKG Shared Services Cluster deployed and configured Successfully
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="sharedStatus=='error'">
+                Shared_Service_Configuration : TKG Shared Services Cluster Configuration Failed, check the logs.
+            </span>
+        </div>
+    </li>
+    <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header">Workload Cluster Pre-Config</div>
+        <clr-icon shape="dot-circle" aria-current="true" aria-label="Current" *ngIf="wrkPreConfigStatus=='not-started'"></clr-icon>
+        <clr-spinner clrMedium aria-label="In progress" *ngIf="wrkPreConfigStatus=='running'"></clr-spinner>
+        <clr-icon shape="success-standard" aria-label="Completed" *ngIf="wrkPreConfigStatus=='success'"></clr-icon>
+        <clr-icon shape="error-standard" aria-label="Error" *ngIf="wrkPreConfigStatus=='error'"></clr-icon>
+
+        <div class="clr-timeline-step-body">
+            <span class="clr-timeline-step-title">TKG Workload Cluster Pre-Configuration</span>
+            <span class="clr-timeline-step-description" *ngIf="wrkPreConfigStatus=='not-started'">
+                Waiting to trigger Workload Cluster Pre-Configuration
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="wrkPreConfigStatus=='running'">
+                Workload_Preconfig: Configuring AVI objects for TKG Workload Clusters
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="wrkPreConfigStatus=='success'">
+                Workload_Preconfig: TKG Shared Services Cluster deployed and configured Successfully
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="wrkPreConfigStatus=='error'">
+                Workload_Preconfig : TKG Workload Cluster Pre-Configuration Failed, check the logs.
+            </span>
+        </div>
+    </li>
+    <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header">Workload Cluster</div>
+        <clr-icon shape="dot-circle" aria-current="true" aria-label="Current" *ngIf="wrkStatus=='not-started'"></clr-icon>
+        <clr-spinner clrMedium aria-label="In progress" *ngIf="wrkStatus=='running'"></clr-spinner>
+        <clr-icon shape="success-standard" aria-label="Completed" *ngIf="wrkStatus=='success'"></clr-icon>
+        <clr-icon shape="error-standard" aria-label="Error" *ngIf="wrkStatus=='error'"></clr-icon>
+
+        <div class="clr-timeline-step-body">
+            <span class="clr-timeline-step-title">TKG Workload Cluster Configuration</span>
+            <span class="clr-timeline-step-description" *ngIf="wrkStatus=='not-started'">
+                Waiting to trigger Workload Cluster Configuration
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="wrkStatus=='running'">
+                Workload_Deploy: Configuring TKG Workload Cluster
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="wrkStatus=='success'">
+                Workload_Deploy: TKG Workload Cluster deployed and configured Successfully
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="wrkStatus=='error'">
+                Workload_Deploy : TKG Workload Cluster Configuration Failed, check the logs.
+            </span>
+        </div>
+    </li>
+    <li class="clr-timeline-step">
+        <div class="clr-timeline-step-header">Extensions</div>
+        <clr-icon shape="dot-circle" aria-current="true" aria-label="Current" *ngIf="extensionStatus=='not-started'"></clr-icon>
+        <clr-spinner clrMedium aria-label="In progress" *ngIf="extensionStatus=='running'"></clr-spinner>
+        <clr-icon shape="success-standard" aria-label="Completed" *ngIf="extensionStatus=='success'"></clr-icon>
+        <clr-icon shape="error-standard" aria-label="Error" *ngIf="extensionStatus=='error'"></clr-icon>
+
+        <div class="clr-timeline-step-body">
+            <span class="clr-timeline-step-title">TKG Workload Cluster Configuration</span>
+            <span class="clr-timeline-step-description" *ngIf="extensionStatus=='not-started'">
+                Waiting to trigger Tanzu Extension Configuration
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="extensionStatus=='running'">
+                Deploy_Extensions: Deploying extensions
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="extensionStatus=='success'">
+                Deploy_Extensions: Deployed extensions Successfully
+            </span>
+            <span class="clr-timeline-step-description" *ngIf="extensionStatus=='error'">
+                Deploy_Extensions : Tanzu Extension Configuration Failed, check the logs.
+            </span>
+        </div>
+    </li>
+</ul>
+<br/>
+<br/>
+<div class="clr-row logging_window" >
+    <div class="clr-col-12">
+<!--        <script>-->
+<!--            var output = document.getElementById('output');-->
+<!--            console.log('script');-->
+<!--            console.log(output);-->
+<!--            var xhr = new XMLHttpRequest();-->
+<!--            xhr.open('GET', 'http://172.16.40.170:5000/api/tanzu/streamLogs');-->
+<!--            xhr.send();-->
+<!--            console.log(xhr.responseText);-->
+<!--            setInterval(function() {-->
+<!--                output.textContent = xhr.responseText;-->
+<!--            }, 1000);-->
+<!--        </script>-->
+        <pre id="output">{{ logOutputText }}</pre>
+    </div>
+</div>
+<br/>
+<br/>
+<div class="clr-row clr-justify-content-center">
+    <div class="clr-col-4 btn-container">
+        <button class="btn btn-success" (click)="downloadSupportBundle()"
+                i18n="deploy cluster configuration btn">
+            Support Bundle
+        </button>
+<!--        <button class="btn btn-danger" align="right"-->
+<!--                i18n="deploy cluster configuration btn">-->
+<!--            Stop Deployment-->
+<!--        </button>-->
+    </div>
+</div>

@@ -1,0 +1,28 @@
+- hosts: localhost
+  gather_facts: no
+  connection: local
+  tasks:
+    - set_fact:
+        root_folder: 'tmp_project_dir/'
+
+    - git:
+        repo: git@gitlab.eng.vmware.com:core-build/{{ lookup('env', 'CI_PROJECT_NAME') }}.git
+        dest: '{{ root_folder }}'
+        force: yes
+        accept_hostkey: yes
+        recursive: no
+        version: "{{ lookup('env', 'CI_BUILD_REF_NAME') }}"
+
+    - update_cln:
+        products: '{{ bw_product }}'
+        file_path: '{{ root_folder }}/{{ deps_spec_path }}'
+      register: update_result
+
+    - name: Push spec to git
+      raw: >-
+        cd '{{ root_folder }}' && 
+        git config user.email {{ git_user | default("build-systems") }}@vmware.com &&
+        git add {{ deps_spec_path }} && 
+        git commit -m "Automated CLN update using scripts" && 
+        git push
+      when: update_result.changed

@@ -1,0 +1,12 @@
+/*@font-face {*/
+  /*font-family: 'Amazon Ember';*/
+  /*src: url('../fonts/Amazon_Ember_Bd.ttf') format("truetype");*/
+/*}*/
+@font-face {
+  font-family: 'Amazon Ember Bold';
+  src: url('ui/src/assets/fonts/Amazon_Ember_Bd.ttf') format("truetype");
+}
+@font-face {
+  font-family: 'Amazon Ember Regular';
+  src: url('ui/src/assets/fonts/Amazon_Ember_Rg.ttf') format("truetype");
+}

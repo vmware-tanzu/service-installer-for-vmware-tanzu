@@ -1,0 +1,24 @@
+apiVersion: polling.tekton.dev/v1alpha1
+kind: Repository
+metadata:
+  name: monitor-repave-mesage
+spec:
+  url: https://gitlab.eng.vmware.com/smuthukumar/arcas-tekton-cicd.git
+  ref: trigger-repave
+  frequency: 2m
+  type: gitlab
+  pipelineRef:
+    name: trigger-upgrade-pipeline
+    params:
+    - name: message
+      expression: commit.message
+    workspaces:
+      - name: pipeline-shared-data
+        persistentVolumeClaim:
+          claimName: tekton-day0
+
+  auth:
+    secretRef:
+      name: git-user-pass
+    key: password
+

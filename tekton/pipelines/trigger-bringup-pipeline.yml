@@ -1,0 +1,103 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: trigger-bringup-pipeline
+spec:
+  description: >-
+    The Pipline to capture git event and trigger tasks
+
+  workspaces:
+    - name: pipeline-shared-data
+
+  params:
+    - name: imagename
+      description: "The image location"
+      default: "10.202.233.205:80/library/service_installer_tekton:v141"
+    - name: giturl
+      description: The full http git path
+      default: "https://gitlab.eng.vmware.com/smuthukumar/arcas-tekton-cicd.git"
+    - name: branch
+      description: the branch to clone from. By default, it is set to master.
+      default: repave
+    - name: message
+      description: The commit message
+
+  tasks:
+    - name: start-prep-workspace
+      taskRef:
+        name: git-pvtclone
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: giturl
+          value: "$(params.giturl)"
+        - name: branch
+          value: "$(params.branch)"
+
+    - name: start-avi
+      when:
+        - input: "$(params.message)"
+          operator: in
+          values:  [ "exec_bringup" ]
+      taskRef:
+        name: avi-setup-task
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+      runAfter:
+          - start-prep-workspace
+
+    - name: start-mgmt-create
+      when:
+        - input: "$(params.message)"
+          operator: in
+          values:  [ "exec_bringup" ]
+      taskRef:
+        name: dind-mgmt-create
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+      runAfter:
+            - start-avi
+
+    - name: start-shared-cluster-create
+      when:
+        - input: "$(params.message)"
+          operator: in
+          values:  [ "exec_bringup" ]
+      taskRef:
+        name: dind-sharedcluster-create
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+      runAfter:
+            - start-mgmt-create
+
+    - name: start-workload-cluster
+      when:
+        - input: "$(params.message)"
+          operator: in
+          values:  [ "exec_bringup" ]
+      taskRef:
+        name: dind-wld-create
+      workspaces:
+          - name: task-shared-data
+            workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+      runAfter:
+            - start-shared-cluster-create
+

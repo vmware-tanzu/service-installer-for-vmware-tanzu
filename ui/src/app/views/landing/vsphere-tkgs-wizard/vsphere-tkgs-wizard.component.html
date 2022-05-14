@@ -1,0 +1,335 @@
+<div [ngClass]="{'hide': review}">
+    <div class="clr-row mb-20">
+        <div class="clr-col-12">
+<!--            <clr-icon shape="arrow" dir="left" size="50" class="is-info back-link"-->
+<!--                      role="button"-->
+<!--                      tabindex="0"-->
+<!--                      aria-label="back"-->
+<!--                      (click)="navigate(APP_ROUTES.LANDING)"-->
+<!--                      keyboardListener-->
+<!--            ></clr-icon>-->
+            <ng-container *ngIf="this.apiClient.tkgsStage==='wcp'">
+                <h4 i18n="wizard title" aria-level="1">
+                    <div class="vsphere-icon-30"></div>
+                    Configure Tanzu Supervisor cluster on vSphere
+                </h4>
+            </ng-container>
+            <ng-container *ngIf="this.apiClient.tkgsStage==='namespace'">
+                <h4 i18n="wizard title" aria-level="1">
+                    <div class="vsphere-icon-30"></div>
+                    Configure Tanzu Namespace and Workload cluster on vSphere
+                </h4>
+            </ng-container>
+        </div>
+    </div>
+
+    <!--   <app-shared-delete-data-popup></app-shared-delete-data-popup>-->
+    <form clrStepper #wizard [formGroup]="form">
+        <ng-container *ngIf="this.apiClient.tkgsStage==='wcp'">
+            <clr-stepper-panel formGroupName="dumyForm" removeAriaLabelleedBy>
+                <clr-step-title i18n="Infra Details step name">
+                    Infrastructure
+                </clr-step-title>
+                <clr-step-description i18n="IaaS provider step description">
+                    &emsp; &emsp; &emsp; Configure DNS and NTP server/s
+                </clr-step-description>
+                <ng-container *ngIf="steps[0]">
+                    <app-dns-ntp-step [formGroup]="form.controls.dumyForm" formName="dumyForm">
+                    </app-dns-ntp-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="onDnsNext()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
+            <clr-stepper-panel formGroupName="vsphereProviderForm" removeAriaLabelledBy>
+                <clr-step-title i18n="IaaS provider step name">
+                    IaaS Provider
+                </clr-step-title>
+                <clr-step-description i18n="IaaS provider step description">
+                    {{&emsp; &emsp; &emsp; getStepDescription('provider') }}
+                </clr-step-description>
+                <ng-container *ngIf="steps[1]">
+                    <app-vsphere-provider-step [formGroup]="form.controls.vsphereProviderForm" formName="vsphereProvider">
+                    </app-vsphere-provider-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="onProviderNextStepTkgs()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
+            <clr-stepper-panel formGroupName="tanzuSaasSettingForm" removeAriaLabelledBy>
+                <clr-step-title i18n="tanzu saas setting step name">
+                    Tanzu saas endpoints
+                </clr-step-title>
+                <clr-step-description i18n="tanzu saas setting step description">
+                    {{&emsp; &emsp; &emsp; getStepDescription('tanzuSaasSetting')}}
+                </clr-step-description>
+                <ng-container *ngIf="steps[2]">
+                    <app-tanzuSaas-step [formGroup]="form.controls.tanzuSaasSettingForm" formName="tanzuSaasSettingForm">
+                    </app-tanzuSaas-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="onTanzuNext()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
+            <clr-stepper-panel formGroupName="vsphereAVINetworkSettingForm" removeAriaLabelledBy>
+                <clr-step-title i18n="node setting step name">
+                    VMware NSX Advanced Load Balancer
+                </clr-step-title>
+                <clr-step-description i18n="node setting step description">
+                    {{&emsp; getStepDescription('aviNetworkSetting') }}
+                </clr-step-description>
+                <ng-container *ngIf="steps[3]">
+                    <app-avi-setting-step [formGroup]="form.controls.vsphereAVINetworkSettingForm" [providerType]="(provider | async)"
+                                          formName="aviNetworkSettings"
+                                          [errorNotification]="errorNotification">
+                    </app-avi-setting-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="onNextStep()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
+            <clr-stepper-panel formGroupName="controlPlaneSizeForm" removeAriaLabelledBy>
+                <clr-step-title i18n="node setting step name">
+                    Control plane size
+                </clr-step-title>
+                <clr-step-description i18n="node setting step description">
+                    &emsp; &emsp; &emsp; {{ getStepDescription('controlPlane') }}
+                </clr-step-description>
+                <ng-container *ngIf="steps[4]">
+                    <app-control-plane-setting-step [formGroup]="form.controls.controlPlaneSizeForm"
+                                          formName="controlPlaneSizeForm"
+                                          [errorNotification]="errorNotification">
+                    </app-control-plane-setting-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="onControlPlaneNext()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
+            <clr-stepper-panel formGroupName="storagePolicyForm" removeAriaLabelledBy>
+                <clr-step-title i18n="node setting step name">
+                    Storage policy settings
+                </clr-step-title>
+                <clr-step-description i18n="node setting step description">
+                    &emsp; &emsp; &emsp; Specify storage policies to be configured
+                </clr-step-description>
+                <ng-container *ngIf="steps[5]">
+                    <app-storage-policy-step [formGroup]="form.controls.storagePolicyForm"
+                                          formName="storagePolicyForm"
+                                          [errorNotification]="errorNotification">
+                    </app-storage-policy-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="onStoragePolicyNext()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
+            <clr-stepper-panel formGroupName="mgmtNwForm" removeAriaLabelledBy>
+                <clr-step-title i18n="node setting step name">
+                    Management network
+                </clr-step-title>
+                <clr-step-description i18n="node setting step description">
+                    &emsp; &emsp; &emsp; Configure management network
+                </clr-step-description>
+                <ng-container *ngIf="steps[6]">
+                    <app-mgmt-nw-step [formGroup]="form.controls.mgmtNwForm"
+                                             formName="mgmtNwForm"
+                                             [errorNotification]="errorNotification">
+                    </app-mgmt-nw-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="onMgmtNetworkNext()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
+            <clr-stepper-panel formGroupName="wrkNwForm" removeAriaLabelledBy>
+                <clr-step-title i18n="node setting step name">
+                    Primary workload network
+                </clr-step-title>
+                <clr-step-description i18n="node setting step description">
+                    &emsp; &emsp; &emsp; Configure primary workload network
+                </clr-step-description>
+                <ng-container *ngIf="steps[7]">
+                    <app-wrk-nw-step [formGroup]="form.controls.wrkNwForm"
+                                      formName="wrkNwForm"
+                                      [errorNotification]="errorNotification">
+                    </app-wrk-nw-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="onNextStep()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
+        </ng-container>
+
+        <ng-container *ngIf="this.apiClient.tkgsStage==='namespace'">
+            <clr-stepper-panel formGroupName="vCenterDetailsForm" removeAriaLabelledBy>
+                <clr-step-title i18n="node setting step name">
+                    {{'IaaS Provider'}}
+                </clr-step-title>
+                <clr-accordion-description>
+                    <clr-step-description i18n="node setting step description">
+                        &emsp; &emsp; &nbsp; {{getStepDescription('provider') }}
+                    </clr-step-description>
+                </clr-accordion-description>
+                <ng-container *ngIf="steps[0]">
+                    <app-env-details-step [formGroup]="form.controls.vCenterDetailsForm"
+                                      formName="vCenterDetailsForm"
+                                      [errorNotification]="errorNotification">
+                    </app-env-details-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="onVCDetailsNext()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
+            <clr-stepper-panel formGroupName="tanzuSaasSettingForm" removeAriaLabelledBy>
+                <clr-step-title i18n="tanzu saas setting step name">
+                    {{'Configure Tanzu Saas settings'}}
+                </clr-step-title>
+                <clr-accordion-description>
+                    <clr-step-description i18n="tanzu saas setting step description">
+                        &emsp; {{getStepDescription('tanzuSaasSetting')}}
+                    </clr-step-description>
+                </clr-accordion-description>
+                <ng-container *ngIf="steps[1]">
+                    <app-tanzuSaas-step [formGroup]="form.controls.tanzuSaasSettingForm" formName="tanzuSaasSettingForm">
+                    </app-tanzuSaas-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="checkForWorkloadNetwork()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
+            <clr-stepper-panel formGroupName="workloadNetworkForm" removeAriaLabelledBy>
+                <clr-step-title i18n="node setting step name">
+                    {{'Workload network settings'}}
+                </clr-step-title>
+                <clr-accordion-description>
+                    <clr-step-description i18n="node setting step description">
+                        &emsp; &emsp; Configure Workload Network
+                    </clr-step-description>
+                </clr-accordion-description>
+                <ng-container *ngIf="steps[2]">
+                    <app-wrk-ns-step [formGroup]="form.controls.workloadNetworkForm"
+                                      formName="workloadNetworkForm"
+                                      [errorNotification]="errorNotification">
+                    </app-wrk-ns-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="onWrkNWNext()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
+            <clr-stepper-panel formGroupName="namespaceForm" removeAriaLabelledBy>
+                <clr-step-title i18n="node setting step name">
+                    {{'Namespace specification'}}
+                </clr-step-title>
+                <clr-accordion-description>
+                    <clr-step-description i18n="node setting step description">
+                       &emsp; &emsp; &nbsp; Configure VMware on Tanzu vSphere namespace settings
+                    </clr-step-description>
+                </clr-accordion-description>
+                <ng-container *ngIf="steps[3]">
+                    <app-namespace-spec-step [formGroup]="form.controls.namespaceForm"
+                                           formName="namespaceForm" [errorNotification]="errorNotification">
+                    </app-namespace-spec-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="onNamespaceNext()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
+            <clr-stepper-panel formGroupName="workloadClusterForm" removeAriaLabelledBy>
+                <clr-accordion-title>
+                    <clr-step-title i18n="node setting step name">
+                        {{'Workload cluster settings'}}
+                    </clr-step-title>
+                </clr-accordion-title>
+                <clr-accordion-description>
+                    <clr-step-description i18n="node setting step description">
+                        &emsp; &emsp; &nbsp; {{'Configure resources backing workload cluster'}}
+                    </clr-step-description>
+                </clr-accordion-description>
+                <ng-container *ngIf="steps[4]">
+                    <app-workload-cluster-step [formGroup]="form.controls.workloadClusterForm"
+                                             formName="workloadClusterForm" [errorNotification]="errorNotification">
+                    </app-workload-cluster-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="onTkgsWrkNextClick()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
+            <clr-stepper-panel formGroupName="extensionSettingForm" removeAriaLabelledBy>
+                <clr-accordion-title>
+                    <clr-step-title i18n="node setting step name">
+                        User-Managed Packages
+                    </clr-step-title>
+                </clr-accordion-title>
+                <clr-accordion-description>
+                    <clr-step-description i18n="node setting step description">
+                        Configure User-Managed Packages for Tanzu workload cluster
+                    </clr-step-description>
+                </clr-accordion-description>
+                <ng-container *ngIf="steps[5]">
+                    <app-extension-setting-step [formGroup]="form.controls.extensionSettingForm" [providerType]="(provider | async)"
+                                                formName="extensionSettings">
+                    </app-extension-setting-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="onNextStep()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
+        </ng-container>
+
+    </form>
+
+    <button class="btn btn-primary mt-20" [disabled]="!getWizardValidity()" (click)="reviewConfiguration(true)"
+            i18n="review cluster configuration btn">
+        REVIEW CONFIGURATION
+    </button>
+</div>
+
+<ng-container *ngIf="review">
+    <tkg-kickstart-ui-confirm [errorNotification]="errorNotification"></tkg-kickstart-ui-confirm>
+    <div class="clr-row mt-20">
+        <div class="clr-col-12 btn-container">
+            <button class="btn btn-outline edit-btn" (click)="reviewConfiguration(false)"
+                    i18n="return to wizard for edit button">
+<!--                <cds-icon shape="pencil" solid></cds-icon>-->
+                <clr-icon shape="pencil" dir="left" size="18" class="is-info back-link"></clr-icon>
+                Edit
+            </button>
+            <button class="btn btn-primary deploy-btn" [disabled]="disableDeployButton" (click)="deploy()"
+                    i18n="deploy cluster configuration btn">
+                <clr-icon shape="download-cloud" size="18"></clr-icon>
+<!--                <cds-icon shape="download-cloud"></cds-icon>-->
+                Save to VM
+            </button>
+            <button class="btn btn-primary deploy-btn" (click)="openViewJsonModal()"
+                    i18n="deploy cluster configuration btn">
+                <clr-icon shape="tree-view" size="18"></clr-icon>
+<!--                <cds-icon shape="download"></cds-icon>-->
+                View
+            </button>
+        </div>
+    </div>
+    <div *ngIf="showAwsTestMessage" class="alert alert-success" role="alert" id="retrieve-az-alert-success">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="check-circle"></clr-icon>
+                </div>
+                <span class="alert-text" id="retrieve-az-alert-success-msg-2">
+                    Generation of input json file is successful. The file is present at {{filePath}}.
+                </span>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="showIPValidationSuccess" class="alert alert-success" role="alert" id="retrieve-az-alert-success-2">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="check-circle"></clr-icon>
+                </div>
+                <span class="alert-text" id="retrieve-az-alert-success-msg">
+                    IP and Network details are successfully validated. Generate Input JSON file or deploy to proceed.
+                </span>
+            </div>
+        </div>
+    </div>
+</ng-container>
+
+<app-view-json-modal [payload]="this.apiClient.vpshereTkgsPayload" [env]="'vsphere-tkgs'"></app-view-json-modal>

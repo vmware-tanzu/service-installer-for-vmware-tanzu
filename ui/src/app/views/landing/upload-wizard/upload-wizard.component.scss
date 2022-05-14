@@ -1,0 +1,165 @@
+@import '../../../../sass/properties.scss';
+@import '../landing.component.scss';
+
+.card {
+    &.provider {
+        .card-block,
+        .card-footer {
+            text-align: center;
+
+            .btn {
+                margin: 0;
+            }
+        }
+
+        .card-media-block {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card-block {
+            min-height: 170px;
+        }
+    }
+}
+
+.card-title{
+    text-align: center;
+    padding: .5rem;
+}
+
+.card-selected {
+    box-shadow: 0 .15rem 0 0 var(--clr-card-clickable-box-shadow-color);
+    border-style: solid;
+    transform: translateY(-.1rem);
+    transition: border .2s ease,transform .2s ease,-webkit-transform .2s ease;
+    border-color: var(--clr-card-clickable-border-color, #179bd3);
+}
+
+:host ::ng-deep button.clr-accordion-header-button {
+  font-size: 14px;
+  padding: 9px 18px;
+  color: #474747;
+  .clr-accordion-complete-icon {
+    color: #4C773C;
+  }
+}
+//
+input[type="file"] {
+  opacity: 0;
+  width: 0.1px;
+  height: 0.1px;
+  position: absolute;
+}
+
+.tab4 {
+  tab-size: 8;
+}
+
+.tabLarge {
+    tab-size: 24;
+    position: relative;
+}
+
+clr-icon.back-link {
+  margin-right: 6px;
+  cursor: pointer;
+  position: relative;
+  top: 10px;
+  float:left;
+}
+clr-icon.next-link {
+  margin-left: 6px;
+  cursor: pointer;
+  position: relative;
+  top: 10px;
+  float: right;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+.vsphere-icon-30 {
+  position: relative;
+  top: -2px;
+}
+
+clr-step-title {
+  position:left;
+  float:left;
+}
+clr-step-description {
+  position:right;
+  float:right;
+}
+
+@media (max-width: $small) {
+  .btn-container {
+    text-align: center;
+    .deploy-btn, .edit-btn {
+      width: 100%;
+    }
+  }
+}
+
+.card-icon {
+    position: relative;
+    left: 43%;
+}
+
+.card-title {
+    text-align: center;
+}
+
+.card-selected {
+    box-shadow: 0 .15rem 0 0 var(--clr-card-clickable-box-shadow-color);
+    border-style: solid;
+    transform: translateY(-.1rem);
+    transition: border .2s ease,transform .2s ease,-webkit-transform .2s ease;
+    border-color: var(--clr-card-clickable-border-color, #179bd3);
+}
+
+.card-footer {
+    .clr-row {
+        align-items: baseline;
+    }
+}
+
+.ha-template {
+    display: inline-block;
+}
+
+.refresh-btn {
+    cursor: pointer;
+    display: inline-block;
+    height: 100%;
+    vertical-align: top;
+    color: #0072a3;
+
+    clr-icon,
+    .spinner-sm {
+        position: relative;
+        top: 48px;
+    }
+}
+
+.node-type-container {
+    max-width: 45%;
+}
+
+.node-type-select {
+    display: inline-block;
+    max-width: 200px;
+}
+
+// tooltip max-width fix
+:host ::ng-deep clr-tooltip {
+    clr-tooltip-content {
+        max-width: 300px;
+    }
+}
+
+option {
+    font-family: sans-serif;
+}

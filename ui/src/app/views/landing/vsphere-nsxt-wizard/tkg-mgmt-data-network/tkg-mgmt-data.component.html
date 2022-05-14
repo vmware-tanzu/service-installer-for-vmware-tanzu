@@ -1,0 +1,171 @@
+<form [formGroup]="formGroup" >
+<!--    <div *ngIf="this.apiClient.tkgMgmtDataSegmentError" class="alert alert-danger" role="alert">-->
+<!--        <div class="alert-items">-->
+<!--            <div class="alert-item static">-->
+<!--                <div class="alert-icon-wrapper">-->
+<!--                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>-->
+<!--                </div>-->
+<!--                <div class="newline">-->
+<!--                    <span class="alert-text">-->
+<!--                        {{ segmentErrorMsg }}-->
+<!--                    </span>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">-->
+<!--            <clr-icon aria-hidden="true" shape="close"></clr-icon>-->
+<!--        </button>-->
+<!--    </div>-->
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <h4 i18n="cluster settings" aria-level="2">
+        TKG Management Data Network Settings
+    </h4>
+
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    SEGMENT NAME
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify segment name to be configured for TKG Management Data Network
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="TKGMgmtSegmentName" placeholder="Segment Name"
+                       (ngModelChange)="onTkgMgmtDataValidateClick()" (blur)="onTkgMgmtDataValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    TKG Management Data Network is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    TKG Management Data Network is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    TKG Management Data Network has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    GATEWAY CIDR
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify Gateway CIDR to be configured for TKG Management Data Network
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="TKGMgmtGatewayCidr" placeholder="192.168.0.1/24"
+                       (ngModelChange)="onTkgMgmtDataValidateClick()" (blur)="onTkgMgmtDataValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Gateway CIDR is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    Gateway CIDR is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.WHITESPACE">
+                    Gateway CIDR has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    IP START RANGE
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify IP start range to be configured for TKG Management Data Network
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="TKGMgmtDhcpStartRange" placeholder="192.168.0.1"
+                       (ngModelChange)="onTkgMgmtDataValidateClick()" (blur)="onTkgMgmtDataValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    IP start range is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    IP start range is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.WHITESPACE">
+                    IP start range has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    IP END RANGE
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify IP end range to be configured for TKG Management Data Network
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="TKGMgmtDhcpEndRange" placeholder="192.168.0.100"
+                       (ngModelChange)="onTkgMgmtDataValidateClick()" (blur)="onTkgMgmtDataValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    IP end range is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    IP end range is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    IP end range has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+    <!--    <div class="clr-row">-->
+    <!--        <div class="clr-col-12 clr-col-sm-4" aria-live="assertive">-->
+    <!--            <button [clrLoading]="loadingState"-->
+    <!--                    [disabled]="getDisabled() || validated"-->
+    <!--                    (click)="onTkgMgmtDataValidateClick()" i18n="connect btn"-->
+    <!--                    class="btn btn-primary btn-connect">-->
+    <!--                {{ validated ? "VALIDATED" : "VALIDATE" }}-->
+    <!--            </button>-->
+    <!--        </div>-->
+    <!--    </div>-->
+</form>

@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: day0-bringup
+spec:
+  serviceAccountName: git-bot
+  workspaces:
+    - name: pipeline-shared-data
+      volumeClaimTemplate:
+        metadata:
+          name: arcas-pvc-pr
+        spec:
+          accessModes:
+            - ReadWriteMany
+          resources:
+            requests:
+              storage: 1Gi
+  pipelineRef:
+    name: day0-pipeline
+  params:
+    - name: imagename
+      value: "IMAGE_NAME"
+    - name: giturl
+      value: "GIT_URL"
+    - name: branch
+      value: "GIT_BRANCH"

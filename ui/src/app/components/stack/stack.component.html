@@ -1,0 +1,355 @@
+
+  <header class="header-2">
+    <div class="branding">
+      <a class="nav-link">
+        <clr-icon shape="home" size="24"></clr-icon>
+        <span class="title">VMC Automation</span>
+      </a>
+    </div>
+    <div class="header-nav">
+      <a class="active nav-link nav-text">Home</a>
+    </div>
+  </header>
+  <div id="steeper">
+      <form clrStepper [formGroup]="homeForm" clrLayout="horizontal">
+        <clr-stepper-panel formGroupName="login">
+          <clr-step-title>Login Details</clr-step-title>
+          <clr-step-content *clrIfExpanded>
+            <clr-password-container>
+              <label>Refresh Token</label>
+              <input class="clr-col-12 clr-col-sm-12 clr-col-md-12 clr-col-lg-12 clr-col-xl-12 password-container" clrPassword type="password" formControlName="refreshToken" />
+              <clr-control-error *clrIfError="'required'">Refresh Token is Required</clr-control-error>
+              </clr-password-container>
+            <button clrStepButton="next">next</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+        <clr-stepper-panel formGroupName="aviManagementSegment">
+          <clr-step-title>Avi Management Segment Details</clr-step-title>
+          <clr-step-content *clrIfExpanded>
+            <clr-input-container>
+              <label>Segment Name</label>
+              <input clrInput formControlName="aviManagementName" />
+              <clr-control-error *clrIfError="'required'">Avi management segment name is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Gateway Address</label>
+              <input clrInput formControlName="aviGatewayAddress" />
+              <clr-control-error *clrIfError="'required'">Avi management gateway address is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Dhcp start range</label>
+              <input clrInput formControlName="aviDhcpStartRange" />
+              <clr-control-error *clrIfError="'required'">Avi management dhcp start range is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Dhcp end range</label>
+              <input clrInput formControlName="aviDhcpEndRange" />
+              <clr-control-error *clrIfError="'required'">Avi management dhcp end range is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+            <label>Dns servers</label>
+            <input clrInput formControlName="aviDnsServers" />
+            <clr-control-error *clrIfError="'required'">Avi dns servers are required</clr-control-error>
+            </clr-input-container>
+            <button clrStepButton="next">next</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+        <clr-stepper-panel formGroupName="tkgManagementSegment">
+          <clr-step-title>Tkg Management Segment Details</clr-step-title>
+          <clr-step-content *clrIfExpanded>
+            <clr-input-container>
+              <label>Segment Name</label>
+              <input clrInput formControlName="tkgManagementName" />
+              <clr-control-error *clrIfError="'required'">TKG management segment name is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Gateway Address</label>
+              <input clrInput formControlName="tkgGatewayAddress" />
+              <clr-control-error *clrIfError="'required'">TKG management gateway address is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Dhcp start range</label>
+              <input clrInput formControlName="tkgDhcpStartRange" />
+              <clr-control-error *clrIfError="'required'">TKG management dhcp start range is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Dhcp end range</label>
+              <input clrInput formControlName="tkgDhcpEndRange" />
+              <clr-control-error *clrIfError="'required'">TKG management dhcp end range is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Dns servers</label>
+              <input clrInput formControlName="tkgDnsServers" />
+              <clr-control-error *clrIfError="'required'">Tkg dns servers are required</clr-control-error>
+            </clr-input-container>
+            <button clrStepButton="next">next</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+        <clr-stepper-panel formGroupName="tkgWorkloadSegment">
+          <clr-step-title>Tkg Workload Segment Details</clr-step-title>
+          <clr-step-content *clrIfExpanded>
+            <clr-input-container>
+              <label>Segment Name</label>
+              <input clrInput formControlName="tkgWorkloadName" />
+              <clr-control-error *clrIfError="'required'">TKG workload segment name is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Gateway Address</label>
+              <input clrInput formControlName="tkgWorkloadGatewayAddress" />
+              <clr-control-error *clrIfError="'required'">TKG workload gateway address is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Dhcp start range</label>
+              <input clrInput formControlName="tkgWorkloadDhcpStartRange" />
+              <clr-control-error *clrIfError="'required'">TKG workload dhcp start range is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Dhcp end range</label>
+              <input clrInput formControlName="tkgWorkloadDhcpEndRange" />
+              <clr-control-error *clrIfError="'required'">TKG workload dhcp end range is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Dns servers</label>
+              <input clrInput formControlName="tkgWorkloadDnsServers" />
+              <clr-control-error *clrIfError="'required'">Tkg workload dns servers are required</clr-control-error>
+            </clr-input-container>
+            <button clrStepButton="next">next</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+        <clr-stepper-panel formGroupName="tkgAviDataSegment">
+          <clr-step-title>Avi Data Segment Details</clr-step-title>
+          <clr-step-content *clrIfExpanded>
+            <clr-input-container>
+              <label>Segment Name</label>
+              <input clrInput formControlName="tkgAviDataName" />
+              <clr-control-error *clrIfError="'required'">TKG avi data segment segment name is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Gateway Address</label>
+              <input clrInput formControlName="tkgAviDataGatewayAddress" />
+              <clr-control-error *clrIfError="'required'">TKG avi data segment gateway address is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Dhcp start range</label>
+              <input clrInput formControlName="tkgAviDataDhcpStartRange" />
+              <clr-control-error *clrIfError="'required'">TKG avi data segment dhcp start range is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Dhcp end range</label>
+              <input clrInput formControlName="tkgAviDataDhcpEndRange" />
+              <clr-control-error *clrIfError="'required'">TKG avi data segment dhcp end range is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Dns servers</label>
+              <input clrInput formControlName="tkgAviDataDnsServers" />
+              <clr-control-error *clrIfError="'required'">Tkg avi data segment dns servers are required</clr-control-error>
+            </clr-input-container>
+            <button clrStepButton="next">next</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+        <clr-stepper-panel formGroupName="inventoryGroupsCgw">
+          <clr-step-title>Inventory groups details on CGW</clr-step-title>
+          <clr-step-content *clrIfExpanded>
+            <clr-input-container>
+              <label>Avi management group name</label>
+              <input clrInput formControlName="inventoryGroupsCgwAviName" />
+              <clr-control-error *clrIfError="'required'">Avi management group name is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>TKG management group name</label>
+              <input clrInput formControlName="inventoryGroupsCgwTkgName" />
+              <clr-control-error *clrIfError="'required'">TKG management group name is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>TKG workload network group name</label>
+              <input clrInput formControlName="inventoryGroupsTKGWorkloadName" />
+              <clr-control-error *clrIfError="'required'">TKG workload network group name is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>DNS IPs Group</label>
+              <input clrInput formControlName="inventoryGroupsDnsIps" />
+              <clr-control-error *clrIfError="'required'">DNS IPs are required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>NTP IPs Group</label>
+              <input clrInput formControlName="inventoryGroupsNtpIPs" />
+              <clr-control-error *clrIfError="'required'">NTP IPs are required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>TKG Management ControlPlane IPs</label>
+              <input clrInput formControlName="inventoryGroupsCgwTkgManagementControlPlaneIP" />
+              <clr-control-error *clrIfError="'required'">TKG Management ControlPlane IPs are required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>TKG Workload ControlPlane IPs</label>
+              <input clrInput formControlName="inventoryGroupsCgwTkgWorkloadControlPlaneIP" />
+              <clr-control-error *clrIfError="'required'">TKG Workload ControlPlane IPs are required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>vCenter IPs Group</label>
+              <input clrInput formControlName="inventoryGroupsCgwVcenterIP" />
+              <clr-control-error *clrIfError="'required'">vCenter IPs are required</clr-control-error>
+            </clr-input-container>
+            <button clrStepButton="next">next</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+        <clr-stepper-panel formGroupName="inventoryGroupsMgw">
+          <clr-step-title>Inventory groups details on MGW</clr-step-title>
+          <clr-step-content *clrIfExpanded>
+            <clr-input-container>
+              <label>TKG management network group name</label>
+              <input clrInput formControlName="inventoryGroupsMgwTkgManagementNetworkGroupName" />
+              <clr-control-error *clrIfError="'required'">TKG management network group name is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>TKG workload networks group name</label>
+              <input clrInput formControlName="inventoryGroupsMgwTkgWorkloadNetworkGroupName" />
+              <clr-control-error *clrIfError="'required'">TKG workload networks group name is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>AVI management network group Name</label>
+              <input clrInput formControlName="inventoryGroupsMgwAviManagementNetworkGroupName" />
+              <clr-control-error *clrIfError="'required'">AVI Management network group name is required</clr-control-error>
+            </clr-input-container>
+            <button clrStepButton="next">next</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+        <clr-stepper-panel formGroupName="firewallRuleCgw">
+          <clr-step-title>Firewall Rules Under CGW Details</clr-step-title>
+          <clr-step-content *clrIfExpanded>
+            <clr-input-container>
+              <label>TKG_and_AVI to DNS Name</label>
+              <input clrInput formControlName="tkgAndAviDnsNameCgw" />
+              <clr-control-error *clrIfError="'required'">TKG_and_AVI to DNS Name is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>TKG_and_AVI to NTP name</label>
+              <input clrInput formControlName="tkgAndAviNtpNameCgw" />
+              <clr-control-error *clrIfError="'required'">Firewall rule name is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>TKG_and_AVI to vCenter name</label>
+              <input clrInput formControlName="tkgAndAviVcenterNameCgw" />
+              <clr-control-error *clrIfError="'required'">TKG_and_AVI to vCenter name is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>TKG_and_AVI to Internet name</label>
+              <input clrInput formControlName="tkgAndAviInternetNameCgw" />
+              <clr-control-error *clrIfError="'required'">TKG_and_AVI to Internet  name is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>TKG to AVI Mgmt name</label>
+              <input clrInput formControlName="tkgAndAviMgmtNameCgw" />
+              <clr-control-error *clrIfError="'required'">Firewall rule name is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>TKG_Mgmt to TKG_Workload_VIP name</label>
+              <input clrInput formControlName="tkgMgmtToTkgWorkloadVipNameCgw" />
+              <clr-control-error *clrIfError="'required'">TKG_Mgmt to TKG_Workload_VIP name is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>TKG_Workload to TKG_Mgmt_VIP name</label>
+              <input clrInput formControlName="tkgWorkloadToTkgMgmtVipNameCgw" />
+              <clr-control-error *clrIfError="'required'">TKG_Workload to TKG_Mgmt_VIP name is required</clr-control-error>
+            </clr-input-container>
+            <button clrStepButton="next" >next</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+        <clr-stepper-panel formGroupName="firewallRuleMgw">
+          <clr-step-title>Firewall Rules Under MGW Details</clr-step-title>
+          <clr-step-content *clrIfExpanded>
+            <clr-input-container>
+              <label>TKG_and_AVI to vCenter name</label>
+              <input clrInput formControlName="tkgAndAviVcenterNameMgw" />
+              <clr-control-error *clrIfError="'required'">TKG_and_AVI to vCenter name is required</clr-control-error>
+            </clr-input-container>
+            <button clrStepButton="next">next</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+        <clr-stepper-panel formGroupName="aviControllerConfig">
+          <clr-step-title>Avi controller configuration</clr-step-title>
+          <clr-step-content *clrIfExpanded>
+            <clr-input-container>
+              <label>CSFR user name</label>
+              <input clrInput formControlName="csfrUserName" />
+              <clr-control-error *clrIfError="'required'">CSFR user name is required</clr-control-error>
+            </clr-input-container>
+            <clr-password-container>
+              <label>CSFR user password</label>
+              <input class="clr-col-12 clr-col-sm-12 clr-col-md-12 clr-col-lg-12 clr-col-xl-12 password-container" clrPassword type="password" formControlName="csfrUserPassword" />
+              <clr-control-error *clrIfError="'required'">CSFR password is required</clr-control-error>
+              </clr-password-container>
+            <clr-password-container>
+              <label>Set admin password</label>
+              <input class="clr-col-12 clr-col-sm-12 clr-col-md-12 clr-col-lg-12 clr-col-xl-12 password-container" clrPassword type="password" formControlName="setAdminPassword" />
+              <clr-control-error *clrIfError="'required'">Set admin password is required</clr-control-error>
+            </clr-password-container>
+            <clr-input-container>
+              <label>Server list ip address and type</label>
+              <input clrInput placeholder="eg: 1.1.1.1:DNS,1.1.1.1:V4" formControlName="setServerListIpAndType" />
+              <clr-control-error *clrIfError="'required'">Server list ip is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Ntp list address and type </label>
+              <input clrInput class="clr-col-12 clr-col-sm-12 clr-col-md-12 clr-col-lg-12 clr-col-xl-12 w-100" placeholder="eg: 1.1.1.1:DNS,1.1.1.1:V4"  formControlName="ntpServerListAndType" />
+              <clr-control-error *clrIfError="'required'">Ntp list address and type is required</clr-control-error>
+            </clr-input-container>
+            <clr-input-container>
+              <label>Set backup pass phrase</label>
+              <input clrInput  formControlName="setBackupPassPhrase" />
+              <clr-control-error *clrIfError="'required'">Set backup pass phrase is required</clr-control-error>
+            </clr-input-container>
+            <button clrStepButton="next" (click)="lastNextClicked($event)">next</button>
+          </clr-step-content>
+        </clr-stepper-panel>
+        <button *ngIf="isClicked" class="btn btn-primary" id="execute" [disabled]="!homeForm.valid || executeButtonClicked"  (click)="executeAnsible()">Execute</button>
+        <div class="clr-col-12 clr-col-sm-12 clr-col-md-12 clr-col-lg-12 clr-col-xl-12">
+        <span *ngIf="showLoginLoader"
+              class="spinner spinner-lg test-spinner clr-col-3 clr-col-3 clr-col-sm-3 clr-col-md-3 clr-col-lg-3 clr-col-xl-3">
+        Loading...
+        </span>
+        </div>
+        <div *ngIf="showMessage" class="alert alert-success" role="alert" id="connection-alert-success">
+          <div class="alert-items">
+            <div class="alert-item static">
+              <div class="alert-icon-wrapper">
+                <clr-icon class="alert-icon" shape="check-circle"></clr-icon>
+              </div>
+              <span class="alert-text" id="connection-alert-success-msg">
+               {{ responseDisplay }}
+                </span>
+            </div>
+          </div>
+        </div>
+        <clr-alert class="alert-sm" *ngIf="homeErrorMessage" id="retrieve-hm-alert-error" [clrAlertType]="'danger'"
+                   (clrAlertClosedChange)="onClose()">
+          <clr-alert-item>
+                <span class="alert-text" id="retrieve-hm-alert-error-msg">
+                  Error with execution.
+                </span>
+          </clr-alert-item>
+        </clr-alert>
+        <clr-alert class="alert-sm" *ngIf="showHomeValidationMessage" id="hm-alert-error" [clrAlertType]="'danger'"
+                   (clrAlertClosedChange)="onClose()">
+          <clr-alert-item>
+                <span class="alert-text" id="hm-alert-error-msg">
+                  {{ homeValidationErrorMessage }}
+                </span>
+          </clr-alert-item>
+        </clr-alert>
+      </form>
+
+    <clr-modal [(clrModalOpen)]="homeErrorMessage || showHomeValidationMessage || showMessage">
+      <h3 class="modal-title">Summary</h3>
+      <div class="modal-body">
+        <div class="clr-row validationrow" *ngFor="let validation of validationMap">
+          <cds-icon id="dollar-icon" [attr.shape]="getShape(validation)"  [attr.status]="getShapeClass(validation)"></cds-icon>
+          <span  class="clr-col-9" id="validationtname">{{validation}}</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+      </div>
+    </clr-modal>
+
+
+  </div>

@@ -1,0 +1,129 @@
+<div class="clr-row">
+    <div class="clr-col-12">
+        <h2 aria-level="1"><div class="{{ landingPageContent?.logoClass }}"></div>{{ landingPageContent?.title }}</h2>
+
+    </div>
+</div>
+<div class="clr-row">
+    <div class="clr-col-lg-12 clr-col-sm-12 clr-col-12">
+        <h4 aria-level="2">Configure and deploy Tanzu Kubernetes Grid Multi-Cloud clusters</h4>
+    </div>
+</div>
+<div class="clr-row" *ngIf="!loading">
+    <div class="clr-col-lg-4 clr-col-sm-6 clr-col-12">
+        <div class="card provider">
+            <div class="card-block">
+                <div class="card-title color-blue">
+                    <b>Tanzu Kubernetes Grid Multi-Cloud on VMware vSphere with DVS</b>
+                </div>
+                <div class="card-media-block wrap">
+                    <div class="vsphere-icon-48"></div>
+                </div>
+                <p class="card-text">
+                    Configure and deploy Tanzu Kubernetes Grid management, shared, and workload clusters on vSphere with distributed vSwitch
+                </p>
+            </div>
+            <div class="card-footer">
+                <cds-button
+                        class="btn btn-primary btn-primary-tkgm"
+                        id="btn-deploy-vsphere-tkgm"
+                        (click)="navigateToUploadPanel(PROVIDERS.VSPHERE, PROVIDERS.TKGM)"
+                        [attr.aria-label]="'deploy on vmware vsphere'">
+                    <clr-icon shape="deploy" size="18"></clr-icon>
+                    Deploy
+                </cds-button>
+            </div>
+        </div>
+    </div>
+    <div class="clr-col-lg-4 clr-col-sm-6 clr-col-12">
+        <div class="card provider">
+            <div class="card-block">
+                <div class="card-title color-blue">
+                    <b>Tanzu Kubernetes Grid Multi-Cloud on VMware vSphere with NSX-T</b>
+                </div>
+                <div class="card-media-block wrap">
+                    <div class="vsphere-icon-48"></div>
+                </div>
+                <p class="card-text">
+                    Configure and deploy Tanzu Kubernetes Grid management, shared, and workload clusters on vSphere with NSX-T
+                </p>
+            </div>
+            <div class="card-footer">
+                <button
+                        class="btn btn-primary btn-primary-tkgm"
+                        id="btn-deploy-vsphere-nsxt"
+                        (click)="navigateToVsphereNsxtUploadPanel(PROVIDERS.VSPHERE_NSXT)"
+                        [attr.aria-label]="'deploy on vmware vsphere'">
+                    <clr-icon shape="deploy" size="18"></clr-icon>
+                    Deploy
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="clr-col-lg-4 clr-col-sm-6 clr-col-12">
+        <div class="card provider">
+            <div class="card-block">
+                <div class="card-title color-blue">
+                    <b>Tanzu Kubernetes Grid Multi-Cloud on VMware Cloud on AWS</b>
+                </div>
+                <div class="card-media-block wrap">
+                    <div class="aws-ec2-icon-48"></div>
+                </div>
+                <p class="card-text">
+                    Configure and Deploy Tanzu Kubernetes Grid management, shared, and workload clusters on VMC on AWS
+                </p>
+            </div>
+            <div class="card-footer">
+                <button
+                        class="btn btn-primary btn-primary-tkgm"
+                        id="btn-deploy-vmc"
+                        (click)="navigateToVmcUploadPanel(PROVIDERS.VMC)"
+                        [attr.aria-label]="'deploy on vmware vsphere'">
+                    <clr-icon shape="deploy" size="18"></clr-icon>
+                    Deploy
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="clr-row">
+    <div class="clr-col-lg-12 clr-col-sm-12 clr-col-12">
+        <h4 aria-level="2">Configure and deploy Tanzu Kubernetes Grid clusters</h4>
+    </div>
+</div>
+<div class="clr-row" *ngIf="!loading">
+    <div class="clr-col-lg-4 clr-col-sm-6 clr-col-12">
+        <div class="card provider">
+            <div class="card-block">
+                <div class="card-title color-blue">
+                    <b>Tanzu on VMware vSphere with DVS</b>
+                </div>
+                <div class="card-media-block wrap">
+                    <div class="vsphere-icon-48"></div>
+                </div>
+                <p class="card-text">
+                    Configure and deploy Tanzu Supervisor and Workload clusters on vSphere with distributed vSwitch
+                </p>
+            </div>
+            <div class="card-footer">
+                <button
+                        class="btn btn-primary btn-primary-tkgm"
+                        id="btn-deploy-vsphere-tkgs"
+                        (click)="navigateToUploadPanel(PROVIDERS.VSPHERE, PROVIDERS.TKGS)"
+                        [attr.aria-label]="'deploy on vmware vsphere'">
+                    <clr-icon shape="deploy" size="18"></clr-icon>
+                    Deploy
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="clr-row" *ngIf="loading">
+    <div class="clr-col-12">
+        <div class="text-center mt-20">
+            <span class="spinner spinner-lg">
+                Loading...
+            </span>
+        </div>
+    </div>
+</div>

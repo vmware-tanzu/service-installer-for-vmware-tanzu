@@ -1,0 +1,86 @@
+{
+   "envSpec":{
+      "envType":"tkgs-wcp",
+      "vcenterDetails":{
+         "vcenterAddress":"vcenter.xx.xx",
+         "vcenterSsoUser":"administrator@vsphere.local",
+         "vcenterSsoPasswordBase64":"cGFzc3dvcmQ=",
+         "vcenterDatacenter":"Datacenter-1",
+         "vcenterCluster":"Cluster-1",
+         "vcenterDatastore":"Datastore-1",
+         "contentLibraryName":"",
+         "aviOvaName":""
+      },
+      "marketplaceSpec":{
+         "refreshToken":"t9TfXXXXJuMCq3"
+      },
+      "saasEndpoints":{
+         "tmcDetails":{
+            "tmcAvailability":"false",
+            "tmcRefreshToken":"t9TfXXXXJuMCq3",
+            "tmcSupervisorClusterName":"supervisor-cluster",
+            "tmcInstanceURL": "https://xxxx.tmc.com",
+            "tmcSupervisorClusterGroupName": "default"
+         }
+      },
+      "infraComponents":{
+         "dnsServersIp":"1.2.3.4",
+         "searchDomains":"xx.xx",
+         "ntpServers":"time.xx.com"
+      }
+   },
+   "tkgsComponentSpec":{
+      "controlPlaneSize":"SMALL",
+      "aviMgmtNetwork":{
+         "aviMgmtNetworkName":"NSX-ALB-Mgmt",
+         "aviMgmtNetworkGatewayCidr":"11.12.14.15/24",
+         "aviMgmtServiceIpStartRange":"11.12.14.16",
+         "aviMgmtServiceIpEndRange":"11.12.14.28"
+      },
+      "aviComponents":{
+         "aviPasswordBase64":"cGFzc3dvcmQ=",
+         "aviBackupPassphraseBase64":"cGFzc3dvcmQ=",
+         "enableAviHa":"false",
+         "aviController01Ip":"11.12.14.17",
+         "aviController01Fqdn":"avi.xx.xx",
+         "aviController02Ip":"",
+         "aviController02Fqdn":"",
+         "aviController03Ip":"",
+         "aviController03Fqdn":"",
+         "aviClusterIp":"",
+         "aviClusterFqdn":"",
+         "aviSize":"essentials",
+         "aviCertPath":"",
+         "aviCertKeyPath":""
+      },
+      "tkgsVipNetwork":{
+         "tkgsVipNetworkName":"NSX-ALB-VIP",
+         "tkgsVipNetworkGatewayCidr":"11.12.16.15/24",
+         "tkgsVipIpStartRange":"11.12.16.16",
+         "tkgsVipIpEndRange":"11.12.16.28"
+      },
+      "tkgsMgmtNetworkSpec":{
+         "tkgsMgmtNetworkName":"TKGS-Mgmt",
+         "tkgsMgmtNetworkGatewayCidr":"11.12.17.15/24",
+         "tkgsMgmtNetworkStartingIp":"11.12.17.16",
+         "tkgsMgmtNetworkDnsServers":"11.12.17.28",
+         "tkgsMgmtNetworkSearchDomains":"tanzu.xx",
+         "tkgsMgmtNetworkNtpServers":"x.x.x.x"
+      },
+      "tkgsStoragePolicySpec":{
+         "masterStoragePolicy":"vSAN Default Storage Policy",
+         "ephemeralStoragePolicy":"vSAN Default Storage Policy",
+         "imageStoragePolicy":"vSAN Default Storage Policy"
+      },
+      "tkgsPrimaryWorkloadNetwork":{
+         "tkgsPrimaryWorkloadPortgroupName":"TKGS-Workload",
+         "tkgsPrimaryWorkloadNetworkName":"tkgs-workload",
+         "tkgsPrimaryWorkloadNetworkGatewayCidr":"11.12.18.15/24",
+         "tkgsPrimaryWorkloadNetworkStartRange":"11.12.18.16",
+         "tkgsPrimaryWorkloadNetworkEndRange":"11.12.18.28",
+         "tkgsWorkloadDnsServers":"1.2.3.4",
+         "tkgsWorkloadNtpServers":"time.xx.com",
+         "tkgsWorkloadServiceCidr":"10.96.0.0/22"
+      }
+   }
+}

@@ -1,0 +1,140 @@
+<form [formGroup]="formGroup">
+    <div *ngIf="this.apiClient.masterPolicyError" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <div class="newline">
+                    <span class="alert-text">
+                        {{ masterPolicyErrorMsg }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <button (click)="masterPolicyError = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div *ngIf="this.apiClient.ephemeralPolicyError" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <div class="newline">
+                    <span class="alert-text">
+                        {{ ephemeralPolicyErrorMsg }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <button (click)="ephemeralPolicyError = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div *ngIf="this.apiClient.imagePolicyError" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <div class="newline">
+                    <span class="alert-text">
+                        {{ imagePolicyErrorMsg }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <button (click)="imagePolicyError = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <h3 aria-level="2"> Storage Policy Settings</h3>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    MASTER STORAGE POLICY
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Select the storage policy for placement of the control plane VMs.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="masterStoragePolicy" formControlName="masterStoragePolicy">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let masterPolicy of this.apiClient.storagePolicies">
+                        <option [value]="masterPolicy">
+                            {{masterPolicy}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="cluster name required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Master Storage Policy is required!
+                </clr-control-error>
+            </clr-select-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    EPHEMERAL STORAGE POLICY
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Select the storage policy associated with ephemeral disks of all the Kubernetes Pods in the cluster
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="ephemeralStoragePolicy" formControlName="ephemeralStoragePolicy">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let ephemeralPolicy of this.apiClient.storagePolicies">
+                        <option [value]="ephemeralPolicy">
+                            {{ephemeralPolicy}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="cluster name required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Ephemeral Storage Policy is required!
+                </clr-control-error>
+            </clr-select-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    IMAGE STORAGE POLICY
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Select the storage policy for placement of the cache of container images.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="imageStoragePolicy" formControlName="imageStoragePolicy">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let imagePolicy of this.apiClient.storagePolicies">
+                        <option [value]="imagePolicy">
+                            {{imagePolicy}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="cluster name required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Image Storage Policy is required!
+                </clr-control-error>
+            </clr-select-container>
+        </div>
+    </div>
+</form>

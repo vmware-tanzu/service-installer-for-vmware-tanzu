@@ -1,0 +1,434 @@
+<div class="clr-row mb-20">
+    <div class="clr-col-12">
+        <clr-icon shape="arrow" dir="left" size="50" class="is-info back-link"
+                  role="button"
+                  tabindex="0"
+                  aria-label="back"
+                  (click)="navigate(APP_ROUTES.LANDING)"
+                  keyboardListener
+        ></clr-icon>
+        <ng-container *ngIf="this.infraType==='tkgm'">
+            <h4 i18n="wizard title" aria-level="1">
+                <div class="vsphere-icon-30"></div>
+                Configure Tanzu Kubernetes Grid management, shared, and workload clusters on vSphere with JSON file
+            </h4>
+        </ng-container>
+        <ng-container *ngIf="this.infraType==='tkgs'">
+            <h4 i18n="wizard title" aria-level="1">
+                <div class="vsphere-icon-30"></div>
+                Configure Tanzu Supervisor and Workload clusters on vSphere with JSON file
+            </h4>
+        </ng-container>
+    </div>
+</div>
+<ng-container *ngIf="this.infraType==='tkgs'">
+    <div class="clr-row">
+        <div class="clr-col-lg-6 clr-col-12 ">
+            <a class="card clickable" [ngClass]="{'card-selected': this.infraType==='tkgs'}" role="none">
+                <div class="card-block">
+                    <clr-icon class="card-icon" shape="computer" size="72"></clr-icon>
+                    <p class="card-title" i18n="development control plane title">
+                        Tanzu on vSphere - Deployment stage selection
+                    </p>
+                    <p i18n="development description" class="card-text">
+                        Enable Workload Control Plane (WCP) or configure Namespaces and deploy Workload clusters
+                    </p>
+                </div>
+                <div class="card-footer">
+                    <div class="clr-row" [attr.data-step-metadata]="formName">
+                        <div class="clr-col-xl-4 clr-col-sm-12 clr-col-12 no-wrap">
+                            <label i18n="instance type label" data-full="Development instance type">
+                                DEPLOYMENT TYPE
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22">
+                                    </clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Choose the Tanzu on vSphere configuration to be performed, select enable WCP for enabling workload control plane or select Namespace and Workload Cluster for deploying workload cluster
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                        </div>
+                        <div class="clr-col-xl-8 clr-col-sm-12 clr-col-12">
+<!--                            <clr-radio-container clrInline>-->
+<!--                                <clr-radio-wrapper>-->
+<!--                                    <input type="radio" clrRadio name="nodeType" required value="Enable WCP" [(ngModel)]="nodeType" (click)="cardClick(nodeType)"/>-->
+<!--                                    <label>Enable WCP</label>-->
+<!--                                </clr-radio-wrapper>-->
+<!--                                <clr-radio-wrapper>-->
+<!--                                    <input type="radio" clrRadio name="nodeType" required value="Namespace and deploy Workload Cluster" [(ngModel)]="nodeType" (click)="cardClick(nodeType)"/>-->
+<!--                                    <label>Namespace and Workload Cluster</label>-->
+<!--                                </clr-radio-wrapper>-->
+<!--                            </clr-radio-container>-->
+                            <clr-select-container class="node-type-container">
+                                <select clrSelect class="node-type-select" name="tkgsStage" [(ngModel)]="nodeType"
+                                        role="listbox"
+                                        aria-label="development instance type"
+                                        (click)="cardClick(nodeType)" (ngModelChange)="cardClick(nodeType)">
+                                    <ng-container *ngFor="let nodeType of tkgsStageType">
+                                        <option class="card-title" [value]="nodeType">
+                                            {{nodeType}}
+                                        </option>
+                                    </ng-container>
+                                </select>
+                                <clr-control-error>Selecting a deployment type is required!</clr-control-error>
+                            </clr-select-container>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+<!--    <div class="clr-row">-->
+<!--        <div class="clr-col-lg-4 clr-col-sm-6 clr-col-12">-->
+<!--&lt;!&ndash;        <div class="clr-col-lg-5 clr-col-10">&ndash;&gt;-->
+<!--            <a class="card clickable" [ngClass]="{'card-selected': getEnvType()==='wcp'}" (click)="cardClick('wcp')"-->
+<!--               role="none">-->
+<!--                <div class="card-block">-->
+<!--                    <div class="clr-row">-->
+<!--                        <clr-icon class="card-icon" shape="cluster" size="48"></clr-icon>-->
+<!--                        <p class="card-title tab4" i18n="development control plane title">-->
+<!--                            Enable Workload Control Plane-->
+<!--                        </p>-->
+<!--                        <p i18n="development description" class="card-text tabLarge">-->
+<!--                            Enable Workload Control Plane on a vSphere Cluster-->
+<!--                        </p>-->
+<!--                    </div>-->
+<!--&lt;!&ndash;                    <cds-icon shape="cluster" size="72"></cds-icon>&ndash;&gt;-->
+
+<!--                </div>-->
+<!--            </a>-->
+<!--        </div>-->
+<!--&lt;!&ndash;        <div class="clr-col-lg-5 clr-col-10">&ndash;&gt;-->
+<!--        <div class="clr-col-lg-4 clr-col-sm-6 clr-col-12">-->
+<!--            <a class="card clickable" [ngClass]="{'card-selected': getEnvType()==='namespace'}" (click)="cardClick('namespace')"-->
+<!--               role="none">-->
+<!--                <div class="card-block">-->
+<!--                    <div class="clr-row">-->
+<!--                        <clr-icon class="card-icon" shape="namespace" size="48"></clr-icon>-->
+<!--                        <p class="card-title tab4" i18n="production control plane title">-->
+<!--                            Namespace and Workload Cluster-->
+<!--                        </p>-->
+<!--                        <p i18n="production description" class="card-text">-->
+<!--                            Create Namespace and TKG Workload Cluster on a WCP-->
+<!--                        </p>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </a>-->
+<!--        </div>-->
+<!--    </div>-->
+    <!--    <div class="clr-row mb-20">-->
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+<!--            <clr-checkbox-container clrInline>-->
+<!--              <label class="hidden" i18n="load balancer template label">Select configuration stage</label>-->
+<!--              <clr-checkbox-wrapper>-->
+<!--                <input type="checkbox" clrCheckbox name="options-1" required value="option1" [(ngModel)]="options.option1" />-->
+<!--                <label class="hidden" i18n="load balancer template label">Enable WCP</label>-->
+<!--              </clr-checkbox-wrapper>-->
+<!--              <clr-checkbox-wrapper>-->
+<!--                <input type="checkbox" clrCheckbox name="options-2" required value="option2" [(ngModel)]="options.option2" />-->
+<!--                <label class="hidden" i18n="load balancer template label">Namespace and Workload Cluster</label>-->
+<!--              </clr-checkbox-wrapper>-->
+<!--              <clr-control-helper>Please select the configuration for your vSphere TKGS deployments</clr-control-helper>-->
+<!--              <clr-control-error>Required!</clr-control-error>-->
+<!--            </clr-checkbox-container>-->
+<!--        </div>-->
+<!--    </div>-->
+    <!--    <div class="clr-row">-->
+<!--        <div class="clr-col-lg-4 clr-col-sm-6 clr-col-12">-->
+<!--        <div class="card provider">-->
+<!--            <div class="card-block">-->
+<!--                <div class="card-title">-->
+<!--                    Enable WCP-->
+<!--                </div>-->
+<!--                <div class="card-media-block wrap">-->
+<!--                    <p class="card-text">-->
+<!--                        Configure and Enable WCP-->
+<!--                    </p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--        <div class="clr-col-lg-4 clr-col-sm-6 clr-col-12">-->
+<!--        <div class="card provider">-->
+<!--            <div class="card-block">-->
+<!--                <div class="card-title">-->
+<!--                    Namespace and Workload Cluster-->
+<!--                </div>-->
+<!--                <div class="card-media-block wrap">-->
+<!--                    <p class="card-text">-->
+<!--                        Configure Namespace and Deploy Workload Cluster-->
+<!--                    </p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--    </div>-->
+</ng-container>
+<!--<div class="clr-row mb-20">-->
+<!--        <div class="clr-col-12">-->
+<!--            <div class="clr-row">-->
+<!--                <h5 i18n="wizard title" aria-level="1">-->
+<!--                    Upload Input JSON file to configure Tanzu Management, Shared and Workload Clusters.-->
+<!--                </h5>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<ng-container *ngIf="this.infraType==='tkgm'">
+    <div class="clr-row">
+        <div class="clr-col-lg-4 clr-col-sm-6 clr-col-12">
+            <div class="card provider">
+                <div class="card-block">
+                    <div class="card-title">
+                        Configure and generate JSON
+                    </div>
+                    <div class="card-media-block wrap">
+                        <clr-icon shape="download" size="50" class="is-info"
+                                  tabindex="0"
+                                  aria-label="next"
+                                  keyboardListener>
+                        </clr-icon>
+                        <p class="card-text">
+                            Configure parameters and generate a fresh input JSON file.
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <button
+                                class="btn btn-primary"
+                                id="btn-deploy-vsphere-2"
+                                (click)="navigateToWizardWithoutUpload()"
+                                [attr.aria-label]="'deploy on vmware vsphere'">
+                            Proceed
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <ng-container>
+            <div class="clr-col-lg-4 clr-col-sm-6 clr-col-12">
+                <div class="card provider">
+                    <div class="card-block">
+                        <div class="card-title">
+                            Upload and re-configure JSON
+                        </div>
+                        <div class="card-media-block wrap">
+                            <clr-icon shape="upload" size="50" class="is-info"
+                                      tabindex="0"
+                                      aria-label="next"
+                                      keyboardListener>
+                            </clr-icon>
+                            <p class="card-text">
+                                Upload and configure service installer settings using input JSON file
+                            </p>
+                        </div>
+                        <div class="card-footer">
+                            <label class="btn btn-primary"
+                                   id="btn-deploy-vsphere"
+                                   [attr.aria-label]="'deploy on vmware vsphere'"
+                                   i18n="deploy cluster configuration btn"
+                                   for="inputFile">
+                                Upload
+                                <input id="inputFile" type="file" accept=".json"
+                                       #attachments
+                                       (change)="uploadFile($event)">
+                            </label>
+                        </div>
+                        <div class="card-footer" *ngIf="fileUploaded">
+                            <label class="panel"
+                                   i18n="deploy cluster configuration btn"
+                                   >{{fileName}}
+                            </label>
+                            <clr-icon shape="close" size="20" class="is-info"
+                                      role="button"
+                                      tabindex="0"
+                                      aria-label="next"
+                                      keyboardListener
+                                      (click)="removeFile()"
+                            ></clr-icon>
+                        </div>
+                        <div class="card-footer" *ngIf="fileUploaded">
+                            <button
+                                    class="btn btn-primary"
+                                    id="btn-deploy-vsphere-1"
+                                    (click)="navigateToWizard(PROVIDERS.VSPHERE)"
+                                    [disabled]="!readFile"
+                                    [attr.aria-label]="'deploy on vmware vsphere'">
+                                Proceed
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+    </div>
+</ng-container>
+
+<ng-container *ngIf="this.apiClient.tkgsStage==='wcp' || this.apiClient.tkgsStage==='namespace'">
+    <div class="clr-row">
+        <div class="clr-col-lg-3 clr-col-sm-5 clr-col-10">
+            <div class="card provider">
+                <div class="card-block">
+                    <div class="card-title">
+                        Configure and generate JSON
+                    </div>
+                    <div class="card-media-block wrap">
+                        <clr-icon shape="download" size="50" class="is-info"
+                                  tabindex="0"
+                                  aria-label="next"
+                                  keyboardListener>
+                        </clr-icon>
+                        <p class="card-text">
+                            Configure parameters and generate a fresh input JSON file.
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <button
+                                class="btn btn-primary"
+                                id="btn-deploy-vsphere-4"
+                                (click)="navigateToWizardWithoutUpload()"
+                                [attr.aria-label]="'deploy on vmware vsphere'">
+                            Proceed
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="clr-col-lg-3 clr-col-sm-5 clr-col-10">
+            <div class="card provider">
+                <div class="card-block">
+                    <div class="card-title">
+                        Upload and re-configure JSON
+                    </div>
+                    <div class="card-media-block wrap">
+                        <clr-icon shape="upload" size="50" class="is-info"
+                                  tabindex="0"
+                                  aria-label="next"
+                                  keyboardListener>
+                        </clr-icon>
+                        <p class="card-text">
+                            Upload and configure service installer settings using input JSON file
+                        </p>
+                    </div>
+                    <div class="card-footer">
+    <!--                    <button-->
+    <!--                            class="btn btn-primary"-->
+    <!--                            id="btn-deploy-vsphere"-->
+    <!--                            [attr.aria-label]="'deploy on vmware vsphere'"-->
+    <!--                            for="inputFile">-->
+    <!--                        Upload-->
+    <!--                        <input id="inputFile" type="file" accept=".json"-->
+    <!--                               #attachments-->
+    <!--                               (change)="uploadFile($event)">-->
+    <!--                    </button>-->
+                        <label class="btn btn-primary"
+                               id="btn-deploy-vsphere02"
+                               [attr.aria-label]="'deploy on vmware vsphere'"
+                               i18n="deploy cluster configuration btn"
+                               for="inputFile">
+                            Upload
+                            <input id="inputFile" type="file" accept=".json"
+                                   #attachments
+                                   (change)="uploadFile($event)">
+                        </label>
+                    </div>
+                    <div class="card-footer" *ngIf="fileUploaded">
+                        <label class="panel"
+                               i18n="deploy cluster configuration btn"
+                               >{{fileName}}
+                        </label>
+                        <clr-icon shape="close" size="20" class="is-info"
+                                  role="button"
+                                  tabindex="0"
+                                  aria-label="next"
+                                  keyboardListener
+                                  (click)="removeFile()"
+                        ></clr-icon>
+                    </div>
+                    <div class="card-footer" *ngIf="fileUploaded">
+                        <button
+                                class="btn btn-primary"
+                                id="btn-deploy-vsphere-5"
+                                (click)="navigateToWizard(PROVIDERS.VSPHERE)"
+                                [disabled]="!readFile"
+                                [attr.aria-label]="'deploy on vmware vsphere'">
+                            Proceed
+                        </button>
+                    </div>
+                </div>
+            </div>
+            </div>
+    </div>
+</ng-container>
+
+<div class="clr-col-12 clr-col-sm-12 clr-col-md-12 clr-col-lg-12 clr-col-xl-12 clr-justify-content-center">
+        <span *ngIf="showLoginLoader"
+              class="spinner spinner-lg test-spinner clr-col-3 clr-col-3 clr-col-sm-3 clr-col-md-3 clr-col-lg-3 clr-col-xl-3">
+        Loading...
+        </span>
+</div>
+
+<!--<div class="clr-row mt-20 ">-->
+<!--    <div class="clr-row tab4">-->
+<!--        <div class="clr-col-12 btn-container">-->
+<!--            <label class="btn btn-primary upload-btn"-->
+<!--                   i18n="deploy cluster configuration btn"-->
+<!--                   for="inputFile"-->
+<!--            >  Upload-->
+<!--                <input id="inputFile" type="file" accept=".json"-->
+<!--                       #attachments-->
+<!--                       (change)="uploadFile($event)">-->
+<!--            </label>-->
+<!--            <ng-container *ngIf="fileUploaded">-->
+<!--                <label class="panel"-->
+<!--                       i18n="deploy cluster configuration btn"-->
+<!--                >{{fileName}}-->
+<!--                </label>-->
+<!--                <clr-icon shape="close" size="20" class="is-info"-->
+<!--                          role="button"-->
+<!--                          tabindex="0"-->
+<!--                          aria-label="next"-->
+<!--                          keyboardListener-->
+<!--                          (click)="removeFile()"-->
+<!--                ></clr-icon>-->
+<!--            </ng-container>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--<ng-container *ngIf="!fileUploaded">-->
+<!--    <div class="clr-row mb-20">-->
+<!--        <div class="clr-col-12">-->
+<!--            <div class="clr-row">-->
+<!--                <h5 i18n="wizard title" aria-level="1">-->
+<!--                    Proceed with Deployment without uploading Input JSON file-->
+<!--                </h5>-->
+<!--            </div>-->
+<!--            <div class="'clr-row">-->
+<!--                <button class="btn btn-primary mt-20" [disabled]="" (click)="navigateToWizardWithoutUpload(PROVIDERS.VSPHERE)"-->
+<!--                        i18n="review cluster configuration btn">-->
+<!--                    PROCEED-->
+<!--                </button>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</ng-container>-->
+
+<!--<ng-container *ngIf="fileUploaded">-->
+<!--    <div class="clr-row mb-20">-->
+<!--        <div class="clr-col-12">-->
+<!--            <div class="clr-row">-->
+<!--                <h5 i18n="wizard title" aria-level="1">-->
+<!--                    Proceed with Deployment using Input JSON file-->
+<!--                </h5>-->
+<!--            </div>-->
+<!--            <div class="'clr-row">-->
+<!--                <button class="btn btn-primary mt-20" [disabled]="!readFile" (click)="navigateToWizard(PROVIDERS.VSPHERE)"-->
+<!--                        i18n="review cluster configuration btn">-->
+<!--                    PROCEED-->
+<!--                </button>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</ng-container>-->
+
