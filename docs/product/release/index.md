@@ -1,4 +1,4 @@
-# Service Installer for VMware Tanzu 1.1
+# Service Installer for VMware Tanzu 1.2
 
 Service Installer for VMware Tanzu automates the deployment of the reference designs for Tanzu for Kubernetes Operations on the following platforms:
 
@@ -14,7 +14,7 @@ Service Installer simplifies the deployment of a Kubernetes environment. It uses
 - Integration with Tanzu Mission Controller
 
 ## Download Service Installer for VMware Tanzu
-Download the latest Service Installer for VMware Tanzu OVA(v1.1-1.5.1) [here](https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true)
+Download the latest Service Installer for VMware Tanzu OVA [here](https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true)
 
 ## Deploy Service Installer for VMware Tanzu
 1. Download the Service Installer OVA from **VMware Marketplace**.
