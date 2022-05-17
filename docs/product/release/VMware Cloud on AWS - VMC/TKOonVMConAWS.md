@@ -149,7 +149,7 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
 ## Sample Input file
 The Service Installer for Tanzu for Kubernetes Operations user interface automatically generates the JSON file for deploying Tanzu Kubernetes Grid. The following is an example of an automatically generated JSON file.
 
-**Note:** This sample file is also available in the Service Installer VM at the following location **/opt/vmware/arcas/src/vmc/vmc-tkgm.json.sample**.
+**Note:** This sample file is also available in the Service Installer VM at the following location: **/opt/vmware/arcas/src/vmc/vmc-tkgm.json.sample**.
 
 ```json
 {

@@ -17,7 +17,7 @@ Before you deploy Tanzu for Kubernetes Operations using Service Installer for VM
     -   Tanzu Kubernetes Grid management: Network to which Supervisor Cluster VMs are connected.
     -   Tanzu Kubernetes Grid management Data/VIP: Network through which all Kubernetes L4/L7 load balancer services are exposed to the external network. IPAM of this network is handled by NSX Advanced Load Balancer. IP addresses are assigned to both VIPs and SEs.
     -   Tanzu Kubernetes Grid workload cluster: Network to which Tanzu Kubernetes Grid Service Workload Cluster nodes (control plane and worker) are connected. This network is defined when you create vSphere Namespaces after enabling the workload control plane (WCP). The first workload network is also called Primary Workload Network.
-	  -   Tanzu Kubernetes Grid workload network X: Another network to which Tanzu Kubernetes Grid workload cluster nodes (control plane and worker) are connected. You can create additional workload networks based on your requirements.
+    -   Tanzu Kubernetes Grid workload network X: Another network to which Tanzu Kubernetes Grid workload cluster nodes (control plane and worker) are connected. You can create additional workload networks based on your requirements.
 
 - To allow Service Installer to automatically download NSX Advanced Load Balancer Controller from VMware Marketplace,
 
@@ -134,7 +134,7 @@ Following are the sample JSON files:
 - [Enable Workload Control Plane (WCP)](#enable-wcp)
 - [Namespace and Workload Creation](#namespace-worload-creation)
 
-**Note:** The sample files are also available in the Service Installer VM under `/opt/vmware/arcas/src/vsphere/vsphere-dvs-tkgs-wcp.json.sample` and `/opt/vmware/arcas/src/vsphere/vsphere-dvs-tkgs-namespace.json.sample`**
+**Note:** The sample files are also available in the Service Installer VM under `/opt/vmware/arcas/src/vsphere/vsphere-dvs-tkgs-wcp.json.sample` and `/opt/vmware/arcas/src/vsphere/vsphere-dvs-tkgs-namespace.json.sample`.
 
 
 ### <a id="enable-wcp"> </a>Enable Workload Control Plane

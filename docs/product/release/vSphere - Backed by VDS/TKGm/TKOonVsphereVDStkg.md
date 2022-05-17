@@ -142,13 +142,13 @@ Consider the following when deploying VMware Tanzu for Kubernetes Operations usi
 
 2. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the JSON file:
 
-    - to enable or disable Tanzu Mission Control and to use the Tanzu Mission Control CLI and API enter `"tmcAvailability": "true/false"`
-    - to enable or disable Tanzu Service Mesh, enter `"tkgWorkloadTsmIntegration": "true/false"`
-    - to enable or disable Tanzu Observability, enter `"tanzuObservabilityAvailability": "true/false"`
+    - to enable or disable Tanzu Mission Control and to use the Tanzu Mission Control CLI and API, enter `"tmcAvailability": "true/false"`.
+    - to enable or disable Tanzu Service Mesh, enter `"tkgWorkloadTsmIntegration": "true/false"`.
+    - to enable or disable Tanzu Observability, enter `"tanzuObservabilityAvailability": "true/false"`.
 
 3. If you are using a proxy, configure the proxy details in the proxy field corresponding to the cluster.
 
-    For example, to enable or disable proxy on the management cluster, use `tkgMgmt: {"enable-proxy": "true"}` in the json file.
+    For example, to enable or disable proxy on the management cluster, use `tkgMgmt: {"enable-proxy": "true"}` in the JSON file.
 
 4. Enable or disable Tanzu Kubernetes Grid extensions. For example,
     - to enable or disable Prometheus and Grafana, enter `"enableExtensions": "true/false"`.

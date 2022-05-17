@@ -18,10 +18,12 @@
 - Uses Tanzu Mission Control CLI to deploy shared service and workload clusters on Tanzu for Kubernetes Grid 1.5.1.
 - Attach Tanzu Kubernetes Grid 1.5.1 management Cluster to Tanzu Mission Control.
 - Custom sizing of CPU and memory storage for all clusters.
-- Supports Avi controller 20.1.7.Supports Avi high availability.Reduces Avi controller foot print.
+- Supports Avi controller 20.1.7.Supports Avi high availability.
+- Reduces Avi controller footprint.
 - Supports user owned certificate and default generation of certificate for Avi controller.
 - Separates namespace and cluster creation for Tanzu Kubernetes Grid Service.
-- Supports NTP for workload networks.Supports multiple workload networks.
+- Supports NTP for workload networks.
+- Supports multiple workload networks.
 - Ability to change the Service Installer password at the time of deployment.
 - Uses standard input file naming convention.
 - Supports Tekton pipeline for Tanzu Kubernetes Grid 1.4.x.
