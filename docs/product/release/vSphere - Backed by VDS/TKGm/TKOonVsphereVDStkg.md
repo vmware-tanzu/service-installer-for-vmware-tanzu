@@ -12,8 +12,11 @@ The following diagram represents the network design required for installing and 
 Before you deploy Tanzu for Kubernetes Operations using Service Installer for VMware Tanzu, ensure the following:
 
 -  You have created the following port groups:
+
     -   Management port group/NSX Advanced Load Balancer management: You will connect the VMware NSX Advanced Load Balancer Controller and an interface of NSX Advanced Load Balancer Service Engines (SEs) to this port group.
+
     -   Tanzu Kubernetes Grid management: The bootstrap VM, Tanzu Kubernetes Grid management cluster nodes, Tanzu Kubernetes Grid shared services cluster, and an interface of NSX Advanced Load Balancer SEs part of SE Group 01 will be connected to this port group.
+
     -   Tanzu Kubernetes Grid management Data/VIP: All Kubernetes load balancer services are exposed to the external network through this network. Only Tanzu Kubernetes Grid shared services clusters use this network. An interface of NSX Advanced Load Balancer SEs part of SE Group 01 will be connected to this port groups.  
 
         IPAM of this network is handled by NSX Advanced Load Balancer and IP addresses are assigned to both VIPs and SEs.
@@ -29,7 +32,7 @@ Before you deploy Tanzu for Kubernetes Operations using Service Installer for VM
     -   Tanzu Kubernetes Grid management port group
     -   Tanzu Kubernetes Grid workload clusters port group
 
-    IP addresses are assigned to Tanzu Kubernetes Grid nodes and SEs. DHCP must provide the default Gateway and NTP server details.
+  IP addresses are assigned to Tanzu Kubernetes Grid nodes and SEs. DHCP must provide the default Gateway and NTP server details.
 
 - Reserve a block of IP addresses for SEs and VIPs on the networks. IPAM is handled by NSX Advanced Load Balancer.
 
@@ -85,6 +88,7 @@ Service installer VM                 | NSX Advanced Load Balancer Controller    
 Consider the following when deploying VMware Tanzu for Kubernetes Operations using Service Installer for VMware Tanzu.
 
 - If you set http-proxy, you must also set https-proxy and vice-versa.
+
     - NSX Advanced Load Balancer Controller must be able to communicate with vCenter directly without a proxy.
     - Avi Kubernetes Operator (AKO) must be able to communicate with NSX Advanced Load Balancer Controller directly without proxy.
     - For the no-proxy section in the JSON file, in addition to the values you specify, Service Installer appends:
@@ -138,20 +142,21 @@ Consider the following when deploying VMware Tanzu for Kubernetes Operations usi
 
 2. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the JSON file:
 
-    - to enable or disable Tanzu Mission Control and to use the Tanzu Mission Control CLI and API enter `"tmcAvailability": "true/false"`
-    - to enable or disable Tanzu Service Mesh, enter `"tkgWorkloadTsmIntegration": "true/false"`
-    - to enable or disable Tanzu Observability, enter `"tanzuObservabilityAvailability": "true/false"`
+    - to enable or disable Tanzu Mission Control and to use the Tanzu Mission Control CLI and API, enter `"tmcAvailability": "true/false"`.
+    - to enable or disable Tanzu Service Mesh, enter `"tkgWorkloadTsmIntegration": "true/false"`.
+    - to enable or disable Tanzu Observability, enter `"tanzuObservabilityAvailability": "true/false"`.
 
 3. If you are using a proxy, configure the proxy details in the proxy field corresponding to the cluster.
 
-    For example, to enable or disable proxy on the management cluster, use `tkgMgmt: {"enable-proxy": "true"}` in the json file.
+    For example, to enable or disable proxy on the management cluster, use `tkgMgmt: {"enable-proxy": "true"}` in the JSON file.
 
 4. Enable or disable Tanzu Kubernetes Grid extensions. For example,
     - to enable or disable Prometheus and Grafana, enter `"enableExtensions": "true/false"`.
     - to enable or disable Harbor, enter `"enableHarborExtension": "true/false"`.   
 
-      **Note:** 
-      - Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability. 
+      **Note:**
+
+      - Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
       - If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
       - When Tanzu Mission Control is enabled only Photon is supported.
 
@@ -163,7 +168,7 @@ The Service Installer user interface generates the JSON file based on your input
  - vSphere DVS air-gapped environment: vsphere-dvs-tkgm-airgapped.json
 
 
- Following is an example of JSON file.
+ Following is an example of the JSON file.
 
  **Note:** This sample is also available in Service Installer VM under **/opt/vmware/arcas/src/vsphere/vsphere-dvs-tkgm.json.sample**.
 
@@ -374,4 +379,3 @@ The Service Installer user interface generates the JSON file based on your input
 }
 
 ```
-
