@@ -54,7 +54,7 @@ Before you install Service Installer for VMware Tanzu, ensure the following:
 ## Considerations
 Consider the following when deploying VMware Tanzu for Kubernetes Operations using Service Installer for VMware Tanzu.
 
-- If you set http-proxy, you must also set https-proxy and vice-versa.
+- If you set HTTP proxy, you must also set HTTPS proxy and vice-versa.
 
     - NSX Advanced Load Balancer Controller must be able to communicate with vCenter directly without a proxy.
     - Avi Kubernetes Operator (AKO) must be able to communicate with NSX Advanced Load Balancer Controller directly without a proxy.
@@ -91,7 +91,7 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
 
    After you have entered the required details, the Service Installer UI provides an option to review the values and download the input file in JSON format.
 
-   The values are saved in a file `vsphere-nsxt-tkgm.json` located at `/opt/vmware/arcas/src`. See the [sample json file](#sample-input-file) file for reference.
+   The values are saved in a file `vsphere-nsxt-tkgm.json` located at `/opt/vmware/arcas/src`. See the [sample JSON file](#sample-input-file) file for reference.
 
 5. Execute the following command to initiate the deployment.
    ```
@@ -138,10 +138,10 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
 
 - Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
 - If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
-- When Tanzu Mission Control is enabled only Photon is supported
+- If Tanzu Mission Control is enabled only Photon is supported.
 
-## Sample Input File
-The Service Installer user interface generates the JSON file based on your inputs and saves it to **/opt/vmware/arcas/src/** in the installer VM. Files are named based on the environment you are using.
+## <a id="sample-input-file"> </a> Sample Input File
+Service Installer generates the JSON file based on your inputs and saves it to **/opt/vmware/arcas/src/** in the installer VM. Files are named based on the environment you are using.
 
  - vSphere with NSX-T Internet environment: vsphere-nsxt-tkgm.json
  - vSphere with NSX-T Proxy environment: vsphere-nsxt-tkgm-proxy.json

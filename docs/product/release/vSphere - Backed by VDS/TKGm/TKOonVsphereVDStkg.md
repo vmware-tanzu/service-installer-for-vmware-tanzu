@@ -24,7 +24,7 @@ Before you deploy Tanzu for Kubernetes Operations using Service Installer for VM
 
         NSX Advanced Load Balancer handles the IPAM of this network. The IP addresses are assigned to both VIPs and SEs.
 
-- DHCP service is available on the following networks. These networks must have external access to the Internet.
+- DHCP service is available on the following networks. The networks must have external access to the Internet.
 
     -   Tanzu Kubernetes Grid management port group
     -   Tanzu Kubernetes Grid workload clusters port group
@@ -37,7 +37,7 @@ Before you deploy Tanzu for Kubernetes Operations using Service Installer for VM
     -   Tanzu Kubernetes Grid workload data/VIP
     -   Management/NSX Advanced Load Balancer management
 
-- To allow Service Installer to automatically download the required images, such as NSX Advanced Load Balancer Controller and Kubernetes base images, from VMware Marketplace,
+- To allow Service Installer to automatically download the required images, such as NSX Advanced Load Balancer Controller and Kubernetes base images, from VMware Marketplace.
 
     - A Cloud Services Portal (CSP) API token is required to pull all required images from VMware Marketplace. To generate an API token, login in to the CSP portal and select your organization. Go to **Marketplace Service > My Account > API Tokens > Generate a Token**.
     - If Marketplace is not available in your environment or if you are working in an air-gapped environment,
@@ -46,7 +46,7 @@ Before you deploy Tanzu for Kubernetes Operations using Service Installer for VM
 
             To download the images, go to [VMware Tanzu Kubernetes Grid Download Product](https://customerconnect.vmware.com/en/downloads/details?downloadGroup=TKG-140&productId=988&rPId=82536).
 
-        1. After importing the images, convert the images to a template.
+        1. Convert the imported images to a template.
         1. Upload the NSX Advanced Load Balancer Controller and Kubernetes OVA:
 
            1. Create a Content Library and upload NSX Advanced Load Balancer Controller OVA (20.1.7).
@@ -163,7 +163,7 @@ Consider the following when deploying VMware Tanzu for Kubernetes Operations usi
 - When Tanzu Mission Control is enabled only Photon is supported.
 
 
-## Sample Input File
+## <a id="sample-input-file"> </a> Sample Input File
 The Service Installer user interface generates the JSON file based on your inputs and saves it to **/opt/vmware/arcas/src/** in Service Installer VM. Files are named based on the environment:
 
  - vSphere DVS Internet environment: vsphere-dvs-tkgm.json

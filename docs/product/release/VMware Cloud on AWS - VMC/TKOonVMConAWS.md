@@ -59,7 +59,7 @@ Service Installer for VMware Tanzu acts as a bootstrap machine. Set up Internet 
 
    1. Go to **Networking & Security** > **Inventory** > **Groups** > **Compute Groups**.
    1. Click **Add Group**.
-   1. Under **Set Members**, provide the IP address of the **Arcas OVA** <br>
+   1. Under **Set Members**, provide the IP address of the Service Installer OVA.
 
 
 2. Create a Firewall Rule.
@@ -70,7 +70,7 @@ Service Installer for VMware Tanzu acts as a bootstrap machine. Set up Internet 
 
    Optionally, to access the Service Installer over SSH from an external network, create NAT and add the required firewall rules.
 
-	  **Note**: This firewall rule is temporary. You can be delete the rule after you have created your Tanzu for Kubernetes Operations environment.
+	  **Note**: This firewall rule is temporary. You can be delete the rule after you create your Tanzu for Kubernetes Operations environment.
 
 For additional product documentation, see [Add or Modify Compute Gateway Firewall Rules](https://docs.vmware.com/en/VMware-Cloud-on-AWS/services/com.vmware.vmc-aws-networking-security/GUID-2D31A9A6-4A80-4B5B-A382-2C5B591F6AEB.html?).
 
@@ -78,7 +78,7 @@ For additional product documentation, see [Add or Modify Compute Gateway Firewal
 Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
 
 1. Download and import the required Photon/Ubuntu Kubernetes base OVAs to vCenter.
-    To download the images, go to [VMware Tanzu Kubernetes Grid Download Product](https://customerconnect.vmware.com/downloads/details?downloadGroup=TKG-151&productId=988&rPId=84961)
+    To download the images, go to [VMware Tanzu Kubernetes Grid Download Product](https://customerconnect.vmware.com/downloads/details?downloadGroup=TKG-151&productId=988&rPId=84961).
 
 1. After importing the images, convert the images to a template.
 1. Upload the NSX Advanced Load Balancer Controller OVA:
@@ -92,7 +92,7 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
 
 2. Configure and verify NTP.
 
-   To configure and verify NTP on a Photon OS, see [VMware KB-76088](https://kb.vmware.com/s/article/76088)
+   To configure and verify NTP on a Photon OS, see [VMware KB-76088](https://kb.vmware.com/s/article/76088).
 
 3. Import a certificate and private key to the Service Installer for VMware Tanzu bootstrap VM using a copy utility such as SCP or WinSCP (for Windows).
 
@@ -114,7 +114,7 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
      ```
      For `/path/to/vmc-tkgm.json`, enter the path to the JSON file that you created in the previous step.
 
- 8. Use the following command to cleanup the deployment.
+8. Use the following command to cleanup the deployment.
 
      ```
      arcas --env  vmc --file /path/to/vmc-tkgm.json --cleanup
@@ -136,7 +136,7 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
      | --verbose 			| Enables verbose logging |
 
 
-8. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the `vmc-tkgm.json` file,
+9. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the `vmc-tkgm.json` file,
 
     - to enable or disable Tanzu Mission Control, enter `"tanzuObservabilityAvailability": "true/false"`.
     - to enable or disable Tanzu Service Mesh, enter `"tkgWorkloadTsmIntegration": "true/false"`.
@@ -144,7 +144,7 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
 
     **Note:** If you edit the JSON manually, ensure that the values you enter are in quotes.
 
-4. Enable or disable Tanzu Kubernetes Grid extensions. For example,
+10. Enable or disable Tanzu Kubernetes Grid extensions. For example,
     - to enable or disable Prometheus and Grafana, enter `"enableExtensions": "true/false"`.
     - to enable or disable Harbor, enter `"enableHarborExtension": "true/false"`.
 
@@ -152,10 +152,10 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
 
 - Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
 - If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
-- When Tanzu Mission Control is enabled only Photon is supported
+- When Tanzu Mission Control is enabled only Photon is supported.
 
-## Sample Input File
-The Service Installer for Tanzu for Kubernetes Operations user interface automatically generates the JSON file for deploying Tanzu Kubernetes Grid. The following following sample file is an example of an automatically generated JSON file.
+## <a id="sample-input-file"> </a> Sample Input File
+Service Installer automatically generates the JSON file for deploying Tanzu Kubernetes Grid. The following following sample file is an example of an automatically generated JSON file.
 
 **Note:** The sample file is also available in the Service Installer VM at the following location: **/opt/vmware/arcas/src/vmc/vmc-tkgm.json.sample**.
 

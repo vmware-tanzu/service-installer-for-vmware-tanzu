@@ -8,6 +8,7 @@ Service Installer for VMware Tanzu automates the deployment of the reference des
 - Tanzu Kubernetes Grid Service on vSphere running Virtual Distributed Switch (VDS)
 
 Service Installer simplifies the deployment of a Kubernetes environment. It uses best practices for deploying and configuring the required Tanzu for Kubernetes Operations components, such as:
+
 - Tanzu Kubernetes Grid
 - NSX Advanced Load Balancer
 - Shared services, such as Contour, Harbor, FluentBit, Prometheus, Grafana
