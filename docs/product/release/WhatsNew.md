@@ -40,8 +40,8 @@ A separate JSON file for each platform is available at,
 - <a id="MAPBUA-690"> </a> Include Network troubleshooting binaries in Service Installer for VMware Tanzu OVA.
 
 ## Known Issues
-- <a id="TKG-11079](https://jira.eng.vmware.com/browse/TKG-11079) - Contour package installation failure in workload cluster
-- <a id="GCM-6212](https://jira.eng.vmware.com/browse/GCM-6212) - Workload clusters integration with TSM is failing for vSphere with Tanzu
+- <a id="TKG-11079"> </a> Contour package installation failure in workload cluster
+- <a id="GCM-6212"> </a> Workload clusters integration with TSM is failing for vSphere with Tanzu
 - Deployment on Proxy environment is not supported. This will be addressed in next release.
 - Complex passwords for proxy server won't work. Passwords can contain only alphanumeric characters.
 
