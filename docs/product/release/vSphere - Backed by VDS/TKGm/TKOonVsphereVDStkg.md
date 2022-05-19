@@ -48,8 +48,8 @@ Before you deploy Tanzu for Kubernetes Operations using Service Installer for VM
         1. After importing the images, convert the images to a template.
         1. Upload the NSX Advanced Load Balancer Controller and Kubernetes OVA:
 
-           1. Create a Content Library and upload NSX Advanced Load Balancer Controller OVA (20.1.6).
-           1. Download the NSX Advanced Load Balancer OVA from [VMware Vault](https://vault.vmware.com/group/nsx/avi-networks-technical-resources).
+           1. Create a Content Library and upload NSX Advanced Load Balancer Controller OVA (20.1.7).
+           1. Download the NSX Advanced Load Balancer OVA from [MarketPlace](https://marketplace.cloud.vmware.com/services/details/nsx-advanced-load-balancer-1?slug=true).
 
         2. A centralized image repository with the required images to deploy the Tanzu Kubernetes clusters in an Internet restricted environments.
 
@@ -113,7 +113,7 @@ Consider the following when deploying VMware Tanzu for Kubernetes Operations usi
 
     **Note:** Service Installer uses the certificate for NSX Advanced Load Balancer, Harbor, Prometheus, and Grafana. Ensure that the certificate and private key are in PEM format and are not encrypted as **encrypted certificate files are not supported.** Alternatively, if you do not upload a certificate, Service Installer generates a self-signed certificate.
 4. Log in to Service Installer at http://\<_service-installer-ip-address_>\:8888.
-5. Under **VMware vSphere with DVS**, click **Deploy Tanzu Kubernetes Gridm**.
+5. Under **VMware vSphere with DVS**, click **Deploy Tanzu Kubernetes Grid**.
 6. Under **Configure and Generate JSON**, click **Proceed**.
 
   **Note**: To make use of an existing JSON file, click **Proceed** under **Upload and Re-configure JSON**.

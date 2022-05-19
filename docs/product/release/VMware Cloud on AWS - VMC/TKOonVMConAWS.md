@@ -78,7 +78,7 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
 
 1. After importing the images, convert the images to a template.
 1. Upload the NSX Advanced Load Balancer Controller OVA:
-   1. Download the NSX Advanced Load Balancer (20.1.7) OVA from [VMware Vault](https://vault.vmware.com/group/nsx/avi-networks-technical-resources).
+   1. Download the NSX Advanced Load Balancer (20.1.7) OVA from [MarketPlace](https://marketplace.cloud.vmware.com/services/details/nsx-advanced-load-balancer-1?slug=true).
    2. Create a Content Library and upload the NSX Advanced Load Balancer Controller OVA.
 
 ## <a id=deploy-tkg> </a> Deploy Tanzu for Kubernetes Operations
