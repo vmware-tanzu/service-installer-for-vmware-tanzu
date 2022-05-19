@@ -8,7 +8,7 @@
     - Fluent Bit with Kafka, HTTP ,and Syslog endpoints.
     - Pinniped with OIDC and LDAP identity management.
     - Velero.
-- The Service Installer user interface includes the following prechecks:
+- The Service Installer user interface includes the following pre-checks:
     - Name resolution check for NSX Advanced Load Balancer.
     - Ping check for vSphere with Tanzu management cluster IPs and NSX Load Balancer IPs.
 - Support for deployments in an Internet-restricted environment.
@@ -20,12 +20,12 @@ This release adds new fields to the JSON files. The new fields correspond to new
 
 To update your JSON files, see the sample JSON files included with this release or generate a new file from Service Installer user interface.
 
-A separate JSON file for each platform is available at,
+The following separate JSON files for each platform are available:
 
-  - [VMware Cloud on AWS](https://docs-staging.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.2/service-installer/GUID-VMware%20Cloud%20on%20AWS%20-%20VMC-TKOonVMConAWS.html#sample-input-file-7)
-  - [vSphere - Backed by NSX-T](https://docs-staging.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.2/service-installer/GUID-vSphere%20-%20Backed%20by%20NSX-T-tkoVsphereNSXT.html#sample-input-file-4)
-  - [vSphere - Backed by VDS and Tanzu Kubernetes Grid](https://docs-staging.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.1/service-installer/GUID-vSphere%20-%20Backed%20by%20VDS-TKGm-TKOonVsphereVDStkg.html#sample-input-file-5)
-  - [vSphere - Backed by VDS and Tanzu Kubernetes Grid Service](https://docs-staging.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.1/service-installer/GUID-vSphere%20-%20Backed%20by%20VDS-TKGs-TKOonVsphereVDStkgs.html#sample-input-file-4)
+  - [VMware Cloud on AWS](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.2/service-installer/GUID-VMware%20Cloud%20on%20AWS%20-%20VMC-TKOonVMConAWS.html#sample-input-file-7)
+  - [vSphere - Backed by NSX-T](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.2/service-installer/GUID-vSphere%20-%20Backed%20by%20NSX-T-tkoVsphereNSXT.html#sample-input-file-4)
+  - [vSphere - Backed by VDS and Tanzu Kubernetes Grid](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.1/service-installer/GUID-vSphere%20-%20Backed%20by%20VDS-TKGm-TKOonVsphereVDStkg.html#sample-input-file-5)
+  - [vSphere - Backed by VDS and Tanzu Kubernetes Grid Service](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.1/service-installer/GUID-vSphere%20-%20Backed%20by%20VDS-TKGs-TKOonVsphereVDStkgs.html#sample-input-file-4)
 
 ## <a id="resolved-issues"></a> Resolved Issues
 - <a id="MAPBUA-570"> </a> Resource pool creation fails if resource pool with same name exists in parent resource pool.
@@ -40,7 +40,7 @@ A separate JSON file for each platform is available at,
 - <a id="MAPBUA-690"> </a> Include Network troubleshooting binaries in Service Installer for VMware Tanzu OVA.
 
 ## Known Issues
-- <a id="TKG-11079"> </a> Contour package installation failure in workload cluster
+- <a id="TKG-11079"> </a> Contour package installation failure in workload cluster.
 - <a id="GCM-6212"> </a> Workload clusters integration with TSM is failing for vSphere with Tanzu
 - Deployment on Proxy environment is not supported. This will be addressed in next release.
 - Complex passwords for proxy server won't work. Passwords can contain only alphanumeric characters.
