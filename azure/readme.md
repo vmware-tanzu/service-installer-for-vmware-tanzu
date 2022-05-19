@@ -4,7 +4,7 @@
 -->
 # TKGm Private Deployment on Azure Playbook
 
-Based on the Reference Architecture, [TKO on Azure Hybrid-Cloud](../../src/reference-designs/tko-on-azure-hybrid.md)
+Based on the Reference Architecture, [TKO on Azure Hybrid-Cloud](https://github.com/vmware-tanzu-labs/tanzu-validated-solutions/blob/main/src/reference-designs/tko-on-azure-hybrid.md)
 
 # Quick install
 
