@@ -1,4 +1,4 @@
-# Service Installer for VMware Tanzu 1.1 Release Notes
+# Service Installer for VMware Tanzu 1.2 Release Notes
 
 ## <a id="new"></a> What's New
 
