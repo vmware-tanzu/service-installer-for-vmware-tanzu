@@ -103,6 +103,7 @@ def configCloud():
     cluster_name = current_app.config['VC_CLUSTER']
     data_center = current_app.config['VC_DATACENTER']
     data_store = current_app.config['VC_DATASTORE']
+    dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
     req = True
     refToken = request.get_json(force=True)['envSpec']['marketplaceSpec']['refreshToken']
     if refToken and (env == Env.VSPHERE or env == Env.VCF):
@@ -2208,6 +2209,7 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
                            vcenter_username,
                            password, env, vsSpec):
     deploy_yaml = FileHelper.read_resource(Paths.TKG_MGMT_SPEC_J2)
+    dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
     t = Template(deploy_yaml)
     datastore_path = "/" + datacenter + "/datastore/" + data_store
     vsphere_folder_path = "/" + datacenter + "/vm/" + ResourcePoolAndFolderName.TKG_Mgmt_Components_Folder_VSPHERE
@@ -2295,7 +2297,7 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
                 oidc_provider_username_claim = str(
                     request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["oidcSpec"]["oidcUsernameClaim"])
                 FileHelper.write_to_file(
-                    t.render(config=vsSpec, avi_cert=get_base64_cert(ip), ip=ip, wpName=wpName, wipIpNetmask=wipIpNetmask,
+                    t.render(config=vsSpec, avi_cert=get_base64_cert(ip, dns_servers_csv=dns_servers_csv), ip=ip, wpName=wpName, wipIpNetmask=wipIpNetmask,
                              avi_label_key=AkoType.KEY, avi_label_value=AkoType.VALUE, cluster_name=management_cluster,
                              data_center=datacenter, datastore_path=datastore_path,
                              vsphere_folder_path=vsphere_folder_path, vcenter_passwd=vcenter_passwd, vsphere_rp=vsphere_rp,
@@ -2360,7 +2362,7 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
                 base64_bytes = base64.b64encode(ldap_root_ca_data.encode("utf-8"))
                 ldap_root_ca_data_base64 = str(base64_bytes, "utf-8")
                 FileHelper.write_to_file(
-                    t.render(config=vsSpec, avi_cert=get_base64_cert(ip), ip=ip, wpName=wpName, wipIpNetmask=wipIpNetmask,
+                    t.render(config=vsSpec, avi_cert=get_base64_cert(ip, dns_servers_csv=dns_servers_csv), ip=ip, wpName=wpName, wipIpNetmask=wipIpNetmask,
                              avi_label_key=AkoType.KEY, avi_label_value=AkoType.VALUE, cluster_name=management_cluster,
                              data_center=datacenter, datastore_path=datastore_path,
                              vsphere_folder_path=vsphere_folder_path, vcenter_passwd=vcenter_passwd, vsphere_rp=vsphere_rp,
@@ -2386,7 +2388,7 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
             raise Exception("Keyword " + str(e) + "  not found in input file")
     else:
         FileHelper.write_to_file(
-            t.render(config=vsSpec, avi_cert=get_base64_cert(ip), ip=ip, wpName=wpName, wipIpNetmask=wipIpNetmask,
+            t.render(config=vsSpec, avi_cert=get_base64_cert(ip, dns_servers_csv=dns_servers_csv), ip=ip, wpName=wpName, wipIpNetmask=wipIpNetmask,
                      avi_label_key=AkoType.KEY, avi_label_value=AkoType.VALUE, cluster_name=management_cluster,
                      data_center=datacenter, datastore_path=datastore_path,
                      vsphere_folder_path=vsphere_folder_path, vcenter_passwd=vcenter_passwd, vsphere_rp=vsphere_rp,
