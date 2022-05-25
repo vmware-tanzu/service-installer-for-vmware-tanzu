@@ -48,9 +48,40 @@ from .lib.govc_client import GovcClient
 from .replace_value import replaceValueSysConfig, replaceCertConfig
 from common.util.local_cmd_helper import LocalCmdHelper
 from datetime import datetime
+from urllib3.util import connection
+import dns.resolver
+import ipaddress
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+# Force urllib3 to use the DNS server provided by our JSON.
+# Source: https://stackoverflow.com/questions/22609385/python-requests-library-define-specific-dns
+_orig_create_connection = connection.create_connection
+
+SIVT_CUSTOM_RESOLVER = dns.resolver.Resolver()
+def is_ip_address(host):
+    try:
+        _ = ipaddress.ip_address(host)
+        return True
+    except:
+        return False
+
+def create_connection_with_custom_dns_server(address, *args, **kwargs):
+    host, port = address
+    if is_ip_address(host):
+        return _orig_create_connection(address, *args, **kwargs)
+
+    current_app.logger.debug("Querying '" + host + "' via nameservers: '" + str(SIVT_CUSTOM_RESOLVER.nameservers))
+    answer = SIVT_CUSTOM_RESOLVER.query(host)
+    resolved_host = answer[0].to_text()
+    current_app.logger.debug("Answer from custom nameserver: " + str(resolved_host))
+    return _orig_create_connection((resolved_host, port), *args, **kwargs)
+
+def replace_urllib3_create_connection(dns_server_csv):
+    for dns_server in dns_server_csv.split(','):
+        if dns_server not in SIVT_CUSTOM_RESOLVER.nameservers:
+            SIVT_CUSTOM_RESOLVER.nameservers.insert(0, dns_server)
+    connection.create_connection = create_connection_with_custom_dns_server
 
 def envCheck():
     try:
