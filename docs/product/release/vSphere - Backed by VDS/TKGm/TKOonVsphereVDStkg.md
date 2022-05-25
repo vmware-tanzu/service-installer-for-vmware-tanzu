@@ -41,6 +41,7 @@ Before you deploy Tanzu for Kubernetes Operations using Service Installer for VM
 
     - A Cloud Services Portal (CSP) API token is required to pull all required images from VMware Marketplace. To generate an API token, login in to the CSP portal and select your organization. Go to **Marketplace Service > My Account > API Tokens > Generate a Token**.
     - If Marketplace is not available in your environment or if you are working in an air-gapped environment,
+
         1. Download and import required Photon/Ubuntu Kubernetes base OVAs to vCenter.
 
             To download the images, go to [VMware Tanzu Kubernetes Grid Download Product](https://customerconnect.vmware.com/en/downloads/details?downloadGroup=TKG-140&productId=988&rPId=82536).
@@ -84,7 +85,7 @@ Service installer VM                 | NSX Advanced Load Balancer Controller    
 ## Considerations
 Consider the following when deploying VMware Tanzu for Kubernetes Operations using Service Installer for VMware Tanzu.
 
-- If you set http-proxy, you must also set https-proxy and vice-versa.
+- If you set HTTP proxy, you must also set HTTPS proxy and vice-versa.
     - NSX Advanced Load Balancer Controller must be able to communicate with vCenter directly without a proxy.
     - Avi Kubernetes Operator (AKO) must be able to communicate with NSX Advanced Load Balancer Controller directly without proxy.
     - For the no-proxy section in the JSON file, in addition to the values you specify, Service Installer appends:
@@ -98,7 +99,7 @@ Consider the following when deploying VMware Tanzu for Kubernetes Operations usi
 
 - Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
 - Since Tanzu Observability also provides observability services, if Tanzu Observability is enabled, Prometheus and Grafana are not supported.
-- In an Internet-restricted environment, provide custom repository details. The registry must not implement user authentication. For example, if you use a Harbor registry, the project must be public, and not private.
+- In an Internet-restricted environment, provide custom repository details. The registry must not implement user authentication. For example, if you use a Harbor registry, the project must be public and not private.
 
 ## <a id=deploy-tko></a> Deploy Tanzu for Kubernetes Operations
 
@@ -118,17 +119,17 @@ Consider the following when deploying VMware Tanzu for Kubernetes Operations usi
 
   **Note**: To make use of an existing JSON file, click **Proceed** under **Upload and Re-configure JSON**.
 
-7. Enter the required details to generate the input file. For reference, see the [sample json file](#sample-input-file).
+7. Enter the required details to generate the input file. For reference, see the [sample JSON file](#sample-input-file).
 8. Execute the following command to initiate the deployment.
 
    ```
    arcas --env vsphere --file /path/to/vsphere_data.json --avi_configuration --tkg_mgmt_configuration --shared_service_configuration --workload_preconfig --workload_deploy --deploy_extentions
    ```
-9. Use below command if you wish to cleanup the deployment
+9. Use the following command to clean up the deployment.
    ```
    arcas --env vsphere --file /path/to/vsphere_data.json --cleanup
    ```
-   
+
    The following table describes the parameters.
 
    Python CLI Command Parameter         | Description                                                  |
@@ -144,35 +145,35 @@ Consider the following when deploying VMware Tanzu for Kubernetes Operations usi
 
 2. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the JSON file:
 
-    - to enable or disable Tanzu Mission Control and to use the Tanzu Mission Control CLI and API enter `"tmcAvailability": "true/false"`
-    - to enable or disable Tanzu Service Mesh, enter `"tkgWorkloadTsmIntegration": "true/false"`
-    - to enable or disable Tanzu Observability, enter `"tanzuObservabilityAvailability": "true/false"`
+    - to enable or disable Tanzu Mission Control and to use the Tanzu Mission Control CLI and API enter `"tmcAvailability": "true/false"`.
+    - to enable or disable Tanzu Service Mesh, enter `"tkgWorkloadTsmIntegration": "true/false"`.
+    - to enable or disable Tanzu Observability, enter `"tanzuObservabilityAvailability": "true/false"`.
 
 3. If you are using a proxy, configure the proxy details in the proxy field corresponding to the cluster.
 
-    For example, to enable or disable proxy on the management cluster, use `tkgMgmt: {"enable-proxy": "true"}` in the json file.
+    For example, to enable or disable proxy on the management cluster, use `tkgMgmt: {"enable-proxy": "true"}` in the JSON file.
 
 4. Enable or disable Tanzu Kubernetes Grid extensions. For example,
     - to enable or disable Prometheus and Grafana, enter `"enableExtensions": "true/false"`.
     - to enable or disable Harbor, enter `"enableHarborExtension": "true/false"`.   
 
-**Note:** 
-- Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability. 
+**Note:**
+- Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
 - If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
 - When Tanzu Mission Control is enabled only Photon is supported.
 
 
 ## Sample Input File
-The Service Installer user interface generates the JSON file based on your inputs and saves it to **/opt/vmware/arcas/src/** in installer VM. Files are named based on the environment:
+The Service Installer user interface generates the JSON file based on your inputs and saves it to **/opt/vmware/arcas/src/** in Service Installer VM. Files are named based on the environment:
 
  - vSphere DVS Internet environment: vsphere-dvs-tkgm.json
  - vSphere DVS Proxy environment: vsphere-dvs-tkgm-proxy.json
  - vSphere DVS air-gapped environment: vsphere-dvs-tkgm-airgapped.json
 
 
- Following is an example of JSON file.
+ Following is an example of the JSON file.
 
- **Note:** This sample is also available in Service Installer VM under **/opt/vmware/arcas/src/vsphere/vsphere-dvs-tkgm.json.sample**.
+ **Note:** The sample JSON file is also available in Service Installer VM at the following location: **/opt/vmware/arcas/src/vsphere/vsphere-dvs-tkgm.json.sample**.
 
 ```json
 {
@@ -423,4 +424,3 @@ The Service Installer user interface generates the JSON file based on your input
    }
 }
 ```
-

@@ -10,6 +10,7 @@ The following diagram represents the network design required for deploying Tanzu
 
 ## Prerequisites
 Before deploying Tanzu for Kubernetes Operations on VMware Cloud on AWS using Service Installer for VMware Tanzu, ensure the following:
+
 - A Software-Defined Data Center (SDDC) is running in VMC on an AWS instance.
 - A public IP address is reserved in VMC on AWS.
 
@@ -23,6 +24,7 @@ Before deploying Tanzu for Kubernetes Operations on VMware Cloud on AWS using Se
 
 ## Overview of Steps
 The following are the main steps for deploying VMware Tanzu for Kubernetes  Operations on VMware Cloud on AWS using Service Installer for VMware Tanzu:
+
 1. [Create a Network Segment](#create-network-segment)
 1. [Enable External Access](#enable-external-access)
 1. [Download NSX Advanced Load Balancer Controller](#download-avi-controller)
@@ -38,6 +40,7 @@ Create a network segment for Tanzu Kubernetes Grid. The Tanzu Kubernetes Grid ma
 1. On the SDDC tile, click **View Details**.
 1. Go to **Networking & Security** > **Network** > **Segments**.
 1. Click **Add Segment** to create a new network segment with a unique subnet for the Tanzu Kubernetes Grid management network. Enter the following:
+
    - **Subnets:** Specify an IPv4 CIDR block for the segment. <br>
    Make sure that the new subnet CIDR does not overlap with `sddc-cgw-network-1` or any other existing segments.
 
@@ -73,6 +76,7 @@ For additional product documentation, see [Add or Modify Compute Gateway Firewal
 
 ## <a id=download-avi-controller> </a> Download and Import NSX Advanced Load Balancer Controller and Kubernetes Templates
 Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
+
 1. Download and import the required Photon/Ubuntu Kubernetes base OVAs to vCenter.
     To download the images, go to [VMware Tanzu Kubernetes Grid Download Product](https://customerconnect.vmware.com/downloads/details?downloadGroup=TKG-151&productId=988&rPId=84961)
 
@@ -100,15 +104,18 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
 
 5. On the **VMC on AWS** tile, click **Deploy**.
 6. On the **Configure and Generate JSON** tile, click **Proceed**.
-       By default, the values entered in the GUI are saved in a file `vmc-tkgm.json` located at `/opt/vmware/arcas/src`.
-       See the [sample json file](#sample-input-file) file for reference.
+
+    By default, the values entered in the GUI are saved in the `vmc-tkgm.json` file located at `/opt/vmware/arcas/src`.
+
+    See the [sample JSON file](#sample-input-file) file for reference.
 7. Execute the following command to initiate the deployment:
      ```
      arcas --env vmc --file /path/to/vmc-tkgm.json --session --vmc_pre_configuration --avi_configuration --tkg_mgmt_configuration --shared_service_configuration --workload_preconfig --workload_deploy --deploy_extentions
      ```
      For `/path/to/vmc-tkgm.json`, enter the path to the JSON file that you created in the previous step.
-     
- 8. Use below command if you wish cleanup the deployment
+
+ 8. Use the following command to cleanup the deployment.
+
      ```
      arcas --env  vmc --file /path/to/vmc-tkgm.json --cleanup
      ```
@@ -142,14 +149,15 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
     - to enable or disable Harbor, enter `"enableHarborExtension": "true/false"`.
 
 **Note:**
+
 - Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
 - If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
 - When Tanzu Mission Control is enabled only Photon is supported
 
-## Sample Input file
-The Service Installer for Tanzu for Kubernetes Operations user interface automatically generates the JSON file for deploying Tanzu Kubernetes Grid. The following is an example of an automatically generated JSON file.
+## Sample Input File
+The Service Installer for Tanzu for Kubernetes Operations user interface automatically generates the JSON file for deploying Tanzu Kubernetes Grid. The following following sample file is an example of an automatically generated JSON file.
 
-**Note:** This sample file is also available in the Service Installer VM under **/opt/vmware/arcas/src/vmc/vmc-tkgm.json.sample**
+**Note:** The sample file is also available in the Service Installer VM at the following location: **/opt/vmware/arcas/src/vmc/vmc-tkgm.json.sample**.
 
 ```json
 {
