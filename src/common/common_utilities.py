@@ -7237,7 +7237,8 @@ def getAviIpFqdnDnsMapping(avi_controller_fqdn_ip_dict, dns_server):
                     if not ip and not str(ip).__contains__(avi_ip):
                         return "DNS Entry not found for : " + avi_fqdn , 500
                     else:
-                        current_app.logger.info("Found DNS entry for " + avi_fqdn + " : " + ip)
+                        replace_urllib3_create_connection(dns)
+                        current_app.logger.debug("NOTE: urllib3 is now using custom DNS server: " + dns)
                         # avi_controller_fqdn_ip_dict.pop(avi_fqdn)
         return "Successfully validated NSX ALB Fqdn and Ip entry on DNS Server", 200
     except:
