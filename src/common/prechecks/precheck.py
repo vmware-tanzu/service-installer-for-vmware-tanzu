@@ -161,6 +161,37 @@ def disable_proxy():
     }
     return jsonify(d), 200
 
+def get_tkgm_management_cluster_from_session_state():
+    request.get_json()['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtClusterName']
+
+
+def tkgm_management_cluster_already_exists():
+    def env_type_is_tkgm():
+        env_type = request.get_json()['envSpec']['envType'].lower()
+        current_app.logger.debug(f"Wanted env type 'tkgm'; got '{env_type}'")
+        return env_type == 'tkgm'
+
+    def management_cluster_in_tanzu_config(cluster):
+        fp = os.path.join(os.environ['HOME'], ".config", "tanzu", "config.yaml")
+        if not os.path.exists(fp):
+            current_app.logger.debug(f"Tanzu config not written yet to {fp}; stopping check")
+            return False
+        with open(fp, 'r') as stream:
+            data = yaml.safe_load(stream)
+        if data == '':
+            current_app.logger.debug(f"No data in Tanzu config '{fp}'; stopping check")
+            return False
+        clusters_in_config = [ server.name for server in data['servers'] ]
+        return (cluster in clusters_in_config)
+
+    if not env_type_is_tkgm():
+        return False
+    try:
+        cluster_name = get_tkgm_management_cluster_from_session_state()
+    except Exception as e:
+        current_app.logger.debug(f"Unable to resolve cluster name from session state: {str(e)}")
+        return False
+    return management_cluster_in_tanzu_config(cluster_name)
 
 @vcenter_precheck.route("/api/tanzu/precheck", methods=['POST'])
 def precheck_env():
@@ -173,6 +204,14 @@ def precheck_env():
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
+    if tkgm_management_cluster_already_exists():
+       response = {
+            "ERROR_CODE": 500,
+            "responseType": "ERROR",
+            "msg": f"TKGm management cluster '{get_tkgm_management_cluster_from_session_state()}' " +
+                   "already exists; run this 'arcas' command again with '--delete-management-cluster'"
+        }
+       return jsonify(response), 500
     env = env[0]
     cmd_doc_start = ["systemctl", "start", "docker"]
     try:
