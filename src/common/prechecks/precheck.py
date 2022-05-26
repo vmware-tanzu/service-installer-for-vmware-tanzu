@@ -7,6 +7,7 @@ import sys
 import tarfile
 import time
 import logging
+import yaml
 from flask import jsonify, request
 from flask import Flask
 import requests
@@ -172,7 +173,10 @@ def tkgm_management_cluster_already_exists():
         return env_type == 'tkgm'
 
     def management_cluster_in_tanzu_config(cluster):
-        fp = os.path.join(os.environ['HOME'], ".config", "tanzu", "config.yaml")
+        home_dir = '/root'
+        if 'HOME' in os.environ:
+            home_dir = os.environ['HOME']
+        fp = os.path.join(home_dir, ".config", "tanzu", "config.yaml")
         if not os.path.exists(fp):
             current_app.logger.debug(f"Tanzu config not written yet to {fp}; stopping check")
             return False
@@ -181,6 +185,10 @@ def tkgm_management_cluster_already_exists():
         if data == '':
             current_app.logger.debug(f"No data in Tanzu config '{fp}'; stopping check")
             return False
+        if 'servers' not in data:
+            current_app.logger.debug(f"This Tanzu config does not have any servers in it: {fp}")
+            return False
+        current_app.logger.debug(f"Data: {str(data)}")
         clusters_in_config = [ server.name for server in data['servers'] ]
         return (cluster in clusters_in_config)
 
