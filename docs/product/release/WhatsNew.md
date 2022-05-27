@@ -1,48 +1,49 @@
-## What's New
+# Service Installer for VMware Tanzu 1.2 Release Notes
 
-- Support for TKG 1.5.3, including Day 0 support in Tekton-based pipelines
-- Cleanup feature - Ability to cleanup the steps performed by SIVT and start from scratch
-- Support for below extensions
-    - Fluent Bit with Kafka, HTTP and Syslog endpoints
-    - Pinniped with OIDC and LDAP identity management
-    - Velero
-- Below Features added in SIVT user interface to enhance prechecks
-    - Name resolution check for NSX ALB Load balancer
-    - Ping check for vSphere with Tanzu management cluster IPs and NSX Load Balancer IPs
-- Deployments on internet restricted environment is now supported with SIVT
-- Additional improvements based on feedback from TKGm TSLs 
-    - Support for single network topology
-    - Support for minimum user privilege
+## <a id="new"></a> What's New
 
+- Support for Tanzu Kubernetes Grid 1.5.3 and Day 0 support in Tekton-based pipelines.
+- Ability to cleanup the steps performed by Service Installer for VMware Tanzu and start from scratch.
+- Support for the following extensions:
+    - Fluent Bit with Kafka, HTTP ,and Syslog endpoints.
+    - Pinniped with OIDC and LDAP identity management.
+    - Velero.
+- The Service Installer user interface includes the following pre-checks:
+    - Name resolution check for NSX Advanced Load Balancer.
+    - Ping check for vSphere with Tanzu management cluster IPs and NSX Load Balancer IPs.
+- Support for deployments in an Internet-restricted environment.
+- Support for single network topology.
+- Support for minimum user privilege.
 
-## Service Installer for VMware Tanzu Deployment JSON files 
+## Service Installer for VMware Tanzu Deployment JSON Files
+This release adds new fields to the JSON files. The new fields correspond to new extensions that are supported in this release.
 
-**Note: New fields corresponding to new extensions support are added to JSON files in this release. Please refer sample JSON files or generate file from SIVT user interface to update your JSON files**
+To update your JSON files, see the sample JSON files included with this release or generate a new file from Service Installer user interface.
 
-All these JSON files for different platforms are available at,
-- In Documentation
-    - [VMware Cloud on AWS - VMC](./VMware%20Cloud%20on%20AWS%20-%20VMC/TKOonVMConAWS.md#sample-input-file) 
-    - [vSphere - Backed by NSX-T](./vSphere%20-%20Backed%20by%20NSX-T/tkoVsphereNSXT.md#sample-input-file) 
-    - [vSphere - Backed by VDS-TKGm](./vSphere%20-%20Backed%20by%20VDS/TKGm/TKOonVsphereVDStkg.md#sample-input-file) 
-    - [vSphere - Backed by VDS-TKGs](./vSphere%20-%20Backed%20by%20VDS/TKGs/TKOonVsphereVDStkgs.md#sample-input-file)
+The following separate JSON files for each platform are available:
 
-## Fixed Issues
-- [MAPBUA-570](https://jira.eng.vmware.com/browse/MAPBUA-570) TKG_TSL_Feedback: Resource pool creation fails if resource pool with same name exists in parent resuorce pool
-- [MAPBUA-569](https://jira.eng.vmware.com/browse/MAPBUA-569)	TKG_TSL_Feedback: TKGs issue while listing clusters for same cluster names across different datacenter
-- [MAPBUA-597](https://jira.eng.vmware.com/browse/MAPBUA-597)	TKG_TSL_Feedback: Issue with Signed certificates for NSX ALB in TKGS deployment
-- [MAPBUA-606](https://jira.eng.vmware.com/browse/MAPBUA-606)	TKG_TSL_Feedback: Configure vSphere kubectl plugin before fetching tkr version
-- [MAPBUA-611](https://jira.eng.vmware.com/browse/MAPBUA-611)	TKG_TSL_feedback: UI tooltip for workload cluster points to wrong pod and service CIDR
-- [MAPBUA-618](https://jira.eng.vmware.com/browse/MAPBUA-618)	TKG_TSL_Feedback: Add System message of day in SIVT VM
-- [MAPBUA-627](https://jira.eng.vmware.com/browse/MAPBUA-627)	TKG_TSL_Feedback: Space in Datacenter and cluster name govc command id failing to create resources
-- [MAPBUA-667](https://jira.eng.vmware.com/browse/MAPBUA-667)	TKG_TLS_feedback: Folders are being listed along with clusters in UI cluster dropdown
-- [MAPBUA-736](https://jira.eng.vmware.com/browse/MAPBUA-736)	TKG_TLS_Feedback: Comma separated NTP values validation fails
-- [MAPBUA-690](https://jira.eng.vmware.com/browse/MAPBUA-690)	TKG_TSL_Feedback: Include Network troubleshooting binaries in SIVT OVA
+  - [VMware Cloud on AWS](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.2/service-installer/GUID-VMware%20Cloud%20on%20AWS%20-%20VMC-TKOonVMConAWS.html#sample-input-file-7)
+  - [vSphere - Backed by NSX-T](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.2/service-installer/GUID-vSphere%20-%20Backed%20by%20NSX-T-tkoVsphereNSXT.html#sample-input-file-4)
+  - [vSphere - Backed by VDS and Tanzu Kubernetes Grid](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.1/service-installer/GUID-vSphere%20-%20Backed%20by%20VDS-TKGm-TKOonVsphereVDStkg.html#sample-input-file-5)
+  - [vSphere - Backed by VDS and Tanzu Kubernetes Grid Service](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.1/service-installer/GUID-vSphere%20-%20Backed%20by%20VDS-TKGs-TKOonVsphereVDStkgs.html#sample-input-file-4)
 
-## Important Links
-- Download latest Arcas OVA from [here](https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true)
+## <a id="resolved-issues"></a> Resolved Issues
+- <a id="MAPBUA-570"> </a> Resource pool creation fails if resource pool with same name exists in parent resource pool.
+- <a id="MAPBUA-569"> </a> Tanzu Kubernetes Grid Service issue while listing clusters for same cluster names across different datacenter.
+- <a id="MAPBUA-597"> </a> Issue with Signed certificates for NSX Advanced Load Balancer in Tanzu Kubernetes Grid Service deployment.
+- <a id="MAPBUA-606"> </a> Configure vSphere `kubectl` plugin before fetching TKr version.
+- <a id="MAPBUA-611"> </a> UI tooltip for workload cluster points to wrong pod and service CIDR.
+- <a id="MAPBUA-618"> </a> Add System message of day in Service Installer for VMware Tanzu VM.
+- <a id="MAPBUA-627"> </a> Space in datacenter and cluster name govc command id failing to create resources.
+- <a id="MAPBUA-667"> </a> Folders are listed along with clusters in UI cluster dropdown.
+- <a id="MAPBUA-736"> </a> Comma separated NTP values validation fails.
+- <a id="MAPBUA-690"> </a> Include Network troubleshooting binaries in Service Installer for VMware Tanzu OVA.
 
 ## Known Issues
-- [TKG-11079](https://jira.eng.vmware.com/browse/TKG-11079) - Contour package installation failure in workload cluster
-- [GCM-6212](https://jira.eng.vmware.com/browse/GCM-6212) - Workload clusters integration with TSM is failing for vSphere with Tanzu
+- <a id="TKG-11079"> </a> Contour package installation failure in workload cluster.
+- <a id="GCM-6212"> </a> Workload clusters integration with TSM is failing for vSphere with Tanzu
 - Deployment on Proxy environment is not supported. This will be addressed in next release.
 - Complex passwords for proxy server won't work. Passwords can contain only alphanumeric characters.
+
+## Download
+- Download the latest Service Installer OVA from [VMware Marketplace: Service Installer for VMware Tanzu](https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true).
