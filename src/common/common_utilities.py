@@ -323,7 +323,7 @@ def deployAndConfigureAvi(govc_client: GovcClient, vm_name, controller_ova_locat
         }
         return jsonify(d), 500
     ip = govc_client.get_vm_ip(vm_name, datacenter_name=data_center)[0]
-    current_app.logger.info("Checking controller is up")
+    current_app.logger.info(f"Checking controller is up at {ip}")
     if check_controller_is_up(ip) is None:
         current_app.logger.error("Controller service is not up")
         d = {
@@ -1075,6 +1075,25 @@ def obtain_first_csrf(ip):
 
 
 def check_controller_is_up(ip):
+    def controller_reachable(ip):
+        avi_controller_https_wait_time_seconds = 120
+        current_app.logger.info(
+            f"Waiting up to {avi_controller_https_wait_time_seconds} seconds for Avi to start at: {ip}"
+        )
+        # runShellCommandAndReturnOutputAsList will only return a non-zero exit if
+        # the command's output contains 'error'. Not sure why that is.
+        _, rc = runShellCommandAndReturnOutputAsList(["sh",
+            "-c",
+            f"nc -w {avi_controller_https_wait_time_seconds} -z {ip} 443 || echo 'error'"
+        ])
+        current_app.logger.debug(f"Reachable check: rc {rc}")
+        if rc == 0: return True
+        current_app.logger.error(f"Avi frontend not reachable at {ip}")
+        return False
+
+    if not controller_reachable(ip):
+        return None
+
     url = "https://" + str(ip)
     headers = {
         "Content-Type": "application/json"
