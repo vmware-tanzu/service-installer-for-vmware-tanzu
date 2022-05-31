@@ -16,7 +16,7 @@
     "id=\".*\""
   ],
   "files": [
-    "src/**/*.md"
+    "docs/product/**/*.md"
   ],
   "languageSettings": [
     {
