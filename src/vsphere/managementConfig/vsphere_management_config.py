@@ -2410,6 +2410,7 @@ def addNameserverToResolvConf():
     if dns_servers_csv is None: return
 
     dns_servers = dns_servers_csv.replace(',', ' ')
+    os.system("test -f /etc/resolv.conf.bak && mv /etc/resolv.conf.bak /etc/resolv.conf")
     os.system("cp /etc/resolv.conf /etc/resolv.conf.bak")
     os.system(f"sed -Ei 's/nameserver (.*)/nameserver {dns_servers} \\1/' /etc/resolv.conf")
 
