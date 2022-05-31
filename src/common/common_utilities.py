@@ -3816,6 +3816,7 @@ def template14deployYaml(sharedClusterName, clusterPlan, datacenter, dataStorePa
         t.render(config=vsSpec, clustercidr=clustercidr, sharedClusterName=sharedClusterName, clusterPlan=clusterPlan,
                  servicecidr=servicecidr, datacenter=datacenter, dataStorePath=dataStorePath,
                  folderPath=folderPath, custom_dns_server=use_custom_dns_servers,
+                 dns_servers_csv=dns_servers_csv,
                  mgmt_network=mgmt_network, vspherePassword=vspherePassword,
                  sharedClusterResourcePool=sharedClusterResourcePool,
                  vsphereServer=vsphereServer, sshKey=sshKey, vsphereUseName=vsphereUseName, controlPlaneSize=size,

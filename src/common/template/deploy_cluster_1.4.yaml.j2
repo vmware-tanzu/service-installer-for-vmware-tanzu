@@ -30,8 +30,8 @@ WORKER_MACHINE_COUNT: {{ machineCount }}
 VSPHERE_INSECURE: 'true'
 ENABLE_AUDIT_LOGGING: 'true'
 {% if custom_dns_server == "true" %}
-CONTROL_PLANE_NODE_NAMESERVERS: {{ config.envSpec.infraComponents.dnsServersIp }}
-WORKER_NODE_NAMESERVERS: {{ config.envSpec.infraComponents.dnsServersIp }}
+CONTROL_PLANE_NODE_NAMESERVERS: {{ dns_servers_csv }}
+WORKER_NODE_NAMESERVERS: {{ dns_servers_csv }}
 {% endif %}
 ENABLE_DEFAULT_STORAGE_CLASS: 'true'
 ENABLE_AUTOSCALER: false
