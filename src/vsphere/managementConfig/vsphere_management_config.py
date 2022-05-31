@@ -2213,6 +2213,7 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
     use_custom_dns_servers = "false"
     if dns_servers_csv is not None:
         use_custom_dns_servers = "true"
+    current_app.logger.debug(f"template14deploy: Use custom DNS servers? {use_custom_dns_servers}")
     t = Template(deploy_yaml)
     datastore_path = "/" + datacenter + "/datastore/" + data_store
     vsphere_folder_path = "/" + datacenter + "/vm/" + ResourcePoolAndFolderName.TKG_Mgmt_Components_Folder_VSPHERE
@@ -2412,7 +2413,7 @@ def addNameserverToResolvConf():
     dns_servers = dns_servers_csv.replace(',', ' ')
     os.system("test -f /etc/resolv.conf.bak && mv /etc/resolv.conf.bak /etc/resolv.conf")
     os.system("cp /etc/resolv.conf /etc/resolv.conf.bak")
-    os.system(f"sed -Ei 's/nameserver (.*)/nameserver {dns_servers} \\1/' /etc/resolv.conf")
+    os.system(f"sed -Ei 's/nameserver (.*)/nameserver {dns_servers}\\nnameserver \\1/' /etc/resolv.conf")
 
 def removeNameserversFromResolvConf():
     os.system("mv /etc/resolv.conf.bak /etc/resolv.conf")
