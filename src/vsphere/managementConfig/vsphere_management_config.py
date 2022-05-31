@@ -2210,6 +2210,9 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
                            password, env, vsSpec):
     deploy_yaml = FileHelper.read_resource(Paths.TKG_MGMT_SPEC_J2)
     dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
+    use_custom_dns_servers = "false"
+    if dns_servers_csv is not None:
+        use_custom_dns_servers = "true"
     t = Template(deploy_yaml)
     datastore_path = "/" + datacenter + "/datastore/" + data_store
     vsphere_folder_path = "/" + datacenter + "/vm/" + ResourcePoolAndFolderName.TKG_Mgmt_Components_Folder_VSPHERE
@@ -2371,7 +2374,7 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
                              avi_cluster_vip_network_gateway_cidr=avi_cluster_vip_network_gateway_cidr,
                              air_gapped_repo=air_gapped_repo, repo_certificate=repo_certificate, osName=osName,
                              osVersion=osVersion,
-                             size=size, control_plane_vcpu=control_plane_vcpu, control_plane_disk_gb=control_plane_disk_gb,
+                             size=size, custom_dns_servers=use_custom_dns_servers, control_plane_vcpu=control_plane_vcpu, control_plane_disk_gb=control_plane_disk_gb,
                              control_plane_mem_mb=control_plane_mem_mb, identity_mgmt_type=identity_mgmt_type,
                              ldap_endpoint_ip=ldap_endpoint_ip, ldap_endpoint_port=ldap_endpoint_port,
                              ldap_endpoint_bind_pw=ldap_endpoint_bind_pw,
@@ -2394,6 +2397,7 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
                      vsphere_folder_path=vsphere_folder_path, vcenter_passwd=vcenter_passwd, vsphere_rp=vsphere_rp,
                      vcenter_ip=vcenter_ip, ssh_key=ssh_key, vcenter_username=vcenter_username,
                      size_controlplane=size.lower(), size_worker=size.lower(),
+                     custom_dns_server=use_custom_dns_servers,
                      avi_cluster_vip_network_gateway_cidr=avi_cluster_vip_network_gateway_cidr,
                      air_gapped_repo=air_gapped_repo, repo_certificate=repo_certificate, osName=osName, osVersion=osVersion,
                      size=size, control_plane_vcpu=control_plane_vcpu, control_plane_disk_gb=control_plane_disk_gb,
@@ -2401,11 +2405,32 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
             "management_cluster_vsphere.yaml")
 
 
+def addNameserverToResolvConf():
+    dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
+    if dns_servers_csv is None: return
+
+    dns_servers = dns_servers_csv.replace(',', ' ')
+    os.system("cp /etc/resolv.conf /etc/resolv.conf.bak")
+    os.system(f"sed -Ei 's/nameserver (.*)/nameserver {dns_servers} \\1/' /etc/resolv.conf")
+
+def removeNameserversFromResolvConf():
+    os.system("mv /etc/resolv.conf.bak /etc/resolv.conf")
+
 def deployManagementCluster(management_cluster, ip, data_center, data_store, cluster_name, wpName, wipIpNetmask,
                             vcenter_ip,
                             vcenter_username, password, env, vsSpec):
+    dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
     try:
+        if dns_servers_csv is not None:
+            current_app.logger.info("Turning on custom nameserver support for clusters")
+            for feature_flag in [ "features.management-cluster.custom-nameservers",
+                                  "features.cluster.custom-nameservers" ]:
+
+                listOfCmd = ["tanzu", "config", "set", feature_flag, "true" ]
+                runProcess(listOfCmd)
+
         if not getClusterStatusOnTanzu(management_cluster, "management"):
+            addNameserverToResolvConf()
             os.system("rm -rf kubeconfig.yaml")
             templateMgmtDeployYaml(ip, data_center, data_store, cluster_name, wpName, wipIpNetmask, vcenter_ip,
                                    vcenter_username,
@@ -2423,6 +2448,7 @@ def deployManagementCluster(management_cluster, ip, data_center, data_store, clu
                              "--export-file",
                              "kubeconfig.yaml"]
             runProcess(listOfCmdKube)
+            removeNameserversFromResolvConf()
             return "SUCCESS", 200
         else:
             return "SUCCESS", 200

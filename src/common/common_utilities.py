@@ -3371,11 +3371,22 @@ def createOverlayYaml(repository):
     os.system("cp ./common/harbor-overlay.yaml harbor-overlay.yaml")
     os.system("./common/injectValue.sh harbor-overlay.yaml overlay " + repository)
 
+def addNameserverToResolvConf():
+    dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
+    if dns_servers_csv is None: return
+
+    dns_servers = dns_servers_csv.replace(',', ' ')
+    os.system("cp /etc/resolv.conf /etc/resolv.conf.bak")
+    os.system(f"sed -Ei 's/nameserver (.*)/nameserver {dns_servers} \\1/' /etc/resolv.conf")
+
+def removeNameserversFromResolvConf():
+    os.system("mv /etc/resolv.conf.bak /etc/resolv.conf")
 
 def deployCluster(sharedClusterName, clusterPlan, datacenter, dataStorePath,
                   folderPath, mgmt_network, vspherePassword, sharedClusterResourcePool, vsphereServer,
                   sshKey, vsphereUseName, machineCount, size, env, type, vsSpec):
     try:
+        addNameserverToResolvConf()
         if not getClusterStatusOnTanzu(sharedClusterName, "cluster"):
             kubeVersion = generateClusterYaml(sharedClusterName, clusterPlan, datacenter, dataStorePath,
                                               folderPath, mgmt_network, vspherePassword, sharedClusterResourcePool,
@@ -3397,10 +3408,12 @@ def deployCluster(sharedClusterName, clusterPlan, datacenter, dataStorePath,
             else:
                 listOfCmd = ["tanzu", "cluster", "create", "-f", sharedClusterName + ".yaml", "-v", "6"]
             runProcess(listOfCmd)
+            removeNameserversFromResolvConf()
             return "SUCCESS", 200
         else:
             return "SUCCESS", 200
     except Exception as e:
+        removeNameserversFromResolvConf()
         return None, str(e)
 
 
@@ -3635,6 +3648,10 @@ def template14deployYaml(sharedClusterName, clusterPlan, datacenter, dataStorePa
         deploy_yaml = FileHelper.read_resource(Paths.TKG_VMC_CLUSTER_14_SPEC_J2)
     else:
         deploy_yaml = FileHelper.read_resource(Paths.TKG_CLUSTER_14_SPEC_J2)
+    dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
+    use_custom_dns_servers = "false"
+    if dns_servers_csv is not None:
+        use_custom_dns_servers = "true"
     t = Template(deploy_yaml)
     datacenter = "/" + datacenter
     control_plane_vcpu = ""
@@ -3796,7 +3813,7 @@ def template14deployYaml(sharedClusterName, clusterPlan, datacenter, dataStorePa
     FileHelper.write_to_file(
         t.render(config=vsSpec, clustercidr=clustercidr, sharedClusterName=sharedClusterName, clusterPlan=clusterPlan,
                  servicecidr=servicecidr, datacenter=datacenter, dataStorePath=dataStorePath,
-                 folderPath=folderPath,
+                 folderPath=folderPath, custom_dns_server=use_custom_dns_servers,
                  mgmt_network=mgmt_network, vspherePassword=vspherePassword,
                  sharedClusterResourcePool=sharedClusterResourcePool,
                  vsphereServer=vsphereServer, sshKey=sshKey, vsphereUseName=vsphereUseName, controlPlaneSize=size,
@@ -3938,6 +3955,11 @@ def cluster13Yaml(sharedClusterName, clusterPlan, datacenter, dataStorePath,
 def template13deployYaml(sharedClusterName, clusterPlan, datacenter, dataStorePath,
                          folderPath, mgmt_network, vspherePassword, sharedClusterResourcePool, vsphereServer,
                          sshKey, vsphereUseName, machineCount, size, env, type, vsSpec):
+    dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
+    if dns_servers_csv is not None:
+        current_app.logger.warning("Custom nameservers are not supported on TKG v1.3 and below! " +
+                "If you need to define custom nameservers, add the nameservers to " +
+                "/etc/resolv.conf and re-run arcas again.")
     sharedClusterEndPoint = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents'][
         'tkgSharedservice-controlplane-ip']
     deploy_yaml = FileHelper.read_resource(Paths.TKG_CLUSTER_13_SPEC_J2)

@@ -33,6 +33,10 @@ VSPHERE_USERNAME: {{ vcenter_username }}
 VSPHERE_INSECURE: 'true'
 AVI_CONTROL_PLANE_HA_PROVIDER: 'true'
 ENABLE_AUDIT_LOGGING: 'true'
+{% if custom_dns_server == "true" %}
+CONTROL_PLANE_NODE_NAMESERVERS: {{ config.envSpec.infraComponents.dnsServersIp }}
+WORKER_NODE_NAMESERVERS: {{ config.envSpec.infraComponents.dnsServersIp }}
+{% endif %}
 OS_ARCH: amd64
 OS_NAME: {{ osName }}
 OS_VERSION: {{ osVersion }}
