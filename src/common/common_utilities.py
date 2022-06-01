@@ -1047,15 +1047,24 @@ def check_controller_is_up(ip):
     def controller_reachable(ip):
         avi_controller_https_wait_time_seconds = 120
         current_app.logger.info(
-            f"Waiting up to {avi_controller_https_wait_time_seconds} seconds for Avi to start at: {ip}"
+            f"Waiting up to {avi_controller_https_wait_time_seconds} seconds for the Avi " +
+                "web service to become reachable at: {ip}"
         )
         # runShellCommandAndReturnOutputAsList will only return a non-zero exit if
         # the command's output contains 'error'. Not sure why that is.
-        _, rc = runShellCommandAndReturnOutputAsList(["sh",
-            "-c",
-            f"nc -w {avi_controller_https_wait_time_seconds} -z {ip} 443 || echo 'error'"
-        ])
-        current_app.logger.debug(f"Reachable check: rc {rc}")
+        attempts = 0
+        rc = -1
+        for i in range(avi_controller_https_wait_time_seconds):
+            _, rc = runShellCommandAndReturnOutputAsList(["sh",
+                "-c",
+                f"nc -w 1 -z {ip} 443 || echo 'error'"
+            ])
+            current_app.logger.debug(f"---> [{i}/{avi_controller_https_wait_time_seconds} Reachable check: rc {rc}")
+            if rc == 0:
+                break
+            attempts = i
+            time.sleep(1)
+        if rc == 0: return True
         if rc == 0: return True
         current_app.logger.error(f"Avi frontend not reachable at {ip}")
         return False
