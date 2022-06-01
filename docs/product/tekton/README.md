@@ -5,7 +5,7 @@ Tekton is a cloud-native solution for building CI/CD systems. It consists of Tek
 ## Features
 
 - Bring based on Reference Architecture of TKGM on vSphere.
-- E2E deployement and configuration of AVI Controller, Management, SharedServices, Workload clusters 
+- E2E deployment and configuration of AVI Controller, Management, SharedServices, Workload clusters 
 
 
 ## Pre-requisites

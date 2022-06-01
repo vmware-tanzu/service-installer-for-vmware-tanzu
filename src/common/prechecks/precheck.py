@@ -1013,8 +1013,14 @@ def validateToken(token, serviceList):
                 "msg": serviceList[0] + " login failed using Refresh_Token ",
                 "ERROR_CODE": 500
             }
-            current_app.logger.error(serviceList[0] + " login failed using Refresh_Token - %s" % token)
-            return 500
+            body = json.dumps(response_login)
+            if 'message' in body:
+                error = body['message']
+            else:
+                error = 'unknown error'
+            current_app.logger.error(serviceList[0] + " login failed using Refresh_Token - %s: %s" %
+                    token, error)
+            return error, 500
         access_token = response_login.json()["access_token"]
 
         url = "https://console.cloud.vmware.com/csp/gateway/am/api/auth/api-tokens/details"
