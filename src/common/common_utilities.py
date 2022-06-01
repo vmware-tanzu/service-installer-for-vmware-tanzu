@@ -28,6 +28,7 @@ from common.operation.ShellHelper import runShellCommandAndReturnOutput, runShel
     grabKubectlCommand, \
     runShellCommandAndReturnOutputAsList, runProcess, verifyPodsAreRunning, grabPipeOutputChagedDir, \
     runShellCommandAndReturnOutputAsListWithChangedDir, grabPipeOutput
+from common.operation.resolveConfHelper import addNameserverToResolvConf, removeNameserversFromResolvConf
 from common.operation.constants import Env, Avi_Version, Extentions, RegexPattern, Tkg_version, SAS
 from common.operation.constants import Versions, CIDR, TmcUser, \
     CertName, \
@@ -3371,23 +3372,12 @@ def createOverlayYaml(repository):
     os.system("cp ./common/harbor-overlay.yaml harbor-overlay.yaml")
     os.system("./common/injectValue.sh harbor-overlay.yaml overlay " + repository)
 
-def addNameserverToResolvConf():
-    dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
-    if dns_servers_csv is None: return
-
-    dns_servers = dns_servers_csv.replace(',', ' ')
-    os.system("test -f /etc/resolv.conf.bak && mv /etc/resolv.conf.bak /etc/resolv.conf")
-    os.system("cp /etc/resolv.conf /etc/resolv.conf.bak")
-    os.system(f"sed -Ei 's/nameserver (.*)/nameserver {dns_servers}\\nnameserver \\1/' /etc/resolv.conf")
-
-def removeNameserversFromResolvConf():
-    os.system("mv /etc/resolv.conf.bak /etc/resolv.conf")
-
 def deployCluster(sharedClusterName, clusterPlan, datacenter, dataStorePath,
                   folderPath, mgmt_network, vspherePassword, sharedClusterResourcePool, vsphereServer,
                   sshKey, vsphereUseName, machineCount, size, env, type, vsSpec):
     try:
-        addNameserverToResolvConf()
+        dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
+        addNameserverToResolvConf(dns_servers_csv)
         if not getClusterStatusOnTanzu(sharedClusterName, "cluster"):
             kubeVersion = generateClusterYaml(sharedClusterName, clusterPlan, datacenter, dataStorePath,
                                               folderPath, mgmt_network, vspherePassword, sharedClusterResourcePool,

@@ -9,6 +9,8 @@ import base64
 import json
 from tqdm import tqdm
 from ruamel import yaml
+from common.operation.resolveConfHelper import addNameserverToResolvConf, \
+    removeNameserversFromResolvConf
 from common.util.file_helper import FileHelper
 from common.operation.constants import Paths
 from common.model.vsphereSpec import VsphereMasterSpec
@@ -2410,18 +2412,6 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
             "management_cluster_vsphere.yaml")
 
 
-def addNameserverToResolvConf():
-    dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
-    if dns_servers_csv is None: return
-
-    dns_servers = dns_servers_csv.replace(',', ' ')
-    os.system("test -f /etc/resolv.conf.bak && mv /etc/resolv.conf.bak /etc/resolv.conf")
-    os.system("cp /etc/resolv.conf /etc/resolv.conf.bak")
-    os.system(f"sed -Ei 's/nameserver (.*)/nameserver {dns_servers}\\nnameserver \\1/' /etc/resolv.conf")
-
-def removeNameserversFromResolvConf():
-    os.system("mv /etc/resolv.conf.bak /etc/resolv.conf")
-
 def deployManagementCluster(management_cluster, ip, data_center, data_store, cluster_name, wpName, wipIpNetmask,
                             vcenter_ip,
                             vcenter_username, password, env, vsSpec):
@@ -2436,7 +2426,7 @@ def deployManagementCluster(management_cluster, ip, data_center, data_store, clu
                 runProcess(listOfCmd)
 
         if not getClusterStatusOnTanzu(management_cluster, "management"):
-            addNameserverToResolvConf()
+            addNameserverToResolvConf(dns_servers_csv)
             os.system("rm -rf kubeconfig.yaml")
             templateMgmtDeployYaml(ip, data_center, data_store, cluster_name, wpName, wipIpNetmask, vcenter_ip,
                                    vcenter_username,
