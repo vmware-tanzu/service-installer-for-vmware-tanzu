@@ -7,8 +7,11 @@
 This [Terraform](https://terraform.io) project is designed to build an architecture in AWS that corresponds to the [TKO Reference Design on AWS](https://docs.vmware.com/en/VMware-Tanzu/services/tanzu-reference-architecture/GUID-reference-designs-tko-on-aws.html)
 
 Specifically, this automation will build:
-- a management VPC
-- a workload VPC
+- a management VPC with below TKG clusters
+   - Management cluster
+   - Workload cluster
+- a workload VPC with below TKG clusters
+   - Workload cluster
 - transit gateway and associated networking
 - a jump box from which to execute the commands necessary to install TKG
 
