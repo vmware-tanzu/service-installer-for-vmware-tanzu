@@ -1059,12 +1059,14 @@ def check_controller_is_up(ip):
                 "-c",
                 f"nc -w 1 -z {ip} 443 || echo 'error'"
             ])
-            current_app.logger.debug(f"---> [{i}/{avi_controller_https_wait_time_seconds} Reachable check: rc {rc}")
+            current_app.logger.debug(f"---> [{i}/{avi_controller_https_wait_time_seconds}] Reachable check: rc {rc}")
             if rc == 0:
                 break
             attempts = i
             time.sleep(1)
-        if rc == 0: return True
+        if rc == 0:
+            current_app.logger.info(f"Avi controller {ip} reachable in {attempts} seconds")
+            return True
         current_app.logger.error(f"Avi frontend not reachable at {ip}")
         return False
 
@@ -1079,12 +1081,14 @@ def check_controller_is_up(ip):
     response_login = None
     count = 0
     status = None
+    max_wait_for_avi_api_seconds = 150
+    current_app.logger.info(f"Now waiting {max_wait_for_avi_api_seconds} seconds for Avi API to return HTTP 200")
     try:
         response_login = requests.request("GET", url, headers=headers, data=payload, verify=False)
         status = response_login.status_code
     except:
         pass
-    while (status != 200 or status is None) and count < 150:
+    while (status != 200 or status is None) and count < max_wait_for_avi_api_seconds:
         count = count + 1
         try:
             response_login = requests.request("GET", url, headers=headers, data=payload, verify=False)
