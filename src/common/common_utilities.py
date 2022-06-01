@@ -1045,10 +1045,10 @@ def obtain_first_csrf(ip):
 
 def check_controller_is_up(ip):
     def controller_reachable(ip):
-        avi_controller_https_wait_time_seconds = 120
+        avi_controller_https_wait_time_seconds = 240
         current_app.logger.info(
             f"Waiting up to {avi_controller_https_wait_time_seconds} seconds for the Avi " +
-                "web service to become reachable at: {ip}"
+                f"web service to become reachable at: {ip}"
         )
         # runShellCommandAndReturnOutputAsList will only return a non-zero exit if
         # the command's output contains 'error'. Not sure why that is.
@@ -1064,7 +1064,6 @@ def check_controller_is_up(ip):
                 break
             attempts = i
             time.sleep(1)
-        if rc == 0: return True
         if rc == 0: return True
         current_app.logger.error(f"Avi frontend not reachable at {ip}")
         return False
