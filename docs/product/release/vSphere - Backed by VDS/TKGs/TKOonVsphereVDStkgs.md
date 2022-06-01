@@ -12,20 +12,24 @@ The following diagram represents the network design required for installing and 
 Before you deploy Tanzu for Kubernetes Operations using Service Installer for VMware Tanzu, ensure the following:
 
 -  You have created the following port groups:
-    -   NSX Advanced Load Balancer management: You will connect the VMware NSX Advanced Load Balancer Controller and an interface of NSX Advanced Load Balancer Service Engines (SEs) to this port group. Alternatively, you can also place NSX Advanced Load Balancer Controllers on the existing infrastructure management network.
-    -   Tanzu Kubernetes Grid management: Network to which Supervisor Cluster VMs are connected.
-    -   Tanzu Kubernetes Grid management Data/VIP: Network through which all Kubernetes L4/L7 load balancer services are exposed to the external network. IPAM of this network is handled by NSX Advanced Load Balancer. IP addresses are assigned to both VIPs and SEs.
-    -   Tanzu Kubernetes Grid workload cluster: Network to which Tanzu Kubernetes Grid Service Workload Cluster nodes (control plane and worker) are connected. This network is defined when you create vSphere Namespaces after enabling the workload control plane (WCP). The first workload network is also called Primary Workload Network.
-	  -   Tanzu Kubernetes Grid workload network X: Another network to which Tanzu Kubernetes Grid workload cluster nodes (control plane and worker) are connected. You can create additional workload networks based on your requirements.
+
+   -  NSX Advanced Load Balancer management: You will connect the VMware NSX Advanced Load Balancer Controller and an interface of NSX Advanced Load Balancer Service Engines (SEs) to this port group. Alternatively, you can also place NSX Advanced Load Balancer Controllers on the existing infrastructure management network.
+   -  Tanzu Kubernetes Grid management: Network to which Supervisor Cluster VMs are connected.
+   -  Tanzu Kubernetes Grid management Data/VIP: Network through which all Kubernetes L4/L7 load balancer services are exposed to the external network. IPAM of this network is handled by NSX Advanced Load Balancer. IP addresses are assigned to both VIPs and SEs.
+   -  Tanzu Kubernetes Grid workload cluster: Network to which Tanzu Kubernetes Grid Service Workload Cluster nodes (control plane and worker) are connected. This network is defined when you create vSphere Namespaces after enabling the workload control plane (WCP). The first workload network is also called Primary Workload Network.
+   - Tanzu Kubernetes Grid workload network X: Another network to which Tanzu Kubernetes Grid workload cluster nodes (control plane and worker) are connected. You can create additional workload networks based on your requirements.
 
 - To allow Service Installer to automatically download NSX Advanced Load Balancer Controller from VMware Marketplace,
-   	- A Cloud Services Portal API token is required to pull all required images from VMware Marketplace. To generate an API token, log in to the CSP portal and select your organization. Go to **Marketplace Service > My Account > API Tokens > Generate a Token**.
-    - If Marketplace is not available in the environment,
-        1. Download the NSX Advanced Load Balancer OVA from [MarketPlace](https://marketplace.cloud.vmware.com/services/details/nsx-advanced-load-balancer-1?slug=true).
+
+   - A Cloud Services Portal API token is required to pull all required images from VMware Marketplace. To generate an API token, log in to the CSP portal and select your organization. Go to **Marketplace Service > My Account > API Tokens > Generate a Token**.
+   - If Marketplace is not available in the environment,
+
+        1. Download the NSX Advanced Load Balancer OVA from [VMware Vault](https://vault.vmware.com/group/nsx/avi-networks-technical-resources).
         2. Create a Content Library and upload NSX Advanced Load Balancer Controller OVA (20.1.6 for vSphere 7.0 Update2 and 20.1.7 for vSphere 7.0 Update3).
 
-## Firewall Requirements:
+## Firewall Requirements
 To prepare the firewall, gather the following:
+
 1.  NSX ALB Management Network CIDR
 2.	NSX ALB Controller node IP address
 3.	NSX ALB Service Engine management & data IP address
@@ -65,7 +69,10 @@ NSX ALB Service Engine Management IP     | NSX ALB Controller Nodes            |
     **Note:** Service Installer uses the certificate for NSX Advanced Load Balancer, Harbor, Prometheus, and Grafana. Ensure that the certificate and private key are in PEM format and are not encrypted. Encrypted certificate files are not supported. If you do not upload a certificate, Service Installer generates a self-signed certificate.
 4. Log in to Service Installer at http://\<_service-installer-ip-address_>\:8888.
 5. Under **Tanzu on VMware vSphere with DVS**, click **Deploy**.
-6. Under **Tanzu on vSphere - Deployment stage selection**, select the deployment type either **Enable Workload Control Plane** or **Namespace and Workload cLuster**
+6. Under **Tanzu on vSphere - Deployment stage selection**, select one of the following deployment type:
+
+   - **Enable Workload Control Plane** or
+   - **Namespace and Workload cLuster**
 7. Under **Configure and Generate JSON**, click **Proceed**.  
 
   **Note**: To use an existing JSON file, click **Proceed** under **Upload and Re-configure JSON**.
@@ -74,9 +81,9 @@ NSX ALB Service Engine Management IP     | NSX ALB Controller Nodes            |
     The Service Installer user interface generates the JSON file based on your inputs and saves it to **/opt/vmware/arcas/src/** in installer VM. Files are named based on the deployment type you choose.
 
     - Enable workload control plane (WCP): vsphere-dvs-tkgs-wcp.json
-    - Namespace and workload - vsphere-dvs-tkgs-namespace.json<br/>
+    - Namespace and workload - vsphere-dvs-tkgs-namespace.json
 
-    See the [sample json files](#sample-input-file) file for reference<br/>
+    See the [sample JSON files](#sample-input-file) file for reference.
 
 10. Execute the following command to initiate the deployment.
 
@@ -91,11 +98,11 @@ NSX ALB Service Engine Management IP     | NSX ALB Controller Nodes            |
     ```
     arcas --env vsphere --file /path/to/vsphere-dvs-tkgs-namespace.json --create_supervisor_namespace --create_workload_cluster --deploy_extentions --verbose
     ```
-11. Use below command if you wish to cleanup the deployment
+11. Use the following command to clean up the deployment.
     ```
     arcas --env vsphere --file /path/to/vsphere-dvs-tkgs-wcp.json --cleanup
     ```
-    **Note:** For vSphere on Tanzu, cleanup is performed by disabling Workload Control Plane (WCP) on cluster. Hence, provide WCP deployment file for performing cleanup
+    **Note:** For vSphere with Tanzu, provide a Workload Control Plane (WCP) deployment file to do the clean up. Disable the Workload Control Plane (WCP) on the cluster to clean.
 
     The following table describes the parameters.
 
@@ -129,13 +136,14 @@ NSX ALB Service Engine Management IP     | NSX ALB Controller Nodes            |
 - Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
 - Since Tanzu Observability also provides observability services, if Tanzu Observability is enabled, Prometheus and Grafana are not supported.
 
-## Sample Input File
+## <a id="sample-input-file"> </a> Sample Input File
 
 Following are the sample JSON files:
+
 - [Enable Workload Control Plane (WCP)](#enable-wcp)
 - [Namespace and Workload Creation](#namespace-worload-creation)
 
-**Note:** The sample files are also available in the Service Installer VM under `/opt/vmware/arcas/src/vsphere/vsphere-dvs-tkgs-wcp.json.sample` and `/opt/vmware/arcas/src/vsphere/vsphere-dvs-tkgs-namespace.json.sample`**
+**Note:** The sample files are also available in the Service Installer VM at the following locations: `/opt/vmware/arcas/src/vsphere/vsphere-dvs-tkgs-wcp.json.sample` and `/opt/vmware/arcas/src/vsphere/vsphere-dvs-tkgs-namespace.json.sample`.
 
 
 ### <a id="enable-wcp"> </a>Enable Workload Control Plane
@@ -359,4 +367,3 @@ Following are the sample JSON files:
 }
 
 ```
-

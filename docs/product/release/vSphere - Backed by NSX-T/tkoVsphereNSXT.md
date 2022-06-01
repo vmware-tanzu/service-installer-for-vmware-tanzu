@@ -12,7 +12,8 @@ The following diagram represents the network design required for deploying Tanzu
 ## Prerequisites
 Before you install Service Installer for VMware Tanzu, ensure the following:
 
-- A Tanzu Kubernetes Grid management port group exists. This is the network to which the bootstrap VM, Tanzu Kubernetes Grid management cluster nodes and the interface of the NSX Advanced Load Balancer SEs part of the SE Group 01 are connected.
+- A Tanzu Kubernetes Grid management port group exists. This is the network to which the bootstrap VM, Tanzu Kubernetes Grid management cluster nodes, Tanzu Kubernetes Grid shared service cluster, and the interface of the NSX Advanced Load Balancer SEs part of the SE Group 01 are connected.
+
     - The Service Installer creates all other port groups, such as Tanzu Kubernetes Grid management Data/VIP, Tanzu Kubernetes Grid workload, Tanzu Kubernetes Grid workload Data/VIP, and the NSX Advanced Load Balancer management PG, as well as groups and firewalls. You do not need to create these port groups.
     - The NSX Advanced Load Balancer handles the IPAM of the Tanzu Kubernetes Grid management PG network and assigns IP addresses to both VIPs and SE.
 
@@ -33,11 +34,13 @@ Before you install Service Installer for VMware Tanzu, ensure the following:
 
   - A Cloud Services Portal (CSP) API token is required to pull all required images from VMware Marketplace. To generate an API token, log in to the Cloud Services Portal and select your organization. Go to **Marketplace Service > My Account > API Tokens > Generate a Token**.
   - If Marketplace is not available in your environment or if you are working in an air-gapped environment:
+
       1. Download and import required Photon/Ubuntu Kubernetes base OVAs to vCenter.
-            To download the images, go to [VMware Tanzu Kubernetes Grid Download Product](https://customerconnect.vmware.com/downloads/details?downloadGroup=TKG-151&productId=988&rPId=84961)
+            To download the images, go to [VMware Tanzu Kubernetes Grid Download Product](https://customerconnect.vmware.com/downloads/details?downloadGroup=TKG-151&productId=988&rPId=84961).
       1. After importing the images, convert the images to a template.
       1. Upload the NSX Advanced Load Balancer Controller in Content Library:
-           1. Download the NSX Advanced Load Balancer 20.1.7 OVA from [MarketPlace](https://marketplace.cloud.vmware.com/services/details/nsx-advanced-load-balancer-1?slug=true).
+
+           1. Download the NSX Advanced Load Balancer 20.1.7 OVA from [VMware Vault](https://vault.vmware.com/group/nsx/avi-networks-technical-resources).
            2. Create a Content Library and upload the NSX Advanced Load Balancer Controller OVA.
       1. Set up a centralized image repository with the required images to deploy the Tanzu Kubernetes clusters in an internet-restricted environment. For instructions to set up a Harbor image registry and publish required images, see [Prepare an Internet-Restricted Environment](https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.5/vmware-tanzu-kubernetes-grid-15/GUID-mgmt-clusters-airgapped-environments.html).
 
@@ -51,14 +54,17 @@ Before you install Service Installer for VMware Tanzu, ensure the following:
 ## Considerations
 Consider the following when deploying VMware Tanzu for Kubernetes Operations using Service Installer for VMware Tanzu.
 
-- If you set http-proxy, you must also set https-proxy and vice-versa.
+- If you set HTTP proxy, you must also set HTTPS proxy and vice-versa.
+
     - NSX Advanced Load Balancer Controller must be able to communicate with vCenter directly without a proxy.
     - Avi Kubernetes Operator (AKO) must be able to communicate with NSX Advanced Load Balancer Controller directly without a proxy.
     - Tanzu Mission Control integration is not supported when a proxy is enabled.
     - For the no-proxy value in the proxy-spec section in the JSON file, in addition to the values you specify, Service Installer appends:
+
         - localhost and 127.0.0.1 on the Service Installer bootstrap VM.
         - localhost, 127.0.0.1, values for CLUSTER_CIDR and SERVICE_CIDR, .svc, and .svc.cluster.local  for Tanzu Kubernetes Grid management and workload clusters.
     - If the Kubernetes clusters or Service Installer VMs need to communicate with external services and infrastructure endpoints in your Tanzu Kubernetes Grid environment, ensure that those endpoints are reachable by your proxies or add them to TKG_NO_PROXY. Depending on your environment configuration, this may include, but is not limited to, your OIDC or LDAP server, Harbor, NSX-T, and NSX Advanced Load Balancer for deployments on vSphere.
+
         - For vSphere, you manually add the CIDR of the TKG_MGMT network, which includes the IP address of your control plane endpoint, to TKG_NO_PROXY. If you set VSPHERE_CONTROL_PLANE_ENDPOINT to an FQDN, add both the FQDN and VSPHERE_NETWORK to TKG_NO_PROXY.
 - Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
 - Since Tanzu Observability also provides observability services, if Tanzu Observability is enabled, Prometheus and Grafana are not supported.
@@ -85,14 +91,14 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
 
    After you have entered the required details, the Service Installer UI provides an option to review the values and download the input file in JSON format.
 
-   The values are saved in a file `vsphere-nsxt-tkgm.json` located at `/opt/vmware/arcas/src`. See the [sample json file](#sample-input-file) file for reference.
+   The values are saved in a file `vsphere-nsxt-tkgm.json` located at `/opt/vmware/arcas/src`. See the [sample JSON file](#sample-input-file) file for reference.
 
 5. Execute the following command to initiate the deployment.
    ```
    arcas --env vcf --file /path/to/vsphere-nsxt-tkgm.json  --vcf_pre_configuration --avi_configuration  --tkg_mgmt_configuration --shared_service_configuration --workload_preconfig --workload_deploy --deploy_extensions
    ```
 
-6. Use below command if you wish cleanup the deployment 
+6. Use the following command to cleanup the deployment.
     ```
     arcas --env vcf --file /path/to/vsphere-nsxt-tkgm.json --cleanup
     ```
@@ -119,22 +125,23 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
 
     **Note:** If you edit the JSON manually, ensure that you enter the values in quotes.
 
-1. If you are using a proxy, in the vsphere-nsxt-tkgm.json file, configure the details in the proxy field corresponding to the cluster.
+1. If you are using a proxy, in the `vsphere-nsxt-tkgm.json` file, configure the details in the proxy field corresponding to the cluster.
 
-    For example, to enable or disable proxies on the management cluster, use `tkgMgmt: {"enableProxy": "true"}` in the vsphere-nsxt-tkgm.json file.
+    For example, to enable or disable proxies on the management cluster, use `tkgMgmt: {"enableProxy": "true"}` in the `vsphere-nsxt-tkgm.json` file.
 
-1. Enable or disable Tanzu Kubernetes Grid extensions. For example, in the vsphere-nsxt-tkgm.json file, to enable or disable,
+1. Enable or disable Tanzu Kubernetes Grid extensions. For example, in the `vsphere-nsxt-tkgm.json` file, to enable or disable,
 
    -  Prometheus and Grafana, enter `"enableExtensions": "true/false"`.
    -  Harbor, enter `"enableHarborExtension": "true/false"`.
 
 **Note:**
+
 - Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
 - If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
-- When Tanzu Mission Control is enabled only Photon is supported
+- If Tanzu Mission Control is enabled only Photon is supported.
 
-## Sample Input file
- The Service Installer user interface generates the JSON file based on your inputs and saves it to **/opt/vmware/arcas/src/** in the installer VM. Files are named based on the environment you are using.
+## <a id="sample-input-file"> </a> Sample Input File
+Service Installer generates the JSON file based on your inputs and saves it to **/opt/vmware/arcas/src/** in the installer VM. Files are named based on the environment you are using.
 
  - vSphere with NSX-T Internet environment: vsphere-nsxt-tkgm.json
  - vSphere with NSX-T Proxy environment: vsphere-nsxt-tkgm-proxy.json
@@ -142,7 +149,7 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
 
  Following is an example of the JSON file.
 
- **Note:** This sample file is also available in Service Installer VM at the following location: **/opt/vmware/arcas/src/vsphere/vsphere-nsxt-tkgm.json.sample**
+ **Note:** The following sample file is also available in the Service Installer VM at the following location: **/opt/vmware/arcas/src/vsphere/vsphere-nsxt-tkgm.json.sample**
 
 ```json
 {
