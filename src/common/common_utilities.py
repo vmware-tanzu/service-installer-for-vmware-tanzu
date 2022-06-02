@@ -5700,8 +5700,13 @@ def pushAviToContenLibraryMarketPlace(env):
         presigned_url = requests.request("POST",
                                          MarketPlaceUrl.URL + "/api/v1/products/" + product_id + "/download",
                                          headers=headers, data=json_object, verify=False)
+        if presigned_url.status_code == 401 or presigned_url.status_code == 403:
+            return None, "This Marketplace token is unauthorized to access Marketplace. Ensure that \
+this token has not expired and that it has access to the VMware Marketplace in VMware Cloud \
+Services."
+
         if presigned_url.status_code != 200:
-            return None, "Failed to obtain pre-signed URL"
+            return None, f"Failed to obtain pre-signed URL: {presigned_url.content}"
         else:
             download_url = presigned_url.json()["response"]["presignedurl"]
         current_app.logger.info("Retrieved download URL from MarketPlace...")
