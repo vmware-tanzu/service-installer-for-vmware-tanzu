@@ -6,7 +6,7 @@ This deployment uses Tanzu Kubernetes Grid and references the design provided in
 ## Network Design
 The following diagram represents the network design required for installing and running Service Installer for VMware Tanzu on vSphere with vSphere Distributed Switch.
 
-![vSphere_Network_design](./images/vSphere_Network_design.jpeg)
+![vSphere_Network_design](./images/vSphere_Network_design.png)
 
 ## Prerequisites
 Before you deploy Tanzu for Kubernetes Operations using Service Installer for VMware Tanzu, ensure the following:
