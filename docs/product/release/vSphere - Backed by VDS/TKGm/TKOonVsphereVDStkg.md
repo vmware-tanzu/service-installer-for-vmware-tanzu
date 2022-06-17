@@ -123,7 +123,7 @@ Consider the following when deploying VMware Tanzu for Kubernetes Operations usi
 8. Execute the following command to initiate the deployment.
 
    ```
-   arcas --env vsphere --file /path/to/vsphere_data.json --avi_configuration --tkg_mgmt_configuration --shared_service_configuration --workload_preconfig --workload_deploy --deploy_extentions
+   arcas --env vsphere --file /path/to/vsphere_data.json --avi_configuration --tkg_mgmt_configuration --shared_service_configuration --workload_preconfig --workload_deploy --deploy_extensions
    ```
 9. Use the following command to clean up the deployment.
    ```
@@ -139,7 +139,7 @@ Consider the following when deploying VMware Tanzu for Kubernetes Operations usi
    --shared_service_configuration       | Deploys Shared Service cluster (makes use of Tanzu or TMC CLI) <br> Adds required tags to the cluster <br> Deploys Certmanager, Contour, and Harbor|
    --workload_preconfig                 | Configures required network configuration in AVI, creates a new SE Group for Workload Clusters <br> Creates a new AKO config for workload clusters|
    --workload_deploy                    | Deploys a workload cluster (makes use of Tanzu or TMC CLI) <br> Adds required tags to the cluster |
-   --deploy_extentions                  | Deploy extensions (Prometheus, Grafana)                      |
+   --deploy_extensions                  | Deploy extensions (Prometheus, Grafana)                      |
    --cleanup                            | cleanup the deployment performed by SIVT and start from scratch |
    --verbose                            | Enable verbose logging.          |
 

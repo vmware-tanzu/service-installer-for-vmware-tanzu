@@ -113,7 +113,7 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
    | --shared_service_configuration | Deploys a shared service cluster (makes use of the Tanzu or Tanzu Mission Control CLI) <br> Adds required tags to the cluster <br> Deploys CertManager, Contour, and Harbor |
    | --workload_preconfig | Creates the required network configuration in Avi and creates new SE Groups for workload clusters <br> Creates a new AKO configuration for workload clusters |
    | --workload_deploy | Deploys a workload cluster (makes use of the Tanzu or Tanzu Mission Control CLI)) <br> Adds required tags to the cluster|
-   | --deploy_extentions | Deploys extensions, such as Prometheus and Grafana |
+   | --deploy_extensions | Deploys extensions, such as Prometheus and Grafana |
    | --cleanup | cleanup the deployment performed by SIVT and start from scratch |
    | --verbose | Enables verbose logging |
 
