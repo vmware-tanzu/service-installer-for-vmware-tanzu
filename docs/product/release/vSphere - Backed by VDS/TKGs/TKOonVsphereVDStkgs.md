@@ -96,7 +96,7 @@ NSX ALB Service Engine Management IP     | NSX ALB Controller Nodes            |
     **To Deploy Supervisor Namespace and Workload Clusters**
 
     ```
-    arcas --env vsphere --file /path/to/vsphere-dvs-tkgs-namespace.json --create_supervisor_namespace --create_workload_cluster --deploy_extentions --verbose
+    arcas --env vsphere --file /path/to/vsphere-dvs-tkgs-namespace.json --create_supervisor_namespace --create_workload_cluster --deploy_extensions --verbose
     ```
 11. Use the following command to clean up the deployment.
     ```
@@ -113,7 +113,7 @@ NSX ALB Service Engine Management IP     | NSX ALB Controller Nodes            |
     |--enable_wcp | Enables Workload Control Plane on a vSphere Cluster |
     |--create_supervisor_namespace | Creates Supervisor Namespace |
     |--create_workload_cluster  | Creates Tanzu Kubernetes Clusters (TKC) |
-    |--deploy_extentions | Deploys extensions (Harbor, Prometheus, Grafana) |
+    |--deploy_extensions | Deploys extensions (Harbor, Prometheus, Grafana) |
     | --cleanup | cleanup the deployment performed by SIVT and start from scratch |
     |--verbose | Log Verbosity |
 
