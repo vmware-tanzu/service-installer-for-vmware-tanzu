@@ -110,7 +110,7 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
     See the [sample JSON file](#sample-input-file) file for reference.
 7. Execute the following command to initiate the deployment:
      ```
-     arcas --env vmc --file /path/to/vmc-tkgm.json --session --vmc_pre_configuration --avi_configuration --tkg_mgmt_configuration --shared_service_configuration --workload_preconfig --workload_deploy --deploy_extentions
+     arcas --env vmc --file /path/to/vmc-tkgm.json --session --vmc_pre_configuration --avi_configuration --tkg_mgmt_configuration --shared_service_configuration --workload_preconfig --workload_deploy --deploy_extensions
      ```
      For `/path/to/vmc-tkgm.json`, enter the path to the JSON file that you created in the previous step.
 
@@ -131,7 +131,7 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
      --shared_service_configuration       | Deploys Shared Service cluster(Makes use of TMC CLI)<br> Adds required tags to the cluster <br> Deploys Certmanager, Contour, and Harbor        |
      --workload_preconfig                 | Creates the required network configuration in Avi, creates a new SE Groups for Workload Clusters <br> Creates a new AKO config for Workload Clusters |
      --workload_deploy                    | Deploys a workload cluster (uses the Tanzu Mission Control CLI) <br> Adds required tags to the cluster            |
-     --deploy_extentions                  | Deploys extensions (Prometheus, Grafana)                      |
+     --deploy_extensions                  | Deploys extensions (Prometheus, Grafana)                      |
      | --cleanup 			 | cleanup the deployment performed by SIVT and start from scratch |
      | --verbose 			| Enables verbose logging |
 
