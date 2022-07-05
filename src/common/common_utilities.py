@@ -292,7 +292,7 @@ def deployAndConfigureAvi(govc_client: GovcClient, vm_name, controller_ova_locat
         }
         return jsonify(d), 500
     ip = govc_client.get_vm_ip(vm_name, datacenter_name=data_center)[0]
-    current_app.logger.info("Checking controller is up")
+    current_app.logger.info(f"Checking controller is up at {ip}")
     if check_controller_is_up(ip) is None:
         current_app.logger.error("Controller service is not up")
         d = {
@@ -1044,6 +1044,35 @@ def obtain_first_csrf(ip):
 
 
 def check_controller_is_up(ip):
+    def controller_reachable(ip):
+        avi_controller_https_wait_time_seconds = 240
+        current_app.logger.info(
+            f"Waiting up to {avi_controller_https_wait_time_seconds} seconds for the Avi " +
+                f"web service to become reachable at: {ip}"
+        )
+        # runShellCommandAndReturnOutputAsList will only return a non-zero exit if
+        # the command's output contains 'error'. Not sure why that is.
+        attempts = 0
+        rc = -1
+        for i in range(avi_controller_https_wait_time_seconds):
+            _, rc = runShellCommandAndReturnOutputAsList(["sh",
+                "-c",
+                f"nc -w 1 -z {ip} 443 || echo 'error'"
+            ])
+            current_app.logger.debug(f"---> [{i}/{avi_controller_https_wait_time_seconds}] Reachable check: rc {rc}")
+            if rc == 0:
+                break
+            attempts = i
+            time.sleep(1)
+        if rc == 0:
+            current_app.logger.info(f"Avi controller {ip} reachable in {attempts} seconds")
+            return True
+        current_app.logger.error(f"Avi frontend not reachable at {ip}")
+        return False
+
+    if not controller_reachable(ip):
+        return None
+
     url = "https://" + str(ip)
     headers = {
         "Content-Type": "application/json"
@@ -1052,12 +1081,14 @@ def check_controller_is_up(ip):
     response_login = None
     count = 0
     status = None
+    max_wait_for_avi_api_seconds = 150
+    current_app.logger.info(f"Now waiting {max_wait_for_avi_api_seconds} seconds for Avi API to return HTTP 200")
     try:
         response_login = requests.request("GET", url, headers=headers, data=payload, verify=False)
         status = response_login.status_code
     except:
         pass
-    while (status != 200 or status is None) and count < 150:
+    while (status != 200 or status is None) and count < max_wait_for_avi_api_seconds:
         count = count + 1
         try:
             response_login = requests.request("GET", url, headers=headers, data=payload, verify=False)
@@ -5669,8 +5700,13 @@ def pushAviToContenLibraryMarketPlace(env):
         presigned_url = requests.request("POST",
                                          MarketPlaceUrl.URL + "/api/v1/products/" + product_id + "/download",
                                          headers=headers, data=json_object, verify=False)
+        if presigned_url.status_code == 401 or presigned_url.status_code == 403:
+            return None, "This Marketplace token is unauthorized to access Marketplace. Ensure that \
+this token has not expired and that it has access to the VMware Marketplace in VMware Cloud \
+Services."
+
         if presigned_url.status_code != 200:
-            return None, "Failed to obtain pre-signed URL"
+            return None, f"Failed to obtain pre-signed URL: {presigned_url.content}"
         else:
             download_url = presigned_url.json()["response"]["presignedurl"]
         current_app.logger.info("Retrieved download URL from MarketPlace...")
