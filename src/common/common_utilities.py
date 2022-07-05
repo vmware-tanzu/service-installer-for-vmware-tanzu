@@ -28,6 +28,7 @@ from common.operation.ShellHelper import runShellCommandAndReturnOutput, runShel
     grabKubectlCommand, \
     runShellCommandAndReturnOutputAsList, runProcess, verifyPodsAreRunning, grabPipeOutputChagedDir, \
     runShellCommandAndReturnOutputAsListWithChangedDir, grabPipeOutput
+from common.operation.resolveConfHelper import addNameserverToResolvConf, removeNameserversFromResolvConf
 from common.operation.constants import Env, Avi_Version, Extentions, RegexPattern, Tkg_version, SAS
 from common.operation.constants import Versions, CIDR, TmcUser, \
     CertName, \
@@ -48,9 +49,40 @@ from .lib.govc_client import GovcClient
 from .replace_value import replaceValueSysConfig, replaceCertConfig
 from common.util.local_cmd_helper import LocalCmdHelper
 from datetime import datetime
+from urllib3.util import connection
+import dns.resolver
+import ipaddress
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+# Force urllib3 to use the DNS server provided by our JSON.
+# Source: https://stackoverflow.com/questions/22609385/python-requests-library-define-specific-dns
+_orig_create_connection = connection.create_connection
+
+SIVT_CUSTOM_RESOLVER = dns.resolver.Resolver()
+def is_ip_address(host):
+    try:
+        _ = ipaddress.ip_address(host)
+        return True
+    except:
+        return False
+
+def create_connection_with_custom_dns_server(address, *args, **kwargs):
+    host, port = address
+    if is_ip_address(host):
+        return _orig_create_connection(address, *args, **kwargs)
+
+    current_app.logger.debug("Querying '" + host + "' via nameservers: '" + str(SIVT_CUSTOM_RESOLVER.nameservers))
+    answer = SIVT_CUSTOM_RESOLVER.query(host)
+    resolved_host = answer[0].to_text()
+    current_app.logger.debug("Answer from custom nameserver: " + str(resolved_host))
+    return _orig_create_connection((resolved_host, port), *args, **kwargs)
+
+def replace_urllib3_create_connection(dns_server_csv):
+    for dns_server in dns_server_csv.split(','):
+        if dns_server not in SIVT_CUSTOM_RESOLVER.nameservers:
+            SIVT_CUSTOM_RESOLVER.nameservers.insert(0, dns_server)
+    connection.create_connection = create_connection_with_custom_dns_server
 
 def envCheck():
     try:
@@ -3340,11 +3372,12 @@ def createOverlayYaml(repository):
     os.system("cp ./common/harbor-overlay.yaml harbor-overlay.yaml")
     os.system("./common/injectValue.sh harbor-overlay.yaml overlay " + repository)
 
-
 def deployCluster(sharedClusterName, clusterPlan, datacenter, dataStorePath,
                   folderPath, mgmt_network, vspherePassword, sharedClusterResourcePool, vsphereServer,
                   sshKey, vsphereUseName, machineCount, size, env, type, vsSpec):
     try:
+        dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
+        addNameserverToResolvConf(dns_servers_csv)
         if not getClusterStatusOnTanzu(sharedClusterName, "cluster"):
             kubeVersion = generateClusterYaml(sharedClusterName, clusterPlan, datacenter, dataStorePath,
                                               folderPath, mgmt_network, vspherePassword, sharedClusterResourcePool,
@@ -3366,10 +3399,12 @@ def deployCluster(sharedClusterName, clusterPlan, datacenter, dataStorePath,
             else:
                 listOfCmd = ["tanzu", "cluster", "create", "-f", sharedClusterName + ".yaml", "-v", "6"]
             runProcess(listOfCmd)
+            removeNameserversFromResolvConf()
             return "SUCCESS", 200
         else:
             return "SUCCESS", 200
     except Exception as e:
+        removeNameserversFromResolvConf()
         return None, str(e)
 
 
@@ -3604,6 +3639,11 @@ def template14deployYaml(sharedClusterName, clusterPlan, datacenter, dataStorePa
         deploy_yaml = FileHelper.read_resource(Paths.TKG_VMC_CLUSTER_14_SPEC_J2)
     else:
         deploy_yaml = FileHelper.read_resource(Paths.TKG_CLUSTER_14_SPEC_J2)
+    dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
+    use_custom_dns_servers = "false"
+    if dns_servers_csv is not None:
+        use_custom_dns_servers = "true"
+    current_app.logger.debug(f"template14deploy: Use custom DNS servers? {use_custom_dns_servers}")
     t = Template(deploy_yaml)
     datacenter = "/" + datacenter
     control_plane_vcpu = ""
@@ -3765,7 +3805,8 @@ def template14deployYaml(sharedClusterName, clusterPlan, datacenter, dataStorePa
     FileHelper.write_to_file(
         t.render(config=vsSpec, clustercidr=clustercidr, sharedClusterName=sharedClusterName, clusterPlan=clusterPlan,
                  servicecidr=servicecidr, datacenter=datacenter, dataStorePath=dataStorePath,
-                 folderPath=folderPath,
+                 folderPath=folderPath, custom_dns_server=use_custom_dns_servers,
+                 dns_servers_csv=dns_servers_csv,
                  mgmt_network=mgmt_network, vspherePassword=vspherePassword,
                  sharedClusterResourcePool=sharedClusterResourcePool,
                  vsphereServer=vsphereServer, sshKey=sshKey, vsphereUseName=vsphereUseName, controlPlaneSize=size,
@@ -3907,6 +3948,11 @@ def cluster13Yaml(sharedClusterName, clusterPlan, datacenter, dataStorePath,
 def template13deployYaml(sharedClusterName, clusterPlan, datacenter, dataStorePath,
                          folderPath, mgmt_network, vspherePassword, sharedClusterResourcePool, vsphereServer,
                          sshKey, vsphereUseName, machineCount, size, env, type, vsSpec):
+    dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
+    if dns_servers_csv is not None:
+        current_app.logger.warning("Custom nameservers are not supported on TKG v1.3 and below! " +
+                "If you need to define custom nameservers, add the nameservers to " +
+                "/etc/resolv.conf and re-run arcas again.")
     sharedClusterEndPoint = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents'][
         'tkgSharedservice-controlplane-ip']
     deploy_yaml = FileHelper.read_resource(Paths.TKG_CLUSTER_13_SPEC_J2)
@@ -7206,7 +7252,8 @@ def getAviIpFqdnDnsMapping(avi_controller_fqdn_ip_dict, dns_server):
                     if not ip and not str(ip).__contains__(avi_ip):
                         return "DNS Entry not found for : " + avi_fqdn , 500
                     else:
-                        current_app.logger.info("Found DNS entry for " + avi_fqdn + " : " + ip)
+                        replace_urllib3_create_connection(dns)
+                        current_app.logger.debug("NOTE: urllib3 is now using custom DNS server: " + dns)
                         # avi_controller_fqdn_ip_dict.pop(avi_fqdn)
         return "Successfully validated NSX ALB Fqdn and Ip entry on DNS Server", 200
     except:

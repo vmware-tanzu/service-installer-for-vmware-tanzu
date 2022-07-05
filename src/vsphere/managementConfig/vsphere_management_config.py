@@ -9,6 +9,8 @@ import base64
 import json
 from tqdm import tqdm
 from ruamel import yaml
+from common.operation.resolveConfHelper import addNameserverToResolvConf, \
+    removeNameserversFromResolvConf
 from common.util.file_helper import FileHelper
 from common.operation.constants import Paths
 from common.model.vsphereSpec import VsphereMasterSpec
@@ -103,6 +105,7 @@ def configCloud():
     cluster_name = current_app.config['VC_CLUSTER']
     data_center = current_app.config['VC_DATACENTER']
     data_store = current_app.config['VC_DATASTORE']
+    dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
     req = True
     refToken = request.get_json(force=True)['envSpec']['marketplaceSpec']['refreshToken']
     if refToken and (env == Env.VSPHERE or env == Env.VCF):
@@ -2208,6 +2211,11 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
                            vcenter_username,
                            password, env, vsSpec):
     deploy_yaml = FileHelper.read_resource(Paths.TKG_MGMT_SPEC_J2)
+    dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
+    use_custom_dns_servers = "false"
+    if dns_servers_csv is not None:
+        use_custom_dns_servers = "true"
+    current_app.logger.debug(f"template14deploy: Use custom DNS servers? {use_custom_dns_servers}")
     t = Template(deploy_yaml)
     datastore_path = "/" + datacenter + "/datastore/" + data_store
     vsphere_folder_path = "/" + datacenter + "/vm/" + ResourcePoolAndFolderName.TKG_Mgmt_Components_Folder_VSPHERE
@@ -2295,7 +2303,7 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
                 oidc_provider_username_claim = str(
                     request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["oidcSpec"]["oidcUsernameClaim"])
                 FileHelper.write_to_file(
-                    t.render(config=vsSpec, avi_cert=get_base64_cert(ip), ip=ip, wpName=wpName, wipIpNetmask=wipIpNetmask,
+                    t.render(config=vsSpec, avi_cert=get_base64_cert(ip, dns_servers_csv=dns_servers_csv), ip=ip, wpName=wpName, wipIpNetmask=wipIpNetmask,
                              avi_label_key=AkoType.KEY, avi_label_value=AkoType.VALUE, cluster_name=management_cluster,
                              data_center=datacenter, datastore_path=datastore_path,
                              vsphere_folder_path=vsphere_folder_path, vcenter_passwd=vcenter_passwd, vsphere_rp=vsphere_rp,
@@ -2304,6 +2312,8 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
                              avi_cluster_vip_network_gateway_cidr=avi_cluster_vip_network_gateway_cidr,
                              air_gapped_repo=air_gapped_repo, repo_certificate=repo_certificate, osName=osName,
                              osVersion=osVersion,
+                             custom_dns_server=use_custom_dns_servers,
+                             dns_servers_csv=dns_servers_csv,
                              size=size, control_plane_vcpu=control_plane_vcpu, control_plane_disk_gb=control_plane_disk_gb,
                              control_plane_mem_mb=control_plane_mem_mb, identity_mgmt_type=identity_mgmt_type,
                              oidc_provider_client_id=oidc_provider_client_id, oidc_provider_client_secret=oidc_provider_client_secret,
@@ -2360,7 +2370,7 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
                 base64_bytes = base64.b64encode(ldap_root_ca_data.encode("utf-8"))
                 ldap_root_ca_data_base64 = str(base64_bytes, "utf-8")
                 FileHelper.write_to_file(
-                    t.render(config=vsSpec, avi_cert=get_base64_cert(ip), ip=ip, wpName=wpName, wipIpNetmask=wipIpNetmask,
+                    t.render(config=vsSpec, avi_cert=get_base64_cert(ip, dns_servers_csv=dns_servers_csv), ip=ip, wpName=wpName, wipIpNetmask=wipIpNetmask,
                              avi_label_key=AkoType.KEY, avi_label_value=AkoType.VALUE, cluster_name=management_cluster,
                              data_center=datacenter, datastore_path=datastore_path,
                              vsphere_folder_path=vsphere_folder_path, vcenter_passwd=vcenter_passwd, vsphere_rp=vsphere_rp,
@@ -2369,7 +2379,8 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
                              avi_cluster_vip_network_gateway_cidr=avi_cluster_vip_network_gateway_cidr,
                              air_gapped_repo=air_gapped_repo, repo_certificate=repo_certificate, osName=osName,
                              osVersion=osVersion,
-                             size=size, control_plane_vcpu=control_plane_vcpu, control_plane_disk_gb=control_plane_disk_gb,
+                             size=size, custom_dns_servers=use_custom_dns_servers, control_plane_vcpu=control_plane_vcpu, control_plane_disk_gb=control_plane_disk_gb,
+                             dns_servers_csv=dns_servers_csv,
                              control_plane_mem_mb=control_plane_mem_mb, identity_mgmt_type=identity_mgmt_type,
                              ldap_endpoint_ip=ldap_endpoint_ip, ldap_endpoint_port=ldap_endpoint_port,
                              ldap_endpoint_bind_pw=ldap_endpoint_bind_pw,
@@ -2386,12 +2397,14 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
             raise Exception("Keyword " + str(e) + "  not found in input file")
     else:
         FileHelper.write_to_file(
-            t.render(config=vsSpec, avi_cert=get_base64_cert(ip), ip=ip, wpName=wpName, wipIpNetmask=wipIpNetmask,
+            t.render(config=vsSpec, avi_cert=get_base64_cert(ip, dns_servers_csv=dns_servers_csv), ip=ip, wpName=wpName, wipIpNetmask=wipIpNetmask,
                      avi_label_key=AkoType.KEY, avi_label_value=AkoType.VALUE, cluster_name=management_cluster,
                      data_center=datacenter, datastore_path=datastore_path,
                      vsphere_folder_path=vsphere_folder_path, vcenter_passwd=vcenter_passwd, vsphere_rp=vsphere_rp,
                      vcenter_ip=vcenter_ip, ssh_key=ssh_key, vcenter_username=vcenter_username,
                      size_controlplane=size.lower(), size_worker=size.lower(),
+                     custom_dns_server=use_custom_dns_servers,
+                     dns_servers_csv=dns_servers_csv,
                      avi_cluster_vip_network_gateway_cidr=avi_cluster_vip_network_gateway_cidr,
                      air_gapped_repo=air_gapped_repo, repo_certificate=repo_certificate, osName=osName, osVersion=osVersion,
                      size=size, control_plane_vcpu=control_plane_vcpu, control_plane_disk_gb=control_plane_disk_gb,
@@ -2402,8 +2415,18 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
 def deployManagementCluster(management_cluster, ip, data_center, data_store, cluster_name, wpName, wipIpNetmask,
                             vcenter_ip,
                             vcenter_username, password, env, vsSpec):
+    dns_servers_csv = request.get_json(force=True)['envSpec']['infraComponents']['dnsServersIp']
     try:
+        if dns_servers_csv is not None:
+            current_app.logger.info("Turning on custom nameserver support for clusters")
+            for feature_flag in [ "features.management-cluster.custom-nameservers",
+                                  "features.cluster.custom-nameservers" ]:
+
+                listOfCmd = ["tanzu", "config", "set", feature_flag, "true" ]
+                runProcess(listOfCmd)
+
         if not getClusterStatusOnTanzu(management_cluster, "management"):
+            addNameserverToResolvConf(dns_servers_csv)
             os.system("rm -rf kubeconfig.yaml")
             templateMgmtDeployYaml(ip, data_center, data_store, cluster_name, wpName, wipIpNetmask, vcenter_ip,
                                    vcenter_username,
@@ -2421,6 +2444,7 @@ def deployManagementCluster(management_cluster, ip, data_center, data_store, clu
                              "--export-file",
                              "kubeconfig.yaml"]
             runProcess(listOfCmdKube)
+            removeNameserversFromResolvConf()
             return "SUCCESS", 200
         else:
             return "SUCCESS", 200

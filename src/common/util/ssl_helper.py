@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import ssl
+import dns.resolver
 from enum import Enum
 
 
@@ -9,17 +10,28 @@ class Encryption(str, Enum):
     SHA256 = "sha256"
     MD5 = "md5"
 
+def resolve_with_custom_dns_server(address, dns_servers_csv):
+    resolver = dns.resolver.Resolver()
+    for dns_server in dns_servers_csv.split(','):
+        if dns_server not in resolver.nameservers:
+            resolver.nameservers.insert(0, dns_server)
+    answer = resolver.query(address)
+    return answer[0].to_text()
 
-def get_pem_cert(address, port=443):
+def get_pem_cert(address, port=443, dns_servers_csv=None):
     try:
-        cert = ssl.get_server_certificate((address, port))
+        ip = address
+        if dns_servers_csv is not None: 
+            ip = resolve_with_custom_dns_server(address, dns_servers_csv)
+        cert = ssl.get_server_certificate((ip, port))
     except Exception as ex:
         raise Exception(f"Failed to connect to address: {address}. Exception: {ex}")
     return cert
 
 
-def get_base64_cert(address, port=443) -> str:
-    cert = get_pem_cert(address, port)
+def get_base64_cert(address, port=443, dns_servers_csv=None) -> str:
+    print("in get_base64_cert")
+    cert = get_pem_cert(address, port, dns_servers_csv)
     base64_bytes = base64.b64encode(cert.encode("utf-8"))
     return str(base64_bytes, "utf-8")
 
