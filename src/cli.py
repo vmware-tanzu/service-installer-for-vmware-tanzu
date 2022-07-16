@@ -273,7 +273,7 @@ def shared_service_configuration(env, file):
         safe_exit()
 
 def deploy_extentions(env, file):
-    print("Deploy_Extentions: Deploying extentions")
+    print("Deploy_Extentions: Deploying extensions")
     headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -287,15 +287,15 @@ def deploy_extentions(env, file):
             url = "http://localhost:5000/api/tanzu/extentions"
             response = requests.request("POST", url, headers=headers, data=open(file, 'rb'), verify=False)
         else:
-            print("Wrong env type, please specify vmc or vsphre")
+            print("Wrong env type, please specify vmc or vsphere or vcf")
             safe_exit()
         if response.json()['ERROR_CODE'] != 200:
-            print("Deploy extentions failed" + str(response.json()))
+            print("Deploy extensions failed" + str(response.json()))
             safe_exit()
         else:
-            print("Deploy_Extentions: Deployed extentions Successfully")
+            print("Deploy_Extensions: Deployed extensions Successfully")
     except Exception as e:
-        print("Deploy extentions failed" + str(e))
+        print("Deploy extensions failed" + str(e))
         safe_exit()
 
 
@@ -443,7 +443,7 @@ def userPrompt_for_cleanup(env, file):
             print("Un recognised env " + env + "provided")
             safe_exit()
         if response.json()['ERROR_CODE'] != 200:
-            print("Create workload cluster failed " + str(response.json()))
+            print("Cleanup failed: " + str(response.json()))
             safe_exit()
         workload_clusters = response.json()["WORKLOAD_CLUSTERS"]
         management_clusters = response.json()["MANAGEMENT_CLUSTERS"]
@@ -455,6 +455,21 @@ def userPrompt_for_cleanup(env, file):
         supervisor_cluster = response.json()["SUPERVISOR_CLUSTER"]
         if env == "vcf" or env == "vmc":
             network_segments = response.json()["NETWORK_SEGMENTS"]
+
+        msg = """\n
+    Skip cleanup of Content Libraries and Downloaded Kubernetes OVAs from vcenter env (Y/N) ? : """
+
+        user_response = input(msg)
+        user_response = user_response.strip()
+        if user_response.lower() == 'y' or user_response.lower() == "yes":
+            retain = True
+            print("Content-libraries and Kubernetes OVA will not be removed...")
+        elif user_response.lower() == 'n' or user_response.lower() == "no":
+            retain = False
+            print("Proceeding with complete cleanup...")
+        else:
+            print("Invalid response")
+            safe_exit()
 
         msg = """\n\n
 Below resources from environment will be Cleaned-up. 
@@ -473,10 +488,10 @@ Below resources from environment will be Cleaned-up.
         if workload_clusters:
             msg = msg + """\n
     Workload Clusters: %s """ % workload_clusters
-        if content_libraries:
+        if content_libraries and not retain:
             msg = msg + """\n
     Content Libraries: %s """ % content_libraries
-        if kubernetes_templates:
+        if kubernetes_templates and not retain:
             msg = msg + """\n
     Kubernetes Template VMs: %s """ % kubernetes_templates
         if avi_vms:
@@ -503,7 +518,7 @@ Please confirm if you wish to continue with cleanup (Y/N) ? : """
         else:
             print("Invalid response")
             safe_exit()
-
+        headers.update({"Retain": str(retain)})
         url = "http://localhost:5000/api/tanzu/cleanup-env"
         response = requests.request("POST", url, headers=headers, data=open(file, 'rb'), verify=False)
         if response.json()['ERROR_CODE'] != 200:
@@ -514,7 +529,7 @@ Please confirm if you wish to continue with cleanup (Y/N) ? : """
             safe_exit()
 
     except Exception as e:
-        print("Create workload cluster failed " + str(e))
+        print("Cleanup failed: " + str(e))
         safe_exit()
 
 
@@ -578,7 +593,7 @@ def usage():
     vds = "For vSphere-VDS:"
     vmc = "For vmc:"
     vcf = "For vSphere-NSXT:"
-    tkgs = "For Tanzu on vSphere(VDS):"
+    tkgs = "For Tanzu with vSphere(VDS):"
     availaible = "Available Flags:"
     enable_wcp = "Enable WCP:"
     tkgs_ns_wrk = "Create Namespace and Workload Cluster: "

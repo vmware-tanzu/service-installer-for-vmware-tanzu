@@ -11,7 +11,7 @@ import requests
 from tqdm import tqdm
 import base64
 from constants.constants import Constants, Paths, TKGCommands, ComponentPrefix, AkoType, \
-    ControllerLocation, KubernetesOva, Cloud, VrfType, ResourcePoolAndFolderName
+    ControllerLocation, KubernetesOva, Cloud, VrfType, ResourcePoolAndFolderName, RegexPattern
 from lib.tkg_cli_client import TkgCliClient
 from model.run_config import RunConfig
 from model.spec import Bootstrap
@@ -30,12 +30,15 @@ from workflows.cluster_common_workflow import ClusterCommonWorkflow
 import subprocess
 import shutil
 import traceback
-from util.common_utils import createSubscribedLibrary, downloadAndPushKubernetesOvaMarketPlace, \
+from util.common_utils import downloadAndPushKubernetesOvaMarketPlace, \
     getCloudStatus, seperateNetmaskAndIp, getSECloudStatus, getSeNewBody, getVrfAndNextRoutId, \
-    addStaticRoute, getVipNetworkIpNetMask, getClusterStatusOnTanzu, runSsh, checkenv
+    addStaticRoute, getVipNetworkIpNetMask, getClusterStatusOnTanzu, runSsh, checkenv, \
+    switchToManagementContext
 from util.replace_value import generateVsphereConfiguredSubnets, replaceValueSysConfig
 from util.vcenter_operations import createResourcePool, create_folder
-from util.ShellHelper import runProcess, runShellCommandAndReturnOutputAsList
+from util.ShellHelper import runProcess, runShellCommandAndReturnOutputAsList, verifyPodsAreRunning
+from util.oidc_helper import checkEnableIdentityManagement, checkPinnipedInstalled, checkPinnipedServiceStatus, \
+    checkPinnipedDexServiceStatus, createRbacUsers
 
 # logger = LoggerHelper.get_logger(Path(__file__).stem)
 logger = LoggerHelper.get_logger(name='ra_mgmt_cluster_workflow')
@@ -47,7 +50,7 @@ class RaMgmtClusterWorkflow:
         jsonpath = os.path.join(self.run_config.root_dir, Paths.MASTER_SPEC_PATH)
         with open(jsonpath) as f:
             self.jsonspec = json.load(f)
-
+        self.env = "vsphere"
         check_env_output = checkenv(self.jsonspec)
         if check_env_output is None:
             msg = "Failed to connect to VC. Possible connection to VC is not available or " \
@@ -299,11 +302,95 @@ class RaMgmtClusterWorkflow:
             return json.dumps(d), 500
         command = ["tanzu", "plugin", "sync"]
         runShellCommandAndReturnOutputAsList(command)
+        if checkEnableIdentityManagement(self.env, self.jsonspec):
+            podRunninng = ["tanzu", "cluster", "list", "--include-management-cluster"]
+            command_status = runShellCommandAndReturnOutputAsList(podRunninng)
+            if not verifyPodsAreRunning(management_cluster, command_status[0], RegexPattern.running):
+                logger.error(management_cluster + " is not deployed")
+                d = {
+                    "responseType": "ERROR",
+                    "msg": management_cluster + " is not deployed",
+                    "ERROR_CODE": 500
+                }
+                return json.dunps(d), 500
+            switch = switchToManagementContext(management_cluster)
+            if switch[1] != 200:
+                logger.info(switch[0].json['msg'])
+                d = {
+                    "responseType": "ERROR",
+                    "msg": switch[0].json['msg'],
+                    "ERROR_CODE": 500
+                }
+                return json.dumps(d), 500
+            if checkEnableIdentityManagement(self.env):
+                logger.info("Validating pinniped installation status")
+                check_pinniped = checkPinnipedInstalled()
+                if check_pinniped[1] != 200:
+                    logger.error(check_pinniped[0].json['msg'])
+                    d = {
+                        "responseType": "ERROR",
+                        "msg": check_pinniped[0].json['msg'],
+                        "ERROR_CODE": 500
+                    }
+                    return json.dumps(d), 500
+                    logger.info("Validating pinniped service status")
+                check_pinniped_svc = checkPinnipedServiceStatus()
+                if check_pinniped_svc[1] != 200:
+                    logger.error(check_pinniped_svc[0])
+                    d = {
+                        "responseType": "ERROR",
+                        "msg": check_pinniped_svc[0],
+                        "ERROR_CODE": 500
+                    }
+                    return json.dumps(d), 500
+                logger.info("Successfully validated Pinniped service status")
+                identity_mgmt_type = str(
+                    self.jsonspec["tkgComponentSpec"]["identityManagementSpec"]["identityManagementType"])
+                if identity_mgmt_type.lower() == "ldap":
+                    check_pinniped_dexsvc = checkPinnipedDexServiceStatus()
+                    if check_pinniped_dexsvc[1] != 200:
+                        logger.error(check_pinniped_dexsvc[0])
+                        d = {
+                            "responseType": "ERROR",
+                            "msg": check_pinniped_dexsvc[0],
+                            "ERROR_CODE": 500
+                        }
+                        return json.dumps(d), 500
+                    logger.info("External IP for Pinniped is set as: " + check_pinniped_svc[0])
+
+                cluster_admin_users = \
+                self.jsonspec['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtRbacUserRoleSpec'][
+                    'clusterAdminUsers']
+                admin_users = \
+                self.jsonspec['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtRbacUserRoleSpec'][
+                    'adminUsers']
+                edit_users = \
+                self.jsonspec['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtRbacUserRoleSpec'][
+                    'editUsers']
+                view_users = \
+                self.jsonspec['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtRbacUserRoleSpec'][
+                    'viewUsers']
+                rbac_user_status = createRbacUsers(management_cluster, isMgmt=True, env=self.env, edit_users=edit_users,
+                                                cluster_admin_users=cluster_admin_users, admin_users=admin_users,
+                                                view_users=view_users)
+                if rbac_user_status[1] != 200:
+                    logger.error(rbac_user_status[0].json['msg'])
+                    d = {
+                        "responseType": "ERROR",
+                        "msg": rbac_user_status[0].json['msg'],
+                        "ERROR_CODE": 500
+                    }
+                    return json.dumps(d), 500
+                logger.info("Successfully created RBAC for all the provided users")
+
+            else:
+                logger.info("Identity Management is not enabled")
         d = {
             "responseType": "SUCCESS",
             "msg": "Successfully configured management cluster ",
             "ERROR_CODE": 200
         }
+
         return json.dumps(d), 200
 
     @log("Wait for AVI Default Cloud to be in Ready State")
@@ -1172,6 +1259,7 @@ class RaMgmtClusterWorkflow:
             cloud_url = cloud[0]
         else:
             cloud_url = get_cloud[0]
+            isGen = True
         if isGen:
             for i in tqdm(range(60), desc="Waiting…", ascii=False, ncols=75):
                 time.sleep(1)

@@ -138,11 +138,17 @@ export class NodeSettingStepComponent extends StepFormDirective implements OnIni
         this.formGroup.addControl('mgmtCpu',
             new FormControl('', [Validators.min(2)]));
         this.formGroup.addControl('mgmtMemory',
-            new FormControl('', [Validators.min(8)]));
+            new FormControl('', [Validators.min(4)]));
         this.formGroup.addControl('mgmtStorage',
-            new FormControl('', [Validators.min(40)]));
+            new FormControl('', [Validators.min(20)]));
         this.formGroup.addControl('clusterGroupName', 
             new FormControl('', []));
+
+        this.formGroup.addControl('clusterAdminUsers', new FormControl("", [this.validationService.noWhitespaceOnEnds()]));
+        this.formGroup.addControl('adminUsers', new FormControl("", [this.validationService.noWhitespaceOnEnds()]));
+        this.formGroup.addControl('editUsers', new FormControl("", [this.validationService.noWhitespaceOnEnds()]));
+        this.formGroup.addControl('viewUsers', new FormControl("", [this.validationService.noWhitespaceOnEnds()]));
+
             this.networks = this.apiClient.networks;
         this.formGroup['canMoveToNext'] = () => {
             return (this.formGroup.valid && this.apiClient.TkgMgmtNwValidated &&
@@ -329,11 +335,11 @@ export class NodeSettingStepComponent extends StepFormDirective implements OnIni
                     this.formGroup.value['mgmtCpu']);
                 this.resurrectField('mgmtMemory', [
                     Validators.required,
-                    Validators.min(8)],
+                    Validators.min(4)],
                     this.formGroup.value['mgmtMemory']);
                 this.resurrectField('mgmtStorage', [
                     Validators.required,
-                    Validators.min(40)],
+                    Validators.min(20)],
                     this.formGroup.value['mgmtStorage']);
             } else {
                 storageFields.forEach((field) => {

@@ -10,7 +10,10 @@ from pathlib import Path
 import base64
 import logging
 from constants.constants import Paths, ControllerLocation, KubernetesOva, MarketPlaceUrl, VrfType, \
-    ClusterType, TmcUser, RegexPattern, SAS, AppName, UpgradeVersions, TKGCommands
+    ClusterType, TmcUser, RegexPattern, SAS, AppName, UpgradeVersions, Repo, Env, Extentions, Tkg_Extention_names, \
+    Tkg_version, TKG_Package_Details, TKGCommands
+from util.extensions_helper import check_fluent_bit_http_endpoint_enabled, check_fluent_bit_splunk_endpoint_endpoint_enabled, \
+    check_fluent_bit_syslog_endpoint_enabled, check_fluent_bit_elastic_search_endpoint_enabled, check_fluent_bit_kafka_endpoint_endpoint_enabled
 from util.logger_helper import LoggerHelper
 import requests
 from util.avi_api_helper import getProductSlugId
@@ -26,9 +29,12 @@ import yaml
 from ruamel import yaml as ryaml
 from datetime import datetime
 from util.vcenter_operations import createResourcePool, create_folder
+from util.tkg_util import TkgUtil
 import subprocess
 import pathlib
 import tarfile
+from pyVim import connect
+
 
 logger = LoggerHelper.get_logger('common_utils')
 logging.getLogger("paramiko").setLevel(logging.WARNING)
@@ -49,7 +55,6 @@ def checkenv(jsonspec):
         return check_connection
     except Exception:
         return None
-
 
 def createSubscribedLibrary(vcenter_ip, vcenter_username, password, jsonspec):
     try:
@@ -181,14 +186,7 @@ def getOvaMarketPlace(filename, refreshToken, version, baseOS, upgrade):
     app_version = None
     metafileid = None
     # get base tanzu version for right ova to be downloaded
-    try:
-        tanzu_version = rcmd.run_cmd_output(cmd=TKGCommands.VERSION)
-        obt_version = [line for line in tanzu_version.split("\n") if "version" in line][0]
-        tanzu_targetted_version = re.sub('[^\d\.]', '', obt_version)
-    except Exception:
-        tanzu_targetted_version = '1.4.0'
-        pass
-
+    tanzu_targetted_version = KubernetesOva.TARGET_VERSION
     filename = filename + ".ova"
     solutionName = KubernetesOva.MARKETPLACE_KUBERNETES_SOLUTION_NAME
     logger.debug(("Solution Name: {}".format(solutionName)))
@@ -235,6 +233,8 @@ def getOvaMarketPlace(filename, refreshToken, version, baseOS, upgrade):
         for metalist in product.json()['response']['data']['metafilesList']:
             ovaname = metalist["metafileobjectsList"][0]['filename']
             if upgrade:
+                # todo: Change targetted version to get from desired state
+                #version:  tkg: 1.5.3
                 if metalist['appversion'] in UpgradeVersions.TARGET_VERSION:
                     if metalist["version"] == version[1:] and str(metalist["groupname"]).strip(
                              "\t") == ova_groupname:
@@ -255,7 +255,10 @@ def getOvaMarketPlace(filename, refreshToken, version, baseOS, upgrade):
                         app_version = metalist['appversion']
                         metafileid = metalist['metafileid']
                         break
-
+    logger.info("---------------------")
+    logger.info("ovaName: {ovaName} app_version: {app_version} metafileid: {metafileid}".format(ovaName=ovaName,
+                                                                                                app_version=app_version,
+                                                                                                metafileid=metafileid))
     if (objectid or ovaName or app_version or metafileid) is None:
         return None, "Failed to find the file details in Marketplace"
 
@@ -269,9 +272,13 @@ def getOvaMarketPlace(filename, refreshToken, version, baseOS, upgrade):
     }
 
     json_object = json.dumps(payload, indent=4).replace('\"true\"', 'true')
+    logger.info('--------')
+    logger.info('Marketplaceurl: {url} data: {data}'.format(url=MarketPlaceUrl.URL, data=json_object))
     presigned_url = requests.request("POST",
                                      MarketPlaceUrl.URL + "/api/v1/products/" + product_id + "/download",
                                      headers=headers, data=json_object, verify=False)
+    logger.info('presigned_url: {}'.format(presigned_url))
+    logger.info('presigned_url text: {}'.format(presigned_url.text))
     if presigned_url.status_code != 200:
         return None, "Failed to obtain pre-signed URL"
     else:
@@ -919,6 +926,9 @@ def deployCluster(cluster_name, clusterPlan, datacenter, dataStorePath,
                                  machineCount, size, typen, vsSpec, jsonspec)
             logger.info("Deploying " + cluster_name + "cluster")
             os.putenv("DEPLOY_TKG_ON_VSPHERE7", "true")
+            logger.info("---------- yaml---------")
+            logger.info(cluster_name)
+            logger.info("------------------------------")
             listOfCmd = ["tanzu", "cluster", "create", "-f", cluster_name + ".yaml", "-v", "6"]
             runProcess(listOfCmd)
             return "SUCCESS", 200
@@ -1119,97 +1129,6 @@ def switchToManagementContext(clusterName):
     }
     return json.dumps(d), 200
 
-
-def installCertManagerAndContour(jsonspec, cluster_name, repo_address):
-    podRunninng = ["tanzu", "cluster", "list", "--include-management-cluster"]
-    command_status = runShellCommandAndReturnOutputAsList(podRunninng)
-    if not verifyPodsAreRunning(cluster_name, command_status[0], RegexPattern.running):
-        logger.error(cluster_name + " is not deployed")
-        d = {
-            "responseType": "ERROR",
-            "msg": cluster_name + " is not deployed",
-            "ERROR_CODE": 500
-        }
-        return json.dumps(d), 500
-    mgmt = getManagementCluster()
-    if mgmt is None:
-        logger.error("Failed to get management cluster")
-        d = {
-            "responseType": "ERROR",
-            "msg": "Failed to get management cluster",
-            "ERROR_CODE": 500
-        }
-        return json.dumps(d), 500
-    if str(mgmt).strip() == cluster_name.strip():
-        switch = switchToManagementContext(cluster_name.strip())
-        if switch[1] != 200:
-            logger.info(switch[0].json['msg'])
-            d = {
-                "responseType": "ERROR",
-                "msg": switch[0].json['msg'],
-                "ERROR_CODE": 500
-            }
-            return json.dumps(d), 500
-    else:
-        commands_shared = ["tanzu", "cluster", "kubeconfig", "get", cluster_name, "--admin"]
-        kubeContextCommand_shared = grabKubectlCommand(commands_shared, RegexPattern.SWITCH_CONTEXT_KUBECTL)
-        if kubeContextCommand_shared is None:
-            logger.error("Failed to get switch to " + cluster_name + " cluster context command")
-            d = {
-                "responseType": "ERROR",
-                "msg": "Failed to get switch to " + cluster_name + " context command",
-                "ERROR_CODE": 500
-            }
-            return json.dumps(d), 500
-        lisOfSwitchContextCommand_shared = str(kubeContextCommand_shared).split(" ")
-        status = runShellCommandAndReturnOutputAsList(lisOfSwitchContextCommand_shared)
-        if status[1] != 0:
-            logger.error("Failed to get switch to shared cluster context " + str(status[0]))
-            d = {
-                "responseType": "ERROR",
-                "msg": "Failed to get switch to " + cluster_name + " context " + str(status[0]),
-                "ERROR_CODE": 500
-            }
-            return json.dumps(d), 500
-
-    install = installExtentionFor14()
-    if install[1] != 200:
-        return install[0], install[1]
-    logger.info("Configured cert-manager and contour successfully")
-    d = {
-        "responseType": "SUCCESS",
-        "msg": "Configured cert-manager and contour extentions successfully",
-        "ERROR_CODE": 200
-    }
-    return json.dumps(d), 200
-
-def getVersionOfPackage(packageName):
-    list_h = []
-    cert_package_cmd = ["tanzu", "package", "available", "list", packageName, "-A"]
-    ss = runShellCommandAndReturnOutputAsList(cert_package_cmd)
-    release_dates = []
-    for s in ss[0]:
-        if not s.__contains__("Retrieving package versions for " + packageName + "..."):
-            for nn in s.split("\n"):
-                if nn:
-                    if not nn.split()[2].__contains__("RELEASED-AT"):
-                        release_date = datetime.fromisoformat(nn.split()[2]).date()
-                        release_dates.append(release_date)
-                        list_h.append(nn)
-    if len(list_h) == 0:
-        logger.error("Failed to run get version list is empty")
-        return None
-    version = None
-    for li in list_h:
-        if li.__contains__(str(max(release_dates))):
-            version = li.split(" ")[4]
-            break
-    if version is None or not version:
-        logger.error("Failed to get version string is empty")
-        return None
-    return version
-
-
 def waitForGrepProcessWithoutChangeDir(list1, list2, podName, status):
     time.sleep(30)
     count_cert = 0
@@ -1380,7 +1299,7 @@ def installExtentionFor14():
             return json.dumps(d), 200
     d = {
         "responseType": "SUCCESS",
-        "msg": "Configured cert-manager and contour extentions successfully",
+        "msg": "Configured cert-manager and contour extensions successfully",
         "ERROR_CODE": 200
     }
     return json.dumps(d), 200
@@ -1753,3 +1672,651 @@ def getVipNetworkIpNetMask(ip, csrf2, name, aviVersion):
     except KeyError:
         return "NOT_FOUND", "FAILED"
 
+
+def checkAirGappedIsEnabled(env, jsonspec):
+    if env == Env.VMC:
+        air_gapped = ""
+    else:
+        try:
+            air_gapped = jsonspec['envSpec']['customRepositorySpec'][
+                'tkgCustomImageRepository']
+        except:
+            return False
+    if not air_gapped.lower():
+        return False
+    else:
+        return True
+
+def getVersionOfPackage(packageName):
+    list_h = []
+    cert_package_cmd = ["tanzu", "package", "available", "list", packageName, "-A"]
+    ss = runShellCommandAndReturnOutputAsList(cert_package_cmd)
+    release_dates = []
+    for s in ss[0]:
+        if not s.__contains__("Retrieving package versions for " + packageName + "..."):
+            if not s.__contains__("Waited for"):
+                for nn in s.split("\n"):
+                    if nn:
+                        if not nn.split()[2].__contains__("RELEASED-AT"):
+                            release_date = datetime.fromisoformat(nn.split()[2]).date()
+                            release_dates.append(release_date)
+                            list_h.append(nn)
+    if len(list_h) == 0:
+        logger.error("Failed to run get version list is empty")
+        return None
+    version = None
+    for li in list_h:
+        if li.__contains__(str(max(release_dates))):
+            version = li.split(" ")[4]
+            break
+    if version is None or not version:
+        logger.error("Failed to get version string is empty")
+        return None
+    return version
+
+
+def isClusterRunning(vcenter_ip, vcenter_username, password, cluster, workload_name, jsonspec):
+    try:
+        logger.info("Check if cluster is in running state - " + workload_name)
+
+        cluster_id = getClusterID(vcenter_ip, vcenter_username, password, cluster)
+        if cluster_id[1] != 200:
+            logger.error(cluster_id[0])
+            d = {
+                "responseType": "ERROR",
+                "msg": cluster_id[0],
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+
+        cluster_id = cluster_id[0]
+
+        wcp_status = isWcpEnabled(cluster_id)
+        if wcp_status[0]:
+            endpoint_ip = wcp_status[1]['api_server_cluster_endpoint']
+        else:
+            logger.error("WCP not enabled on given cluster - " + cluster)
+            d = {
+                "responseType": "ERROR",
+                "msg": "WCP not enabled on given cluster - " + cluster,
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+
+        logger.info("logging into cluster - " + endpoint_ip)
+        os.putenv("KUBECTL_VSPHERE_PASSWORD", password)
+        connect_command = ["kubectl", "vsphere", "login", "--server=" + endpoint_ip,
+                           "--vsphere-username=" + vcenter_username,
+                           "--insecure-skip-tls-verify"]
+        output = runShellCommandAndReturnOutputAsList(connect_command)
+        if output[1] != 0:
+            logger.error("Failed while connecting to Supervisor Cluster ")
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed while connecting to Supervisor Cluster",
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+        switch_context = ["kubectl", "config", "use-context", endpoint_ip]
+        output = runShellCommandAndReturnOutputAsList(switch_context)
+        if output[1] != 0:
+            logger.error("Failed to use  context " + str(output[0]))
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to use  context " + str(output[0]),
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+
+        name_space = jsonspec['tkgsComponentSpec']["tkgsVsphereNamespaceSpec"][
+            'tkgsVsphereWorkloadClusterSpec']['tkgsVsphereNamespaceName']
+        get_cluster_command = ["kubectl", "get", "tkc", "-n", name_space]
+        clusters_output = runShellCommandAndReturnOutputAsList(get_cluster_command)
+        if clusters_output[1] != 0:
+            logger.error("Failed to fetch cluster running status " + str(clusters_output[0]))
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to fetch cluster running status " + str(clusters_output[0]),
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+
+        index = None
+        for item in range(len(clusters_output[0])):
+            if clusters_output[0][item].split()[0] == workload_name:
+                index = item
+                break
+
+        if index is None:
+            logger.error("Unable to find cluster - " + workload_name)
+            d = {
+                "responseType": "ERROR",
+                "msg": "Unable to find cluster - " + workload_name,
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+
+        output = clusters_output[0][index].split()
+        if not ((output[5] == "True" or output[5] == "running") and output[6] == "True"):
+            logger.error("Failed to fetch workload cluster running status " + str(clusters_output[0]))
+            logger.error("Found below Cluster status - ")
+            logger.error("READY: " + str(output[5]) + " and TKR COMPATIBLE: " + str(output[6]))
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to fetch workload cluster running status " + str(clusters_output[0]),
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+
+        d = {
+            "responseType": "SUCCESS",
+            "msg": "Workload cluster is in running status.",
+            "ERROR_CODE": 200
+        }
+        return json.dumps(d), 200
+    except Exception as e:
+        logger.error(str(e))
+        d = {
+            "responseType": "ERROR",
+            "msg": "Exception occurred while fetching the status of workload cluster",
+            "ERROR_CODE": 500
+        }
+        return json.dumps(d), 500
+
+def isWcpEnabled(cluster_id, jsonspec):
+    vcenter_ip = jsonspec['envSpec']['vcenterDetails']['vcenterAddress']
+    vcenter_username = jsonspec['envSpec']['vcenterDetails']['vcenterSsoUser']
+    str_enc = str(jsonspec['envSpec']['vcenterDetails']["vcenterSsoPasswordBase64"])
+    base64_bytes = str_enc.encode('ascii')
+    enc_bytes = base64.b64decode(base64_bytes)
+    password = enc_bytes.decode('ascii').rstrip("\n")
+    if not (vcenter_ip or vcenter_username or password):
+        return False, "Failed to fetch VC details"
+
+    sess = requests.post("https://" + str(vcenter_ip) + "/rest/com/vmware/cis/session",
+                         auth=(vcenter_username, password), verify=False)
+    if sess.status_code != 200:
+        logger.error("Connection to vCenter failed")
+        return False, "Connection to vCenter failed"
+    else:
+        vc_session = sess.json()['value']
+
+    header = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "vmware-api-session-id": vc_session
+    }
+    url = "https://" + vcenter_ip + "/api/vcenter/namespace-management/clusters/" + cluster_id
+    response_csrf = requests.request("GET", url, headers=header, verify=False)
+    if response_csrf.status_code != 200:
+        if response_csrf.status_code == 400:
+            if response_csrf.json()["messages"][0][
+                "default_message"] == "Cluster with identifier " + cluster_id + " does " \
+                                                                                "not have Workloads enabled.":
+                return False, None
+
+    elif response_csrf.json()["config_status"] == "RUNNING":
+        return True, response_csrf.json()
+    else:
+        return False, None
+
+
+
+def connect_to_workload(vCenter, vcenter_username, password, cluster, workload_name, jsonspec):
+    try:
+        logger.info("Connecting to workload cluster...")
+        cluster_id = getClusterID(vCenter, vcenter_username, password, cluster)
+        if cluster_id[1] != 200:
+            logger.error(cluster_id[0])
+            return None, cluster_id[0].json['msg']
+
+        cluster_namespace = jsonspec['tkgsComponentSpec']["tkgsVsphereNamespaceSpec"][
+            'tkgsVsphereWorkloadClusterSpec']['tkgsVsphereNamespaceName']
+        cluster_id = cluster_id[0]
+        wcp_status = isWcpEnabled(cluster_id, jsonspec)
+        if wcp_status[0]:
+            endpoint_ip = wcp_status[1]['api_server_cluster_endpoint']
+        else:
+            return None, "Failed to obtain cluster endpoint IP on given cluster - " + workload_name
+        logger.info("logging into cluster - " + endpoint_ip)
+        os.putenv("KUBECTL_VSPHERE_PASSWORD", password)
+        connect_command = ["kubectl", "vsphere", "login", "--vsphere-username", vcenter_username, "--server",
+                           endpoint_ip,
+                           "--tanzu-kubernetes-cluster-name", workload_name, "--tanzu-kubernetes-cluster-namespace",
+                           cluster_namespace, "--insecure-skip-tls-verify"]
+        output = runShellCommandAndReturnOutputAsList(connect_command)
+        if output[1] != 0:
+            logger.error(output[0])
+            return None, "Failed to login to cluster endpoint - " + endpoint_ip
+
+        switch_context = ["kubectl", "config", "use-context", workload_name]
+        context_output = runShellCommandAndReturnOutputAsList(switch_context)
+        if output[1] != 0:
+            logger.error(context_output[0])
+            return None, "Failed to login to cluster context - " + workload_name
+        return "SUCCESS", "Successfully connected to workload cluster"
+    except Exception as e:
+        return None, "Exception occurred while connecting to workload cluster"
+        
+def verifyCluster(cluster_name):
+    podRunninng = ["tanzu", "cluster", "list", "--include-management-cluster"]
+    command_status = runShellCommandAndReturnOutputAsList(podRunninng)
+    if not verifyPodsAreRunning(cluster_name, command_status[0], RegexPattern.running):
+        return False
+    else:
+        return True
+
+def checkRepositoryAdded(env, jsonspec):
+    if checkAirGappedIsEnabled(env, jsonspec):
+        try:
+            validate_command = ["tanzu", "package", "repository", "list", "-A"]
+
+            status = runShellCommandAndReturnOutputAsList(validate_command)
+            if status[1] != 0:
+                logger.error("Failed to run validate repository added command " + str(status[0]))
+                d = {
+                    "responseType": "ERROR",
+                    "msg": "Failed to run validate repository added command " + str(str[0]),
+                    "ERROR_CODE": 500
+                }
+                return json.dumps(d), 500
+            REPOSITORY_URL = jsonspec['envSpec']['customRepositorySpec'][
+                'tkgCustomImageRepository']
+            REPOSITORY_URL = str(REPOSITORY_URL).replace("https://", "").replace("http://", "")
+            if not str(status[0]).__contains__(REPOSITORY_URL):
+                list_command = ["tanzu", "package", "repository", "add", Repo.NAME, "--url", REPOSITORY_URL, "-n",
+                                "tkg-custom-image-repository", "--create-namespace"]
+                status = runShellCommandAndReturnOutputAsList(list_command)
+                if status[1] != 0:
+                    logger.error("Failed to run command to add repository " + str(status[0]))
+                    d = {
+                        "responseType": "ERROR",
+                        "msg": "Failed to run command to add repository " + str(str[0]),
+                        "ERROR_CODE": 500
+                    }
+                    return json.dumps(d), 500
+                status = runShellCommandAndReturnOutputAsList(validate_command)
+                if status[1] != 0:
+                    logger.error("Failed to run validate repository added command " + str(status[0]))
+                    d = {
+                        "responseType": "ERROR",
+                        "msg": "Failed to run validate repository added command " + str(str[0]),
+                        "ERROR_CODE": 500
+                    }
+                    return json.dumps(d), 500
+            else:
+                logger.info(REPOSITORY_URL + " is already added")
+            logger.info("Successfully  added repository " + REPOSITORY_URL)
+            d = {
+                "responseType": "SUCCESS",
+                "msg": "Successfully  added repository " + REPOSITORY_URL,
+                "ERROR_CODE": 200
+            }
+            return json.dumps(d), 200
+        except Exception as e:
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to add repository " + str(e),
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+    else:
+        try:
+            validate_command = ["tanzu", "package", "repository", "list", "-n", TKG_Package_Details.NAMESPACE]
+            status = runShellCommandAndReturnOutputAsList(validate_command)
+            if status[1] != 0:
+                logger.error("Failed to run validate repository added command " + str(status[0]))
+                d = {
+                    "responseType": "ERROR",
+                    "msg": "Failed to run validate repository added command " + str(str[0]),
+                    "ERROR_CODE": 500
+                }
+                return json.dumps(d), 500
+            if not str(status[0]).__contains__(TKG_Package_Details.STANDARD_PACKAGE_URL):
+                list_command = ["tanzu", "package", "repository", "add", TKG_Package_Details.REPO_NAME, "--url",
+                                TKG_Package_Details.REPOSITORY_URL, "-n",
+                                TKG_Package_Details.NAMESPACE]
+                status = runShellCommandAndReturnOutputAsList(list_command)
+                if status[1] != 0:
+                    logger.error("Failed to run command to add repository " + str(status[0]))
+                    d = {
+                        "responseType": "ERROR",
+                        "msg": "Failed to run command to add repository " + str(str[0]),
+                        "ERROR_CODE": 500
+                    }
+                    return json.dumps(d), 500
+                status = runShellCommandAndReturnOutputAsList(validate_command)
+                if status[1] != 0:
+                    logger.error("Failed to run validate repository added command " + str(status[0]))
+                    d = {
+                        "responseType": "ERROR",
+                        "msg": "Failed to run validate repository added command " + str(str[0]),
+                        "ERROR_CODE": 500
+                    }
+                    return json.dumps(d), 500
+            else:
+                logger.info(TKG_Package_Details.REPOSITORY_URL + " is already added")
+            logger.info("Successfully  added repository " + TKG_Package_Details.REPOSITORY_URL)
+            d = {
+                "responseType": "SUCCESS",
+                "msg": "Successfully validated repository " + TKG_Package_Details.REPOSITORY_URL,
+                "ERROR_CODE": 200
+            }
+            return json.dumps(d), 200
+        except Exception as e:
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to validate tanzu standard repository status" + str(e),
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+
+
+
+def installCertManagerAndContour(env, cluster_name, repo_address, service_name, jsonspec):
+    podRunninng = ["tanzu", "cluster", "list", "--include-management-cluster"]
+    command_status = runShellCommandAndReturnOutputAsList(podRunninng)
+    if not verifyPodsAreRunning(cluster_name, command_status[0], RegexPattern.running):
+        logger.error(cluster_name + " is not deployed")
+        d = {
+            "responseType": "ERROR",
+            "msg": cluster_name + " is not deployed",
+            "ERROR_CODE": 500
+        }
+        return json.dumps(d), 500
+    if TkgUtil.isEnvTkgs_ns(jsonspec) or TkgUtil.isEnvTkgs_wcp(jsonspec):
+        mgmt = jsonspec['envSpec']["saasEndpoints"]['tmcDetails']['tmcSupervisorClusterName']
+    else:
+        mgmt = getManagementCluster()
+        if mgmt is None:
+            logger.error("Failed to get management cluster")
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to get management cluster",
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+    if str(mgmt).strip() == cluster_name.strip():
+        switch = switchToManagementContext(cluster_name.strip())
+        if switch[1] != 200:
+            logger.info(switch[0].json['msg'])
+            d = {
+                "responseType": "ERROR",
+                "msg": switch[0].json['msg'],
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+    else:
+        if TkgUtil.isEnvTkgs_ns(jsonspec):
+            name_space = jsonspec['tkgsComponentSpec']["tkgsVsphereNamespaceSpec"][
+                'tkgsVsphereWorkloadClusterSpec']['tkgsVsphereNamespaceName']
+            commands_shared = ["tanzu", "cluster", "kubeconfig", "get", cluster_name, "--admin", "-n", name_space]
+        else:
+            commands_shared = ["tanzu", "cluster", "kubeconfig", "get", cluster_name, "--admin"]
+        kubeContextCommand_shared = grabKubectlCommand(commands_shared, RegexPattern.SWITCH_CONTEXT_KUBECTL)
+        if kubeContextCommand_shared is None:
+            logger.error("Failed to get switch to " + cluster_name + " cluster context command")
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to get switch to " + cluster_name + " context command",
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+        lisOfSwitchContextCommand_shared = str(kubeContextCommand_shared).split(" ")
+        status = runShellCommandAndReturnOutputAsList(lisOfSwitchContextCommand_shared)
+        if status[1] != 0:
+            logger.error("Failed to get switch to shared cluster context " + str(status[0]))
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to get switch to " + cluster_name + " context " + str(status[0]),
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+   
+    if Tkg_version.TKG_VERSION == "1.5":
+        status_ = checkRepositoryAdded(env, jsonspec)
+        if status_[1] != 200:
+            logger.error(str(status_[0].json['msg']))
+            d = {
+                "responseType": "ERROR",
+                "msg": str(status_[0].json['msg']),
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+        install = installExtentionFor14(service_name, cluster_name, env)
+        if install[1] != 200:
+            return install[0], install[1]
+    logger.info("Configured cert-manager and contour successfully")
+    d = {
+        "responseType": "SUCCESS",
+        "msg": "Configured cert-manager and contour extensions successfully",
+        "ERROR_CODE": 200
+    }
+    return json.dumps(d), 200
+
+def loadBomFile():
+    try:
+        with open(Extentions.BOM_LOCATION_14, "r") as stream:
+            try:
+                data = yaml.safe_load(stream)
+            except yaml.YAMLError as exc:
+                logger.error("Failed to find key " + str(exc))
+                return None
+            return data
+    except Exception as e:
+        logger.error("Failed to read bom file " + str(e))
+        return None
+
+
+def updateDataFile(fluent_endpoint, dataFile, jsonspec):
+    try:
+        output_str = None
+        if fluent_endpoint == Tkg_Extention_names.FLUENT_BIT_HTTP:
+            host = jsonspec['tanzuExtensions']['logging']['httpEndpoint']['httpEndpointAddress']
+            port = jsonspec['tanzuExtensions']['logging']['httpEndpoint']['httpEndpointPort']
+            uri = jsonspec['tanzuExtensions']['logging']['httpEndpoint']['httpEndpointUri']
+            header = jsonspec['tanzuExtensions']['logging']['httpEndpoint'][
+                'httpEndpointHeaderKeyValue']
+            output_str = """
+    [OUTPUT]
+    Name            http
+    Match           *
+    Host            %s
+    Port            %s
+    URI             %s
+    Header          %s
+    Format          json
+    tls             On
+    tls.verify      off
+            """ % (host, port, uri, header)
+        elif fluent_endpoint == Tkg_Extention_names.FLUENT_BIT_SYSLOG:
+            host = jsonspec['tanzuExtensions']['logging']['syslogEndpoint']['syslogEndpointAddress']
+            port = jsonspec['tanzuExtensions']['logging']['syslogEndpoint']['syslogEndpointPort']
+            mode = jsonspec['tanzuExtensions']['logging']['syslogEndpoint']['syslogEndpointMode']
+            format = jsonspec['tanzuExtensions']['logging']['syslogEndpoint'][
+                'syslogEndpointFormat']
+            output_str = """
+    [OUTPUT]
+    Name            syslog
+    Match           *
+    Host            %s
+    Port            %s
+    Mode            %s
+    Syslog_Format   %s
+    Syslog_Hostname_key  tkg_cluster
+    Syslog_Appname_key   pod_name
+    Syslog_Procid_key    container_name
+    Syslog_Message_key   message
+    Syslog_SD_key        k8s
+    Syslog_SD_key        labels
+    Syslog_SD_key        annotations
+    Syslog_SD_key        tkg
+            """ % (host, port, mode, format)
+        elif fluent_endpoint == Tkg_Extention_names.FLUENT_BIT_KAFKA:
+            broker = jsonspec['tanzuExtensions']['logging']['kafkaEndpoint'][
+                'kafkaBrokerServiceName']
+            topic = jsonspec['tanzuExtensions']['logging']['kafkaEndpoint']['kafkaTopicName']
+            output_str = """
+    [OUTPUT]
+    Name           kafka
+    Match          *
+    Brokers        %s
+    Topics         %s
+    Timestamp_Key  @timestamp
+    Retry_Limit    false
+    rdkafka.log.connection.close false
+    rdkafka.queue.buffering.max.kbytes 10240
+    rdkafka.request.required.acks   1
+            """ % (broker, topic)
+        else:
+            logger.error("Provided endpoint is not supported by SIVT - " + fluent_endpoint)
+            return False
+
+        logger.info("Printing " + fluent_endpoint + " endpoint details ")
+        logger.info(output_str)
+        inject_sc = ["sh", "./common/injectValue.sh", dataFile, "inject_output_fluent", output_str.strip()]
+        inject_sc_response = runShellCommandAndReturnOutput(inject_sc)
+        if inject_sc_response[1] == 500:
+            logger.error("Command to update output endpoint failed")
+            return False
+        return True
+
+    except Exception as e:
+        logger.error(str(e))
+        return False
+
+def createClusterFolder(clusterName):
+    try:
+        command = ["mkdir", "-p", Paths.CLUSTER_PATH + clusterName + "/"]
+        create_output = runShellCommandAndReturnOutputAsList(command)
+        if create_output[1] != 0:
+            return False
+        else:
+            return True
+    except Exception as e:
+        logger.error("Exception occurred while creating directory - " + Paths.CLUSTER_PATH + clusterName)
+        return False
+
+def deploy_fluent_bit(end_point, cluster, jsonspec):
+    try:
+        logger.info("Deploying Fluent-bit extension on cluster - " + cluster)
+        if not createClusterFolder(cluster):
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to create directory: " + Paths.CLUSTER_PATH + cluster,
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+        copy_template_command = ["cp", Paths.VSPHERE_FLUENT_BIT_YAML, Paths.CLUSTER_PATH + cluster]
+        copy_output = runShellCommandAndReturnOutputAsList(copy_template_command)
+        if copy_output[1] != 0:
+            logger.error("Failed to copy template file to : " + Paths.CLUSTER_PATH + cluster)
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to copy template file to : " + Paths.CLUSTER_PATH + cluster,
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+        yamlFile = Paths.CLUSTER_PATH + cluster + "/fluent_bit_data_values.yaml"
+        namespace = "package-tanzu-system-logging"
+        update_response = updateDataFile(end_point, yamlFile, jsonspec)
+        if not update_response:
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to update data values file",
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+        version = getVersionOfPackage(Tkg_Extention_names.FLUENT_BIT.lower() + ".tanzu.vmware.com")
+        if version is None:
+            logger.error("Failed Capture the available Prometheus version")
+            d = {
+                "responseType": "ERROR",
+                "msg": "Capture the available Prometheus version",
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+        deploy_fluent_bit_command = ["tanzu", "package", "install", Tkg_Extention_names.FLUENT_BIT.lower(),
+                                     "--package-name", Tkg_Extention_names.FLUENT_BIT.lower() + ".tanzu.vmware.com",
+                                     "--version", version, "--values-file", yamlFile, "--namespace", namespace,
+                                     "--create-namespace"]
+        state_extention_apply = runShellCommandAndReturnOutputAsList(deploy_fluent_bit_command)
+        if state_extention_apply[1] != 0:
+           logger.error(Tkg_Extention_names.FLUENT_BIT.lower() + " install command failed. "
+                                                                              "Checking for reconciliation status...")
+
+        extention_validate_command = ["kubectl", "get", "app", Tkg_Extention_names.FLUENT_BIT.lower(), "-n", namespace]
+
+        found = False
+        count = 0
+        command_ext_bit = runShellCommandAndReturnOutputAsList(extention_validate_command)
+        if verifyPodsAreRunning(Tkg_Extention_names.FLUENT_BIT.lower(), command_ext_bit[0],
+                                RegexPattern.RECONCILE_SUCCEEDED):
+            found = True
+
+        while not found and count < 20:
+            command_ext_bit = runShellCommandAndReturnOutputAsList(extention_validate_command)
+            if verifyPodsAreRunning(Tkg_Extention_names.FLUENT_BIT.lower(), command_ext_bit[0],
+                                    RegexPattern.RECONCILE_SUCCEEDED):
+                found = True
+                break
+            count = count + 1
+            time.sleep(30)
+            logger.info("Waited for  " + str(count * 30) + "s, retrying.")
+
+        if found:
+            d = {
+                "responseType": "SUCCESS",
+                "msg": "Fluent-bit installation completed successfully",
+                "ERROR_CODE": 200
+            }
+            return json.dumps(d), 200
+        else:
+            logger.error("Fluent-bit deployment is not completed even after " + str(count * 30) + "s wait")
+            d = {
+                "responseType": "ERROR",
+                "msg": "Fluent-bit installation failed",
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+    except Exception as e:
+        logger.error("Exception occurred while deploying fluent-bit - " + str(e))
+        d = {
+            "responseType": "ERROR",
+            "msg": "Exception occurred while deploying fluent-bit - " + str(e),
+            "ERROR_CODE": 500
+        }
+        return json.dumps(d), 500
+
+
+def fluent_bit_enabled(env, jsonspec):
+    if TkgUtil.isEnvTkgs_ns(jsonspec) or env == Env.VSPHERE or env == Env.VMC:
+        if check_fluent_bit_splunk_endpoint_endpoint_enabled():
+            return True, Tkg_Extention_names.FLUENT_BIT_SPLUNK
+        elif check_fluent_bit_http_endpoint_enabled():
+            return True, Tkg_Extention_names.FLUENT_BIT_HTTP
+        elif check_fluent_bit_syslog_endpoint_enabled():
+            return True, Tkg_Extention_names.FLUENT_BIT_SYSLOG
+        elif check_fluent_bit_elastic_search_endpoint_enabled():
+            return True, Tkg_Extention_names.FLUENT_BIT_ELASTIC
+        elif check_fluent_bit_kafka_endpoint_endpoint_enabled():
+            return True, Tkg_Extention_names.FLUENT_BIT_KAFKA
+        else:
+            return False, None
+    else:
+        logger.error("Wrong env type provided for Fluent bit installation")
+        return False, None
+
+
+def checkFluentBitInstalled():
+    extension = Tkg_Extention_names.FLUENT_BIT.lower()
+    main_command = ["tanzu", "package", "installed", "list", "-A"]
+    sub_command = ["grep", extension]
+    output = grabPipeOutput(main_command, sub_command)
+
+    if verifyPodsAreRunning(extension, output[0], RegexPattern.RECONCILE_SUCCEEDED):
+        return True, output[0].split()[3] + " " + output[0].split()[4]
+    elif verifyPodsAreRunning(extension, output[0], RegexPattern.RECONCILE_FAILED):
+        return True, output[0].split()[3] + " " + output[0].split()[4]
+    else:
+        return False, None

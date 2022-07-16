@@ -70,7 +70,7 @@ Service Installer for VMware Tanzu acts as a bootstrap machine. Set up Internet 
 
    Optionally, to access the Service Installer over SSH from an external network, create NAT and add the required firewall rules.
 
-	  **Note**: This firewall rule is temporary. You can be delete the rule after you create your Tanzu for Kubernetes Operations environment.
+	  **Note**: This firewall rule is temporary. You can delete the rule after you create your Tanzu for Kubernetes Operations environment.
 
 For additional product documentation, see [Add or Modify Compute Gateway Firewall Rules](https://docs.vmware.com/en/VMware-Cloud-on-AWS/services/com.vmware.vmc-aws-networking-security/GUID-2D31A9A6-4A80-4B5B-A382-2C5B591F6AEB.html?).
 
@@ -78,12 +78,16 @@ For additional product documentation, see [Add or Modify Compute Gateway Firewal
 Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
 
 1. Download and import the required Photon/Ubuntu Kubernetes base OVAs to vCenter.
-    To download the images, go to [VMware Tanzu Kubernetes Grid Download Product](https://customerconnect.vmware.com/downloads/details?downloadGroup=TKG-151&productId=988&rPId=84961).
+    To download the images, go to [VMware Tanzu Kubernetes Grid Download Product](https://customerconnect.vmware.com/downloads/details?downloadGroup=TKG-154&productId=988&rPId=84961).
 
 1. After importing the images, convert the images to a template.
 1. Upload the NSX Advanced Load Balancer Controller OVA:
    1. Download the NSX Advanced Load Balancer (20.1.7) OVA from [MarketPlace](https://marketplace.cloud.vmware.com/services/details/nsx-advanced-load-balancer-1?slug=true).
    2. Create a Content Library and upload the NSX Advanced Load Balancer Controller OVA.
+
+**Note**: 
+   - As part of automation for VMC deployment, SIVT uploads NSX Advanced Load Balancer Controller and base Kubernetes images to vCenter/ESXi after the necessary firewall rules are configured. All required firewall rules are configured by the SIVT automation code.
+   - If you intend to upload these images from the SIVT VM even before executing the `--vmc_pre_configuration` command, you may need to add the required ESXi Inbound rule in Management Gateway manually.
 
 ## <a id=deploy-tkg> </a> Deploy Tanzu for Kubernetes Operations
 1. Log in to the Service Installer for VMware Tanzu VM over SSH.
@@ -153,6 +157,57 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
 - Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
 - If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
 - When Tanzu Mission Control is enabled only Photon is supported.
+
+## Update a Running Extension Deployment
+
+To make changes to the configuration of a running package after deployment, update your deployed package:
+
+1. Obtain the installed package version and namespace details using the following command. 
+   ```
+   tanzu package available list -A
+   ```
+
+2. Update the package configuration `<package-name>-data-values.yaml` file. Yaml files for the extensions deployed using SIVT are available under `/opt/vmware/arcas/tanzu-clusters/<cluster-name>` in the SIVT VM.
+
+3. Update the installed package using the following command.
+
+   ``` 
+   tanzu package installed update <package-name> --version <installed-package-version> --values-file <path-to-yaml-file-in-SIVT> --namespace <package-namespace>
+   ```
+
+**Refer to the following example for Grafana update:**
+
+**Step 1:** List the installed package version and namespace details.
+   ```
+   # tanzu package available list -A
+   / Retrieving installed packages...
+   NAME            PACKAGE-NAME                     PACKAGE-VERSION          STATUS               NAMESPACE
+   cert-manager    cert-manager.tanzu.vmware.com    1.1.0+vmware.1-tkg.2     Reconcile succeeded  my-packages
+   contour         contour.tanzu.vmware.com         1.17.1+vmware.1-tkg.1    Reconcile succeeded  my-packages
+   grafana         grafana.tanzu.vmware.com         7.5.7+vmware.1-tkg.1     Reconcile succeeded  tkg-system
+   prometheus      prometheus.tanzu.vmware.com      2.27.0+vmware.1-tkg.1    Reconcile succeeded  tkg-system
+   antrea          antrea.tanzu.vmware.com                                   Reconcile succeeded  tkg-system
+   [...]
+   ```
+
+**Step 2:** Update the Grafana configuration in the `grafana-data-values.yaml` file available under `/opt/vmware/arcas/tanzu-clusters/<cluster-name>/grafana-data-values.yaml`. 
+
+**Step 3:** Update the installed package.
+   ```
+   tanzu package installed update grafana --version 7.5.7+vmware.1-tkg.1 --values-file /opt/vmware/arcas/tanzu-clusters/testCluster/grafana-data-values.yaml --namespace my-packages
+   ```
+   Expected Output:
+   ```
+   | Updating package 'grafana'
+   - Getting package install for 'grafana'
+   | Updating secret 'grafana-my-packages-values'
+   | Updating package install for 'grafana'
+
+   Updated package install 'grafana' in namespace 'my-packages'
+   ```
+
+For information about updating, see [Update a Package](https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.5/vmware-tanzu-kubernetes-grid-15/GUID-packages-cli-reference-packages.html#update-a-package-13).
+
 
 ## <a id="sample-input-file"> </a> Sample Input File
 Service Installer automatically generates the JSON file for deploying Tanzu Kubernetes Grid. The following following sample file is an example of an automatically generated JSON file.

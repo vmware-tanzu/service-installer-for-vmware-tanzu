@@ -97,6 +97,8 @@ export class VSphereTkgsWizardComponent extends WizardBaseDirective implements O
                 }),
                 storagePolicyForm: this.formBuilder.group({
                 }),
+                TKGSGlobalConfigForm: this.formBuilder.group({
+                }),
             });
         }
         else if (this.apiClient.tkgsStage === 'namespace') {
@@ -112,6 +114,8 @@ export class VSphereTkgsWizardComponent extends WizardBaseDirective implements O
                 workloadClusterForm: this.formBuilder.group({
                 }),
                 extensionSettingForm: this.formBuilder.group({
+                }),
+                TKGSGlobalConfigForm: this.formBuilder.group({
                 }),
             });
         }
@@ -397,245 +401,47 @@ export class VSphereTkgsWizardComponent extends WizardBaseDirective implements O
 //         }
 //     }
 
-//     getArcasHttpProxyParam() {
-//         if (this.getBooleanFieldValue('vsphereInfraDetailsForm', 'proxySettings')) {
-//             if (this.getFieldValue('vsphereInfraDetailsForm', 'httpProxyUsername') !== '') {
-//                 let username = this.getFieldValue('vsphereInfraDetailsForm', 'httpProxyUsername');
-//                 let password = this.getFieldValue('vsphereInfraDetailsForm', 'httpProxyPassword');
-//                 let url = this.getFieldValue('vsphereInfraDetailsForm', 'httpProxyUrl');
-//                 let httpProxy = 'http://' + username + ':' + password +'@'+ url.substr(7);
-//                 return httpProxy;
-//             } else {
-//                 return this.getFieldValue('vsphereInfraDetailsForm', 'httpProxyUrl');
-//             }
-//         } else {
-//             return '';
-//         }
-//     }
+    getTkgsHttpProxyParam() {
+        if (this.getBooleanFieldValue('TKGSGlobalConfigForm', 'proxySettings')) {
+            if (this.getFieldValue('TKGSGlobalConfigForm', 'httpProxyUsername') !== '') {
+                let username = this.getFieldValue('TKGSGlobalConfigForm', 'httpProxyUsername');
+                let password = this.getFieldValue('TKGSGlobalConfigForm', 'httpProxyPassword');
+                let url = this.getFieldValue('TKGSGlobalConfigForm', 'httpProxyUrl');
+                let httpProxy = 'http://' + username + ':' + password +'@'+ url.substr(7);
+                return httpProxy;
+            } else {
+                return this.getFieldValue('TKGSGlobalConfigForm', 'httpProxyUrl');
+            }
+        } else {
+            return '';
+        }
+    }
 
-//     getArcasHttpsProxyParam() {
-//         if (this.getFieldValue('vsphereInfraDetailsForm', 'httpsProxyUsername') !== '') {
-//             let username = this.getFieldValue('vsphereInfraDetailsForm', 'httpsProxyUsername');
-//             let password = this.getFieldValue('vsphereInfraDetailsForm', 'httpsProxyPassword');
-//             let url = this.getFieldValue('vsphereInfraDetailsForm', 'httpsProxyUrl');
-//             let httpsProxy = 'https://' + username + ':' + password + '@' + url.substr(8);
-//             return httpsProxy;
-//         } else {
-//             return this.getFieldValue('vsphereInfraDetailsForm', 'httpsProxyUrl');
-//         }
-//     }
+    getTkgsHttpsProxyParam() {
+        if (this.getFieldValue('TKGSGlobalConfigForm', 'httpsProxyUsername') !== '') {
+            let username = this.getFieldValue('TKGSGlobalConfigForm', 'httpsProxyUsername');
+            let password = this.getFieldValue('TKGSGlobalConfigForm', 'httpsProxyPassword');
+            let url = this.getFieldValue('TKGSGlobalConfigForm', 'httpsProxyUrl');
+            let httpsProxy = 'https://' + username + ':' + password + '@' + url.substr(8);
+            return httpsProxy;
+        } else {
+            return this.getFieldValue('TKGSGlobalConfigForm', 'httpsProxyUrl');
+        }
+    }
 
-//     public getArcasHttpsProxy() {
-//         let httpsProxy = '';
-//         if (this.getBooleanFieldValue('vsphereInfraDetailsForm', 'proxySettings')) {
-//             if (this.getBooleanFieldValue('vsphereInfraDetailsForm', 'isSameAsHttp')) {
-//                 httpsProxy = this.getArcasHttpProxyParam();
-//             } else {
-//                 httpsProxy = this.getArcasHttpsProxyParam();
-//             }
-//         } else {
-//             httpsProxy = '';
-//         }
-//         return httpsProxy;
-//     }
-
-//     getMgmtHttpProxyParam() {
-//         if (this.getBooleanFieldValue('vsphereMgmtNodeSettingForm', 'proxySettings')) {
-//             if (this.getFieldValue('vsphereMgmtNodeSettingForm', 'httpProxyUsername') !== '') {
-//                 let username = this.getFieldValue('vsphereMgmtNodeSettingForm', 'httpProxyUsername');
-//                 let password = this.getFieldValue('vsphereMgmtNodeSettingForm', 'httpProxyPassword');
-//                 let url = this.getFieldValue('vsphereMgmtNodeSettingForm', 'httpProxyUrl');
-//                 let httpProxy = 'http://' + username + ':' + password + '@' + url.substr(7);
-//                 return httpProxy;
-//             } else {
-//                 return this.getFieldValue('vsphereMgmtNodeSettingForm', 'httpProxyUrl' );
-//             }
-//         } else {
-//             return '';
-//         }
-//     }
-
-//     getMgmtHttpsProxyParam() {
-//         if (this.getFieldValue('vsphereMgmtNodeSettingForm', 'httpsProxyUsername') !== '') {
-//             let username = this.getFieldValue('vsphereMgmtNodeSettingForm', 'httpsProxyUsername');
-//             let password = this.getFieldValue('vsphereMgmtNodeSettingForm', 'httpsProxyPassword');
-//             let url = this.getFieldValue('vsphereMgmtNodeSettingForm', 'httpsProxyUrl');
-//             let httpsProxy = 'https://' + username + ':' + password + '@' + url.substr(8);
-//             return httpsProxy;
-//         } else {
-//             return this.getFieldValue('vsphereMgmtNodeSettingForm', 'httpsProxyUrl');
-//         }
-//     }
-
-//     public getMgmtClusterHttpsProxy() {
-//         let httpsProxy = '';
-//         if (this.getBooleanFieldValue('vsphereMgmtNodeSettingForm', 'proxySettings')) {
-//             if (this.getBooleanFieldValue('vsphereMgmtNodeSettingForm', 'isSameAsHttp')) {
-//                 httpsProxy = this.getMgmtHttpProxyParam();
-//             } else {
-//                 httpsProxy = this.getMgmtHttpsProxyParam();
-//             }
-//         } else {
-//             httpsProxy = '';
-//         }
-//         return httpsProxy;
-//     }
-
-//     getSharedHttpProxyParam() {
-//         if (this.getBooleanFieldValue('vsphereSharedServiceNodeSettingForm', 'proxySettings')) {
-//             if (this.getFieldValue('vsphereSharedServiceNodeSettingForm', 'httpProxyUsername') !== '') {
-//                 let username = this.getFieldValue('vsphereSharedServiceNodeSettingForm', 'httpProxyUsername');
-//                 let password = this.getFieldValue('vsphereSharedServiceNodeSettingForm', 'httpProxyPassword');
-//                 let url = this.getFieldValue('vsphereSharedServiceNodeSettingForm', 'httpProxyUrl');
-//                 let httpProxy = 'http://' + username + ':' + password + '@' + url.substr(7);
-//                 return httpProxy;
-//             } else {
-//                 return this.getFieldValue('vsphereSharedServiceNodeSettingForm', 'httpProxyUrl');
-//             }
-//         } else {
-//             return '';
-//         }
-//     }
-
-//     getSharedHttpsProxyParam() {
-//         if (this.getFieldValue('vsphereSharedServiceNodeSettingForm', 'httpsProxyUsername') !== '') {
-//             let username = this.getFieldValue('vsphereSharedServiceNodeSettingForm', 'httpsProxyUsername');
-//             let password = this.getFieldValue('vsphereSharedServiceNodeSettingForm', 'httpsProxyPassword');
-//             let url = this.getFieldValue('vsphereSharedServiceNodeSettingForm', 'httpsProxyUrl');
-//             let httpsProxy = 'https://' + username + ':' + password + '@' + url.substr(8);
-//             return httpsProxy;
-//         } else {
-//             return this.getFieldValue('vsphereSharedServiceNodeSettingForm', 'httpsProxyUrl');
-//         }
-//     }
-
-//     public getSharedClusterHttpsProxy() {
-//         let httpsProxy = '';
-//         if (this.getBooleanFieldValue('vsphereSharedServiceNodeSettingForm', 'proxySettings')) {
-//             if (this.getBooleanFieldValue('vsphereSharedServiceNodeSettingForm', 'isSameAsHttp')) {
-//                 httpsProxy = this.getSharedHttpProxyParam();
-//             } else {
-//                 httpsProxy = this.getSharedHttpsProxyParam();
-//             }
-//         } else {
-//             httpsProxy = '';
-//         }
-//         return httpsProxy;
-//     }
-
-//     getWorkloadHttpProxyParam() {
-//         if (this.getBooleanFieldValue('vsphereWorkloadNodeSettingForm', 'proxySettings')) {
-//             if (this.getFieldValue('vsphereWorkloadNodeSettingForm', 'httpProxyUsername') !== '') {
-//                 let username = this.getFieldValue('vsphereWorkloadNodeSettingForm', 'httpProxyUsername');
-//                 let password = this.getFieldValue('vsphereWorkloadNodeSettingForm', 'httpProxyPassword');
-//                 let url = this.getFieldValue('vsphereWorkloadNodeSettingForm', 'httpProxyUrl');
-//                 let httpProxy = 'http://' + username + ':' + password + '@' + url.substr(7);
-//                 return httpProxy;
-//             } else {
-//                 return this.getFieldValue('vsphereWorkloadNodeSettingForm', 'httpProxyUrl');
-//             }
-//         } else {
-//             return '';
-//         }
-//     }
-
-//     getWorkloadHttpsProxyParam() {
-//         if (this.getFieldValue('vsphereWorkloadNodeSettingForm', 'httpsProxyUsername') !== '') {
-//             let username = this.getFieldValue('vsphereWorkloadNodeSettingForm', 'httpsProxyUsername');
-//             let password = this.getFieldValue('vsphereWorkloadNodeSettingForm', 'httpsProxyPassword');
-//             let url = this.getFieldValue('vsphereWorkloadNodeSettingForm', 'httpsProxyUrl');
-//             let httpsProxy = 'https://' + username + ':' + password + '@' + url.substr(8);
-//             return httpsProxy;
-//         } else {
-//             return this.getFieldValue('vsphereWorkloadNodeSettingForm', 'httpsProxyUrl');
-//         }
-//     }
-
-//     public getWorkloadClusterHttpsProxy() {
-//         let httpsProxy = '';
-//         if (this.getBooleanFieldValue('vsphereWorkloadNodeSettingForm', 'proxySettings')) {
-//             if (this.getBooleanFieldValue('vsphereWorkloadNodeSettingForm', 'isSameAsHttp')) {
-//                 httpsProxy = this.getWorkloadHttpProxyParam();
-//             } else {
-//                 httpsProxy = this.getWorkloadHttpsProxyParam();
-//             }
-//         } else {
-//             httpsProxy = '';
-//         }
-//         return httpsProxy;
-//     }
-
-//     public getMgmtClusterSize() {
-//         if (this.getFieldValue('vsphereMgmtNodeSettingForm', 'controlPlaneSetting') === 'dev') {
-//             return this.getFieldValue('vsphereMgmtNodeSettingForm', 'devInstanceType');
-//         } else {
-//             return this.getFieldValue('vsphereMgmtNodeSettingForm', 'prodInstanceType');
-//         }
-//     }
-
-//     public getSharedClusterSize() {
-//         if (this.getFieldValue('vsphereSharedServiceNodeSettingForm', 'controlPlaneSetting') === 'dev') {
-//             return this.getFieldValue('vsphereSharedServiceNodeSettingForm', 'devInstanceType');
-//         } else {
-//             return this.getFieldValue('vsphereSharedServiceNodeSettingForm', 'prodInstanceType');
-//         }
-//     }
-
-//     public getWorkloadClusterSize() {
-//         if (this.getFieldValue('vsphereWorkloadNodeSettingForm', 'controlPlaneSetting') === 'dev') {
-//             return this.getFieldValue('vsphereWorkloadNodeSettingForm', 'devInstanceType');
-//         } else {
-//             return this.getFieldValue('vsphereWorkloadNodeSettingForm', 'prodInstanceType');
-//         }
-//     }
-
-//     public getSharedClusterProxy(key: string) {
-//         if (key === 'http') {
-//             return this.getSharedHttpProxyParam();
-//         } else if (key === 'https') {
-//             return this.getSharedClusterHttpsProxy();
-//         }
-//     }
-
-//     public getWorkloadClusterProxy(key: string) {
-//         if (key === 'http') {
-//             return this.getWorkloadHttpProxyParam();
-//         } else if (key === 'https') {
-//                 return this.getWorkloadClusterHttpsProxy();
-//         }
-//     }
-
-//     public getCustomRepoImage() {
-//         if (this.getBooleanFieldValue('customRepoSettingForm', 'customRepoSetting')) {
-//             return this.getFieldValue('customRepoSettingForm', 'repoImage');
-//         } else {
-//             return '';
-//         }
-//     }
-
-//     public getCustomRepoPublicCaCert() {
-//         if (this.getBooleanFieldValue('customRepoSettingForm', 'customRepoSetting')) {
-//             return this.getStringBoolFieldValue('customRepoSettingForm', 'publicCaCert');
-//         } else {
-//             return '';
-//         }
-//     }
-
-//     public getCustomRepoUsername() {
-//         if (this.getBooleanFieldValue('customRepoSettingForm', 'customRepoSetting')) {
-//             return this.getFieldValue('customRepoSettingForm', 'repoUsername');
-//         } else {
-//             return '';
-//         }
-//     }
-
-//     public getCustomRepoPassword() {
-//         if (this.getBooleanFieldValue('customRepoSettingForm', 'customRepoSetting')) {
-//             return this.getFieldValue('customRepoSettingForm', 'repoPassword');
-//         } else {
-//             return '';
-//         }
-//     }
+    public getTkgsHttpsProxy() {
+        let httpsProxy = '';
+        if (this.getBooleanFieldValue('TKGSGlobalConfigForm', 'proxySettings')) {
+            if (this.getBooleanFieldValue('TKGSGlobalConfigForm', 'isSameAsHttp')) {
+                httpsProxy = this.getTkgsHttpProxyParam();
+            } else {
+                httpsProxy = this.getTkgsHttpsProxyParam();
+            }
+        } else {
+            httpsProxy = '';
+        }
+        return httpsProxy;
+    }
 
     public enableLoggingExtension(key) {
         if (this.getFieldValue('extensionSettingForm', 'loggingEndpoint') === key) {
@@ -702,6 +508,36 @@ export class VSphereTkgsWizardComponent extends WizardBaseDirective implements O
         return specList;
     }
 
+    public getTkgsControlPlaneAdditionalVolumes() {
+        let volumes = this.getFieldValue('workloadClusterForm', 'tkgsControlVolumes');
+        let volumeList = [];
+        for (const [name, value] of volumes) {
+            let volumeConfig = {
+                'name': name,
+                'mountPath': value.split(':')[0],
+                'storage': value.split(':')[1] + 'Gi',
+                'storageClass': value.split('#')[1],
+            }
+            volumeList.push(volumeConfig);
+        }
+        return volumeList;
+    }
+
+    public getTkgsWorkerAdditionalVolumes() {
+        let volumes = this.getFieldValue('workloadClusterForm', 'tkgsWorkerVolumes');
+        let volumeList = [];
+        for (const [name, value] of volumes) {
+            let volumeConfig = {
+                'name': name,
+                'mountPath': value.split(':')[0],
+                'storage': value.split(':')[1] + 'Gi',
+                'storageClass': value.split('#')[1],
+            }
+            volumeList.push(volumeConfig);
+        }
+        return volumeList;
+    }
+
     public getTkgsResourceSpec() {
         let cpuLimit = this.getFieldValue('namespaceForm', 'cpuLimit');
         let memLimit = this.getFieldValue('namespaceForm', 'memLimit');
@@ -756,6 +592,22 @@ export class VSphereTkgsWizardComponent extends WizardBaseDirective implements O
         }
     }
 
+    public getAdditionalTrustedCA(type: string) {
+        let addCerts = this.apiClient.tkgsAdditionalCerts;
+        let paths = [];
+        let endpointUrls = [];
+        for (let [cert, type] of addCerts) {
+            console.log(cert);
+            if(type.toLowerCase() === 'path') {
+                paths.push(cert);
+            } else if (type.toLowerCase() === 'endpoint') {
+                endpointUrls.push(cert);
+            }
+        }
+        if(type === 'paths') return paths;
+        else if(type === 'endpointUrls') return endpointUrls;
+        else return [];
+    }
     public getPayload() {
         // console.log((this.form.get('vsphereProviderForm') as FormGroup).get('password').value);
         // console.log(document.getElementById('ssoPassword'));
@@ -846,6 +698,20 @@ export class VSphereTkgsWizardComponent extends WizardBaseDirective implements O
                         'tkgsWorkloadNtpServers': this.getFieldValue('wrkNwForm', 'ntpServer'),
                         'tkgsWorkloadServiceCidr': this.getFieldValue('wrkNwForm', 'serviceCidr'),
                     },
+                    'tkgServiceConfig': {
+                        'proxySpec': {
+                            'enableProxy': this.getStringBoolFieldValue('TKGSGlobalConfigForm', 'proxySettings'),
+                            'httpProxy': this.getTkgsHttpProxyParam(),
+                            'httpsProxy': this.getTkgsHttpsProxy(),
+                            'noProxy': this.getFieldValue('TKGSGlobalConfigForm', 'noProxy'),
+                            'proxyCert': this.getFieldValue('TKGSGlobalConfigForm', 'proxyCert'),
+                        },
+                        'defaultCNI': this.getFieldValue('TKGSGlobalConfigForm', 'defaultCNI'),
+                        'additionalTrustedCAs': {
+                            'paths': this.getAdditionalTrustedCA('paths'),
+                            'endpointUrls': this.getAdditionalTrustedCA('endpointUrls'),
+                        }
+                    }
                 },
             };
         } else if (this.apiClient.tkgsStage === 'namespace') {
@@ -911,9 +777,25 @@ export class VSphereTkgsWizardComponent extends WizardBaseDirective implements O
                             'tkgsWorkloadClusterGroupName': this.getFieldValue('workloadClusterForm', 'clusterGroupName'),
                             'tkgsWorkloadEnableDataProtection': this.getStringBoolFieldValue('workloadClusterForm', 'enableDataProtection'),
                             'tkgWorkloadClusterCredential': this.getFieldValue('workloadClusterForm', 'veleroCredential'),
-                            'tkgWorkloadClusterBackupLocation': this.getFieldValue('workloadClusterForm', 'veleroTargetLocation')
+                            'tkgWorkloadClusterBackupLocation': this.getFieldValue('workloadClusterForm', 'veleroTargetLocation'),
+                            'controlPlaneVolumes': this.getTkgsControlPlaneAdditionalVolumes(),
+                            'workerVolumes': this.getTkgsWorkerAdditionalVolumes(),
                         },
                     },
+                    'tkgServiceConfig': {
+                        'proxySpec': {
+                            'enableProxy': this.getFieldValue('TKGSGlobalConfigForm', 'proxySettings'),
+                            'httpProxy': this.getTkgsHttpProxyParam(),
+                            'httpsProxy': this.getTkgsHttpsProxy(),
+                            'noProxy': this.getFieldValue('TKGSGlobalConfigForm', 'noProxy'),
+                            'proxyCert': this.getFieldValue('TKGSGlobalConfigForm', 'proxyCert'),
+                        },
+                        'defaultCNI': this.getFieldValue('TKGSGlobalConfigForm', 'defaultCNI'),
+                        'additionalTrustedCAs': {
+                            'paths': this.getAdditionalTrustedCA('paths'),
+                            'endpointUrls': this.getAdditionalTrustedCA('endpointUrls'),
+                        }
+                    }
                 },
                 'tanzuExtensions': {
                     'enableExtensions': this.getStringBoolFieldValue('extensionSettingForm', 'tanzuExtensions'),

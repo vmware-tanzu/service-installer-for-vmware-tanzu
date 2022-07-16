@@ -99,6 +99,7 @@ export class VMCProviderStepComponent extends StepFormDirective implements OnIni
     private jwtToken;
 
     isMarketplace = false;
+    isCeipEnabled = false;
     private marketplaceRefreshToken;
 
     constructor(private validationService: ValidationService,
@@ -131,6 +132,8 @@ export class VMCProviderStepComponent extends StepFormDirective implements OnIni
         // Marketplace form fields
         this.formGroup.addControl('isMarketplace', new FormControl(false));
         this.formGroup.addControl('marketplaceRefreshToken', new FormControl('', []));
+        // CEIP Details
+        this.formGroup.addControl('isCeipEnabled', new FormControl(false));
         this.disableFormFields();
 
         MarketplaceField.forEach(field => {
@@ -218,6 +221,9 @@ export class VMCProviderStepComponent extends StepFormDirective implements OnIni
             this.subscription = this.dataService.currentMarketplace.subscribe(
                 (marketplace) => this.isMarketplace = marketplace);
             this.formGroup.get('isMarketplace').setValue(this.isMarketplace);
+            this.subscription = this.dataService.currentCeipParticipation.subscribe(
+                (ceip) => this.isCeipEnabled = ceip);
+            this.formGroup.get('isCeipEnabled').setValue(this.isCeipEnabled);
             // this.subscription = this.dataService.currentCustomerConnect.subscribe(
             //     (customerConnect) => this.customerConnect = customerConnect);
             // this.formGroup.get('customerConnect').setValue(this.customerConnect);

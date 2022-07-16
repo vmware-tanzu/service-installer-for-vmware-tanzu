@@ -39,6 +39,23 @@ def runProcess(fin):
         if out is not None:
             raise AssertionError("Failed " + str(stream2))
 
+def runProcessTmcMgmt(fin):
+    p = Popen(fin, stdout=PIPE,
+              stderr=STDOUT)
+    stream = ""
+    stream2 = ""
+    for line in p.stdout:
+        std = line.decode("utf-8").replace("\n", "")
+        stream2 += std+"\n"
+        current_app.logger.info(std)
+        if std.strip(" ").startswith("Error"):
+            stream += std+"\n"
+            stream2 = stream
+    out = p.poll()
+    if out != 0:
+        if out is not None:
+            return "FAIL"
+    return "PASS"
 
 def runShellCommandWithPolling(fin):
     try:

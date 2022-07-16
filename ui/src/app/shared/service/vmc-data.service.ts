@@ -26,6 +26,7 @@ export  class VMCDataService {
     private kubernetesOva = new BehaviorSubject('');
     private isMarketplace = new BehaviorSubject<boolean>(false);
     private marketplaceRefreshToken = new BehaviorSubject('');
+    private isCeipEnabled = new BehaviorSubject<boolean>(false);
     // TMC
     private enableTMC = new BehaviorSubject<boolean>(false);
     private apiToken = new BehaviorSubject('');
@@ -219,6 +220,7 @@ export  class VMCDataService {
     currentKubernetesOva = this.kubernetesOva.asObservable();
     currentMarketplace = this.isMarketplace.asObservable();
     currentMarketplaceRefreshToken = this.marketplaceRefreshToken.asObservable();
+    currentCeipParticipation = this.isCeipEnabled.asObservable();
     // TMC
     currentEnableTMC = this.enableTMC.asObservable();
     currentApiToken = this.apiToken.asObservable();
@@ -456,6 +458,11 @@ export  class VMCDataService {
     changeMarketplaceRefreshToken(marketplaceRefreshToken: string) {
         this.marketplaceRefreshToken.next(marketplaceRefreshToken);
     }
+    // GLOBAL CEIP SETTING
+    changeCeipParticipation(ceip: boolean) {
+        this.isCeipEnabled.next(ceip);
+    }
+
     // TMC Parameter
     changeEnableTMC(enableTMC: boolean) {
         this.enableTMC.next(enableTMC);

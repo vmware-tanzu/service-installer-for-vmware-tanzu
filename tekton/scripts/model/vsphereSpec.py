@@ -209,11 +209,11 @@ class SplunkEndpoint(BaseModel):
 
 
 class Logging(BaseModel):
-    syslogEndpoint: SyslogEndpoint
-    httpEndpoint: HttpEndpoint
-    elasticSearchEndpoint: ElasticSearchEndpoint
-    kafkaEndpoint: KafkaEndpoint
-    splunkEndpoint: SplunkEndpoint
+    syslogEndpoint: Optional[SyslogEndpoint]
+    httpEndpoint: Optional[HttpEndpoint]
+    elasticSearchEndpoint: Optional[ElasticSearchEndpoint]
+    kafkaEndpoint: Optional[KafkaEndpoint]
+    splunkEndpoint: Optional[SplunkEndpoint]
 
 
 class Monitoring(BaseModel):

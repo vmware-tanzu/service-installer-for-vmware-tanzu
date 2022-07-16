@@ -89,6 +89,8 @@ class ServiceName:
     KUBE_VIP_SERVICE_SE = "tkgvmc-kube-api-se"
     ARCAS_SVC = "arcas-svc"
     ARCAS_BACKEND_SVC = "arcas-backend-svc"
+    SIVT_SERVICE_VIP = "sivt-virtual-service-vip"
+    SIVT_SERVICE = "sivt-virtual-service"
 
 
 class VrfType:
@@ -153,6 +155,13 @@ class ResourcePoolAndFolderName:
     WORKLOAD_RESOURCE_POOL_VSPHERE = "tkg-vsphere-workload"
 
 
+class Avi_Version:
+    VSPHERE_AVI_VERSION = "21.1.4"
+    VMC_AVI_VERSION = "21.1.4"
+    AVI_VERSION_UPDATE_THREE = "20.1.7"
+    AVI_VERSION_UPDATE_TWO = "20.1.7"
+
+
 class ControllerLocation:
     CONTROLLER_CONTENT_LIBRARY = "TanzuAutomation-Lib"
     CONTENT_LIBRARY_OVA_NAME = "avi-controller"
@@ -189,7 +198,7 @@ class KubernetesOva:
     MARKETPLACE_PHOTON_KUBERNETES_FILE_NAME = "arcas-photon-kube"
     MARKETPLACE_PHOTON_GROUPNAME = "Photon-OVA"
     MARKETPLACE_UBUTNU_GROUPNAME = "Ubuntu-OVA"
-    KUBERNETES_OVA_LATEST_VERSION = "v1.22.8"
+    KUBERNETES_OVA_LATEST_VERSION = "v1.22.9"
 
 
 class RegexPattern:
@@ -239,7 +248,7 @@ class Extentions:
     CERT_MANAGER_WEB_HOOK = "cert-manager-webhook:v0.16.1_vmware.1"
     APP_EXTENTION = "tkg-extensions-templates:v1.3.1_vmware.1"
     BOM_LOCATION = "/root/.tanzu/tkg/bom/tkg-bom-v1.3.1.yaml"
-    BOM_LOCATION_14 = "/root/.config/tanzu/tkg/bom/tkg-bom-v1.5.3.yaml"
+    BOM_LOCATION_14 = "/root/.config/tanzu/tkg/bom/tkg-bom-v1.5.4.yaml"
 
 
 class Repo:
@@ -254,6 +263,7 @@ class SAS:
 
 class Tkg_version:
     TKG_VERSION = "1.5"
+    TAG = "v1.5.4"
 
 
 class Tkg_Extention_names:
@@ -271,9 +281,19 @@ class Tkg_Extention_names:
 class Tkgs_Extension_Details:
     ROLE_NAME = "arcas-automation-authenticated-user-privileged-binding"
     PACKAGE_REPO_URL = "projects.registry.vmware.com/tkg/packages/standard/repo:v1.5.0"
-    SUPPORTED_VERSIONS_U3 = ["v1.20.7+vmware.1-tkg.1.7fb9067", "v1.20.9+vmware.1-tkg.1.a4cee5b", "v1.20.12+vmware.1-tkg.1.b9a42f3",
-                          "v1.21.2+vmware.1-tkg.1.ee25d55", "v1.21.6+vmware.1-tkg.1.b3d708a", "v1.21.6+vmware.1-tkg.1"]
+    SUPPORTED_VERSIONS_U3 = ["v1.20.7+vmware.1-tkg.1.7fb9067", "v1.20.9+vmware.1-tkg.1.a4cee5b",
+                             "v1.20.12+vmware.1-tkg.1.b9a42f3",
+                             "v1.21.2+vmware.1-tkg.1.ee25d55", "v1.21.6+vmware.1-tkg.1.b3d708a",
+                             "v1.21.6+vmware.1-tkg.1"]
     SUPPORTED_VERSIONS_U2 = ["v1.20.12+vmware.1-tkg.1.b9a42f3", "v1.19.7+vmware.1-tkg.1.fc82c41"]
+
+
+class TKG_Package_Details:
+    REPO_NAME = "tanzu-standard"
+    STANDARD_PACKAGE_URL = "projects.registry.vmware.com/tkg/packages/standard/repo"
+    REPOSITORY_URL = "projects.registry.vmware.com/tkg/packages/standard/repo:v1.5.4-update.1"
+    NAMESPACE = "tanzu-package-repo-global"
+
 
 class CIDR:
     CLUSTER_CIDR = "100.96.0.0/11"
@@ -291,6 +311,7 @@ class AkoType:
     KEY = 'type'
     VALUE = 'management'
     type_ako_set = "workload-set01"
+    SHARED_CLUSTER_SELECTOR = "shared-services-cluster"
 
 
 class Versions:
@@ -324,14 +345,12 @@ class AppName:
     PINNIPED = "pinniped"
 
 
-class Avi_Version:
-    VSPHERE_AVI_VERSION = "20.1.7"
-    VMC_AVI_VERSION = "20.1.7"
-    AVI_VERSION_UPDATE_THREE = "20.1.7"
-    AVI_VERSION_UPDATE_TWO = "20.1.6"
-
-
 class Sizing:
+    small = {
+        "CPU": "2",
+        "MEMORY": "4096",
+        "DISK": "20"
+    }
     medium = {
         "CPU": "2",
         "MEMORY": "8192",
@@ -394,7 +413,7 @@ class Paths(str, Enum):
     VSPHERE_ALB_DEPLOY_JSON2 = './common/template/deploy_vsphere_alb_controller_config2.json'
     VSPHERE_ALB_DEPLOY_JSON3 = './common/template/deploy_vsphere_alb_controller_config3.json'
     VSPHERE_FLUENT_BIT_YAML = './common/template/fluent_bit_data_values.yaml'
-    CLUSTER_PATH = "/opt/vmware/arcas/src/tanzu-clusters/"
+    CLUSTER_PATH = "/opt/vmware/arcas/tanzu-clusters/"
 
 
 class VeleroAPI:

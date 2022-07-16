@@ -6,6 +6,8 @@ import time
 import requests
 import base64
 import json
+import subprocess
+import ruamel
 
 logger = logging.getLogger(__name__)
 sys.path.append(".../")
@@ -13,7 +15,10 @@ from common.operation.constants import CertName, ResourcePoolAndFolderName, Clou
     Avi_Version, \
     RegexPattern, Env, ControllerLocation
 import os
-from common.common_utilities import getClusterID, getAviCertificate, getLibraryId, getCountOfIpAdress, seperateNetmaskAndIp, \
+from pathlib import Path
+from common.certificate_base64 import getBase64CertWriteToFile
+from common.common_utilities import getClusterID, getAviCertificate, getLibraryId, getCountOfIpAdress, \
+    seperateNetmaskAndIp, \
     cidr_to_netmask, \
     convertStringToCommaSeperated, getPolicyID, updateNewCloud, preChecks, registerWithTmc, \
     get_avi_version, runSsh, \
@@ -21,9 +26,11 @@ from common.common_utilities import getClusterID, getAviCertificate, getLibraryI
     getSECloudStatus, envCheck, getClusterStatusOnTanzu, getVipNetworkIpNetMask, getVrfAndNextRoutId, addStaticRoute, \
     VrfType, checkMgmtProxyEnabled, enableProxy, checkAirGappedIsEnabled, loadBomFile, grabPortFromUrl, \
     grabHostFromUrl, getNetworkUrl, getClusterUrl, getIpam, seperateNetmaskAndIp, getDetailsOfNewCloudAddIpam, \
-    updateIpam, getNetworkDetails, getDetailsOfNewCloud, updateNetworkWithIpPools, updateNewCloud, configureKubectl
+    updateIpam, getNetworkDetails, getDetailsOfNewCloud, convertStringToCommaSeperated, updateNetworkWithIpPools, \
+    updateNewCloud, configureKubectl
 from common.operation.vcenter_operations import getDvPortGroupId
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from common.operation.ShellHelper import runShellCommandAndReturnOutputAsList
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
@@ -52,6 +59,9 @@ def configTkgsCloud(ip, csrf2, aviVersion):
             current_app.logger.info(" vcenter details are already updated to cloud " + Cloud.DEFAULT_CLOUD_NAME_VSPHERE)
         except:
             current_app.logger.info("Updating vcenter details to cloud " + Cloud.DEFAULT_CLOUD_NAME_VSPHERE)
+            datacenter = current_app.config['VC_DATACENTER']
+            if str(datacenter).__contains__("/"):
+                datacenter = datacenter[datacenter.rindex("/") + 1:]
             body = {
                 "name": Cloud.DEFAULT_CLOUD_NAME_VSPHERE,
                 "vtype": "CLOUD_VCENTER",
@@ -61,7 +71,7 @@ def configTkgsCloud(ip, csrf2, aviVersion):
                     "vcenter_url": current_app.config['VC_IP'],
                     "username": current_app.config['VC_USER'],
                     "password": current_app.config['VC_PASSWORD'],
-                    "datacenter": current_app.config['VC_DATACENTER']
+                    "datacenter": datacenter
                 }
             }
             json_object = json.dumps(body, indent=4)
@@ -182,6 +192,8 @@ def configTkgsCloud(ip, csrf2, aviVersion):
             current_app.logger.error("Failed to update ipam to cloud " + str(updateIpam_re[1]))
             return None, str(updateIpam_re[1])
         cluster_name = request.get_json(force=True)["envSpec"]["vcenterDetails"]["vcenterCluster"]
+        if str(cluster_name).__contains__("/"):
+            cluster_name = cluster_name[cluster_name.rindex("/") + 1:]
         cluster_status = getClusterUrl(ip, csrf2, cluster_name, aviVersion)
         if cluster_status[0] is None:
             current_app.logger.error("Failed to get cluster details" + str(cluster_status[1]))
@@ -309,14 +321,15 @@ def enableWCP(ip, csrf2, aviVersion):
         id = getClusterID(vCenter, vc_user, vc_password, cluster_name)
         if id[1] != 200:
             return None, id[0]
-        url = "https://" + vCenter + "/api/vcenter/namespace-management/clusters/"+str(id[0])
+        url = "https://" + vCenter + "/api/vcenter/namespace-management/clusters/" + str(id[0])
         response_csrf = requests.request("GET", url, headers=header, verify=False)
         endpoint_ip = None
         isRuning = False
         if response_csrf.status_code != 200:
             if response_csrf.status_code == 400:
-                if response_csrf.json()["messages"][0]["default_message"] == "Cluster with identifier "+str(id[0])+" does " \
-                                                                             "not have Workloads enabled.":
+                if response_csrf.json()["messages"][0]["default_message"] == "Cluster with identifier " + str(
+                        id[0]) + " does " \
+                                 "not have Workloads enabled.":
                     pass
                 else:
                     return None, response_csrf.text
@@ -469,7 +482,7 @@ def enableWCP(ip, csrf2, aviVersion):
                     }
                 }
             }
-            url1 = "https://" + vCenter + "/api/vcenter/namespace-management/clusters/"+str(id[0])+"?action=enable"
+            url1 = "https://" + vCenter + "/api/vcenter/namespace-management/clusters/" + str(id[0]) + "?action=enable"
             json_object = json.dumps(body, indent=4)
             response_csrf = requests.request("POST", url1, headers=header, data=json_object, verify=False)
             if response_csrf.status_code != 204:
@@ -504,3 +517,113 @@ def enableWCP(ip, csrf2, aviVersion):
         return "SUCCESS", "WCP_ENABLED"
     except Exception as e:
         return None, str(e)
+
+
+def configureTkgConfiguration(vCenter_user, vc_password, cluster_endpoint):
+    current_app.logger.info("Getting current Tkgs current configuration")
+    current_app.logger.info("Logging in to cluster " + cluster_endpoint)
+    os.putenv("KUBECTL_VSPHERE_PASSWORD", vc_password)
+    connect_command = ["kubectl", "vsphere", "login", "--server=" + cluster_endpoint,
+                       "--vsphere-username=" + vCenter_user,
+                       "--insecure-skip-tls-verify"]
+    output = runShellCommandAndReturnOutputAsList(connect_command)
+    if output[1] != 0:
+        return None, str(output[0])
+    switch_context = ["kubectl", "config", "use-context", cluster_endpoint]
+    output = runShellCommandAndReturnOutputAsList(switch_context)
+    if output[1] != 0:
+        return None, str(output[0])
+    fileName = "./kube_config.yaml"
+    os.system("rm -rf kube_config.yaml")
+    command = ["kubectl", "get", "tkgserviceconfigurations", "tkg-service-configuration", "-o", "yaml"]
+    with open(fileName, "w") as file_:
+        proc = subprocess.run(command, stdout=subprocess.PIPE)
+        file_.write(proc.stdout.decode('utf-8'))
+
+    try:
+        cni = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['defaultCNI']
+        if cni:
+            defaultCNI = cni
+        else:
+            defaultCNI = "antrea"
+    except:
+        defaultCNI = "antrea"
+    os.system("chmod +x ./common/injectValue.sh")
+    command_ = ["sh", "./common/injectValue.sh", fileName, "change_cni", defaultCNI]
+    runShellCommandAndReturnOutputAsList(command_)
+    try:
+        isProxyEnabled = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['enableProxy']
+        if str(isProxyEnabled).lower() == "true":
+            proxyEnabled = True
+        else:
+            proxyEnabled = False
+    except:
+        proxyEnabled = False
+    if proxyEnabled:
+        try:
+            httpProxy = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['httpProxy']
+            httpsProxy = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['httpsProxy']
+            noProxy = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['noProxy']
+            list_ = convertStringToCommaSeperated(noProxy)
+            ytr = dict(proxy=dict(httpProxy=httpProxy, httpsProxy=httpsProxy, noProxy=list_))
+            yaml = ruamel.yaml.YAML()
+            cert_list  = []
+            with open(fileName, 'r') as outfile:
+                cur_yaml = yaml.load(outfile)
+                cur_yaml['spec'].update(ytr)
+            if cur_yaml:
+                with open(fileName, 'w') as yamlfile:
+                    yaml.indent(mapping=2, sequence=4, offset=2)
+                    yaml.dump(cur_yaml, yamlfile)
+            isProxy = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['proxyCert']
+            if isProxy:
+                cert = Path(isProxy).read_text()
+                string_bytes = cert.encode("ascii")
+                base64_bytes = base64.b64encode(string_bytes)
+                cert_base64 = base64_bytes.decode("ascii")
+                cert_list.append(dict(name="certProxy", data=cert_base64))
+            proxyPath = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['additionalTrustedCAs']['paths']
+            proxyEndpoints = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['additionalTrustedCAs']['endpointUrls']
+            if proxyPath:
+                proxyCert = proxyPath
+                isProxyAddCert = True
+                isCaPath = True
+            elif proxyEndpoints:
+                proxyCert = proxyEndpoints
+                isProxyAddCert = True
+                isCaPath = False
+            else:
+                isProxyAddCert = False
+                isCaPath = False
+            if isProxyAddCert:
+                count = 0
+                for certs in proxyCert:
+                    count = count + 1
+                    if isCaPath:
+                        cert = Path(certs).read_text()
+                        string_bytes = cert.encode("ascii")
+                        base64_bytes = base64.b64encode(string_bytes)
+                        cert_base64 = base64_bytes.decode("ascii")
+                    else:
+                        getBase64CertWriteToFile(certs, "443")
+                        with open('cert.txt', 'r') as file2:
+                            cert_base64 = file2.readline()
+                    cert_list.append(dict(name="cert" + str(count), data=cert_base64))
+            ytr = dict(trust=dict(additionalTrustedCAs=cert_list))
+            with open(fileName, 'r') as outfile:
+                cur_yaml = yaml.load(outfile)
+                cur_yaml['spec'].update(ytr)
+            if cur_yaml:
+                with open(fileName, 'w') as yamlfile:
+                    yaml.indent(mapping=2, sequence=4, offset=2)
+                    yaml.dump(cur_yaml, yamlfile)
+        except Exception as e:
+            return None, str(e)
+    else:
+        command = ["sh", "./common/injectValue.sh", fileName, "delete_proxy"]
+        runShellCommandAndReturnOutputAsList(command)
+        command = ["sh", "./common/injectValue.sh", fileName, "delete_trust"]
+        runShellCommandAndReturnOutputAsList(command)
+    command = ["kubectl", "replace", "-f", fileName]
+    runShellCommandAndReturnOutputAsList(command)
+    return "SUCCESS", "Changed"

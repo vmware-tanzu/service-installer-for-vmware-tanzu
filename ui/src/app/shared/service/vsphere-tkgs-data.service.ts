@@ -130,6 +130,9 @@ export  class VsphereTkgsService {
     private enableTSM = new BehaviorSubject<boolean>(false);
     private exactNamespaceExclusion = new BehaviorSubject('');
     private startsWithNamespaceExclusion = new BehaviorSubject('');
+    //Additional volumes
+    private tkgsControlVolumes = new BehaviorSubject(new Map<string, string>());
+    private tkgsWorkerVolumes = new BehaviorSubject(new Map<string, string>());
     // VELERO fields
     private wrkEnableDataProtection = new BehaviorSubject<boolean>(false);
     private wrkClusterGroupName = new BehaviorSubject('');
@@ -141,6 +144,22 @@ export  class VsphereTkgsService {
     private harborPassword = new BehaviorSubject('');
     private harborCertPath = new BehaviorSubject('');
     private harborCertKey = new BehaviorSubject('');
+    // Global Settings
+    private defaultCNI = new BehaviorSubject('');
+
+    private tkgsEnableProxy = new BehaviorSubject<boolean>(false);
+    private tkgsHttpProxyUrl = new BehaviorSubject('');
+    private tkgsHttpProxyUsername = new BehaviorSubject('');
+    private tkgsHttpProxyPassword = new BehaviorSubject('');
+    private tkgsIsSameAsHttp = new BehaviorSubject<boolean>(false);
+    private tkgsHttpsProxyUrl = new BehaviorSubject('');
+    private tkgsHttpsProxyUsername = new BehaviorSubject('');
+    private tkgsHttpsProxyPassword  = new BehaviorSubject('');
+    private tkgsNoProxy = new BehaviorSubject('');
+    private tkgsProxyCert = new BehaviorSubject('');
+
+    private tkgsAdditionalCAPaths = new BehaviorSubject([]);
+    private tkgsAdditionalCaEndpointUrls = new BehaviorSubject([]);
     // Extension
     private enableTanzuExtension = new BehaviorSubject<boolean>(false);
     private tkgClusters = new BehaviorSubject('');
@@ -284,6 +303,9 @@ export  class VsphereTkgsService {
     currentEnableTSM = this.enableTSM.asObservable();
     currentExactNamespaceExclusion = this.exactNamespaceExclusion.asObservable();
     currentStartsWithNamespaceExclusion = this.startsWithNamespaceExclusion.asObservable();
+    //Additional volumes
+    currentTkgsControlVolumes = this.tkgsControlVolumes.asObservable();
+    currentTkgsWorkerVolumes = this.tkgsWorkerVolumes.asObservable();
     // VELERO FIELDS
     currentWrkClusterGroupName = this.wrkClusterGroupName.asObservable();
     currentWrkEnableDataProtection = this.wrkEnableDataProtection.asObservable();
@@ -295,6 +317,22 @@ export  class VsphereTkgsService {
     currentHarborPassword = this.harborPassword.asObservable();
     currentHarborCertPath = this.harborCertPath.asObservable();
     currentHarborCertKey = this.harborCertKey.asObservable();
+    // Global Settings
+    currentDefaultCNI = this.defaultCNI.asObservable();
+    
+    currentTkgsEnableProxy = this.tkgsEnableProxy.asObservable();
+    currentTkgsHttpProxyUrl = this.tkgsHttpProxyUrl.asObservable();
+    currentTkgsHttpProxyUsername = this.tkgsHttpProxyUsername.asObservable();
+    currentTkgsHttpProxyPassword = this.tkgsHttpsProxyPassword.asObservable();
+    currentTkgsIsSameAsHttp = this.tkgsIsSameAsHttp.asObservable();
+    currentTkgsHttpsProxyUrl = this.tkgsHttpsProxyUrl.asObservable();
+    currentTkgsHttpsProxyUsername = this.tkgsHttpsProxyUsername.asObservable();
+    currentTkgsHttpsProxyPassword = this.tkgsHttpsProxyPassword.asObservable();
+    currentTkgsNoProxy = this.tkgsNoProxy.asObservable();
+    currentTkgsProxyCert = this.tkgsProxyCert.asObservable();
+
+    currentTkgsAdditionalCaPaths = this.tkgsAdditionalCAPaths.asObservable();
+    currentTkgsAdditionalCaEndpointUrls = this.tkgsAdditionalCaEndpointUrls.asObservable();
     // Extension
     currentEnableTanzuExtension = this.enableTanzuExtension.asObservable();
     currentTkgClusters = this.tkgClusters.asObservable();
@@ -616,6 +654,13 @@ export  class VsphereTkgsService {
     changeWrkWorkerNodeCount(wrkWorkerNodeCount: string) {
         this.wrkWorkerNodeCount.next(wrkWorkerNodeCount);
     }
+    //Additional Volumes
+    changeTkgsControlVolumes(tkgsControlVolumes: any) {
+        this.tkgsControlVolumes.next(tkgsControlVolumes);
+    }
+    changeTkgsWorkerVolumes(tkgsWorkerVolumes: any) {
+        this.tkgsWorkerVolumes.next(tkgsWorkerVolumes);
+    }
     // VELERO FIELDS
     changeWrkClusterGroupName(grp: string) {
         this.wrkClusterGroupName.next(grp);
@@ -654,6 +699,48 @@ export  class VsphereTkgsService {
     }
     changeHarborCertKey(harborCertKey: string) {
         this.harborCertKey.next(harborCertKey);
+    }
+    // Global Config
+    changeDefaultCNI(cni: string) {
+        this.defaultCNI.next(cni);
+    }
+    
+    changeTkgsEnableProxy(enable: boolean) {
+        this.tkgsEnableProxy.next(enable);
+    }
+    changeTkgsHttpProxyUrl(httpUrl: string) {
+        this.tkgsHttpProxyUrl.next(httpUrl);
+    }
+    changeTkgsHttpProxyUsername(httpUser: string) {
+        this.tkgsHttpProxyUsername.next(httpUser);
+    }
+    changeTkgsHttpProxyPassword(httpPass: string) {
+        this.tkgsHttpsProxyPassword.next(httpPass);
+    }
+    changeTkgsIsSameAsHttp(same: boolean) {
+        this.tkgsIsSameAsHttp.next(same);
+    }
+    changeTkgsHttpsProxyUrl(httpsUrl: string) {
+        this.tkgsHttpsProxyUrl.next(httpsUrl);
+    }
+    changeTkgsHttpsProxyUsername(httpsUser: string) {
+        this.tkgsHttpsProxyUsername.next(httpsUser);
+    }
+    changeTkgsHttpsProxyPassword(httpsPass: string) {
+        this.tkgsHttpsProxyPassword.next(httpsPass);
+    }
+    changeTkgsNoProxy(noProxy: string) {
+        this.tkgsNoProxy.next(noProxy);
+    }
+    changeTkgsProxyCert(cert: string) {
+        this.tkgsProxyCert.next(cert);
+    }
+
+    changeTkgsAdditionalCAPaths(paths: any) {
+        this.tkgsAdditionalCAPaths.next(paths);
+    }
+    changeTkgsAdditionalCaEndpointUrls(urls: any) {
+        this.tkgsAdditionalCaEndpointUrls.next(urls);
     }
     // Extension
     changeEnableTanzuExtension(enableTanzuExtension: boolean) {

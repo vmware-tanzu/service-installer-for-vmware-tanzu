@@ -2,14 +2,17 @@ from common.common_utilities import checkTmcEnabled, get_alias_name, getPolicyID
     convertStringToCommaSeperated, supervisorTMC, configureKubectl, \
     getClusterID, checkTmcEnabled, getPolicyID, getLibraryId, \
     convertStringToCommaSeperated, supervisorTMC, configureKubectl, getBodyResourceSpec, cidr_to_netmask, \
-    seperateNetmaskAndIp, getCountOfIpAdress
+    seperateNetmaskAndIp, getCountOfIpAdress, createClusterFolder
 from flask import current_app, jsonify, request
 import time
 import yaml
 import json
 import requests
+from pathlib import Path
 from ruamel import yaml as ryaml
-from common.operation.constants import RegexPattern, ControllerLocation
+from common.certificate_base64 import getBase64CertWriteToFile
+import base64
+from common.operation.constants import RegexPattern, ControllerLocation, Paths
 from common.operation.ShellHelper import runShellCommandAndReturnOutput, grabKubectlCommand, grabIpAddress, \
     verifyPodsAreRunning, grabPipeOutput, runShellCommandAndReturnOutputAsList, \
     runShellCommandAndReturnOutputAsListWithChangedDir, grabPipeOutputChagedDir, runShellCommandWithPolling, runProcess
@@ -37,6 +40,8 @@ def createTkgWorkloadCluster(env, vc_ip, vc_user, vc_password):
             "vmware-api-session-id": session_id
         }
         cluster_name = request.get_json(force=True)["envSpec"]["vcenterDetails"]["vcenterCluster"]
+        if str(cluster_name).__contains__("/"):
+            cluster_name = cluster_name[cluster_name.rindex("/")+1:]
         id = getClusterID(vc_ip, vc_user, vc_password, cluster_name)
         if id[1] != 200:
             return None, id[0]
@@ -63,7 +68,15 @@ def createTkgWorkloadCluster(env, vc_ip, vc_user, vc_password):
 
         workload_name = request.get_json(force=True)['tkgsComponentSpec']["tkgsVsphereNamespaceSpec"][
             'tkgsVsphereWorkloadClusterSpec']['tkgsVsphereWorkloadClusterName']
-
+        if not createClusterFolder(workload_name):
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to create directory: " + Paths.CLUSTER_PATH + workload_name,
+                "ERROR_CODE": 500
+            }
+            return jsonify(d), 500
+        current_app.logger.info(
+            "The config files for shared services cluster will be located at: " + Paths.CLUSTER_PATH + workload_name)
         current_app.logger.info("Before deploying cluster, checking if namespace is in running status..." + name_space)
         wcp_status = checkClusterStatus(vc_ip, header, name_space, id[0])
         if wcp_status[0] is None:
@@ -148,31 +161,95 @@ def createTkgWorkloadCluster(env, vc_ip, vc_user, vc_password):
                 'tkgsVsphereWorkloadClusterSpec']['enableControlPlaneHa']
             clusterGroup = request.get_json(force=True)['tkgsComponentSpec']["tkgsVsphereNamespaceSpec"][
                 'tkgsVsphereWorkloadClusterSpec']["tkgsWorkloadClusterGroupName"]
-
+            worker_vm_class = request.get_json(force=True)['tkgsComponentSpec']["tkgsVsphereNamespaceSpec"][
+                'tkgsVsphereWorkloadClusterSpec']['workerVmClass']
             if not clusterGroup:
                 clusterGroup = "default"
 
             if str(enable_ha).lower() == "true":
                 workload_cluster_create_command = ["tmc", "cluster", "create", "--template", "tkgs", "-m",
-                                                   supervisor_cluster, "-p", name_space, "--cluster-group", clusterGroup,
+                                                   supervisor_cluster, "-p", name_space, "--cluster-group",
+                                                   clusterGroup,
                                                    "--name", workload_name, "--version",
                                                    version, "--pods-cidr-blocks", pod_cidr, "--service-cidr-blocks",
                                                    service_cidr, "--storage-class", node_storage_class,
                                                    "--allowed-storage-classes", allowed,
                                                    "--default-storage-class", default_class,
-                                                   "--worker-instance-type", "best-effort-large", "--instance-type",
-                                                   "best-effort-large", "--worker-node-count", worker_node_count,
+                                                   "--worker-instance-type", worker_vm_class, "--instance-type",
+                                                   worker_vm_class, "--worker-node-count", worker_node_count,
                                                    "--high-availability"]
             else:
                 workload_cluster_create_command = ["tmc", "cluster", "create", "--template", "tkgs", "-m",
-                                                   supervisor_cluster, "-p", name_space, "--cluster-group", clusterGroup,
+                                                   supervisor_cluster, "-p", name_space, "--cluster-group",
+                                                   clusterGroup,
                                                    "--name", workload_name, "--version",
                                                    version, "--pods-cidr-blocks", pod_cidr, "--service-cidr-blocks",
                                                    service_cidr, "--storage-class", node_storage_class,
                                                    "--allowed-storage-classes", allowed,
                                                    "--default-storage-class", default_class,
-                                                   "--worker-instance-type", "best-effort-large", "--instance-type",
-                                                   "best-effort-large", "--worker-node-count", worker_node_count]
+                                                   "--worker-instance-type", worker_vm_class, "--instance-type",
+                                                   worker_vm_class, "--worker-node-count", worker_node_count]
+            try:
+                control_plane_volumes = request.get_json(force=True)['tkgsComponentSpec']["tkgsVsphereNamespaceSpec"][
+                    'tkgsVsphereWorkloadClusterSpec']['controlPlaneVolumes']
+                control_plane_volumes_list = []
+                for control_plane_volume in control_plane_volumes:
+                    if control_plane_volume['storageClass']:
+                        storageClass = control_plane_volume['storageClass']
+                    else:
+                        storageClass = default_class
+                    control_plane_volumes_list.append(
+                        dict(name=control_plane_volume['name'], mountPath=control_plane_volume['mountPath'],
+                             capacity=dict(storage=control_plane_volume['storage']), storageClass=storageClass))
+                control_plane_vol = True
+            except Exception as e:
+                control_plane_vol = False
+            try:
+                worker_volumes = request.get_json(force=True)['tkgsComponentSpec']["tkgsVsphereNamespaceSpec"][
+                    'tkgsVsphereWorkloadClusterSpec']['workerVolumes']
+                worker_vol = True
+                worker_volumes_list = []
+                for worker_volume in worker_volumes:
+                    if worker_volume['storageClass']:
+                        storageClass = worker_volume['storageClass']
+                    else:
+                        storageClass = default_class
+                    worker_volumes_list.append(dict(name=worker_volume['name'], mountPath=worker_volume['mountPath'],
+                                                    capacity=dict(storage=worker_volume['storage']),
+                                                    storageClass=storageClass))
+            except Exception as e:
+                worker_vol = False
+            if control_plane_vol and worker_vol:
+                workload_cluster_create_command.append("--control-plane-volumes")
+                control_plane_command = ""
+                for control_plane_volumes in control_plane_volumes_list:
+                    control_plane_command += control_plane_volumes["name"] + ":[" + control_plane_volumes[
+                        "mountPath"] + " " + str(control_plane_volumes['capacity']["storage"]).lower().strip(
+                        "gi") + " " + control_plane_volumes['storageClass'] + "],"
+                workload_cluster_create_command.append("\"" + control_plane_command.strip(",") + "\"")
+                workload_cluster_create_command.append("--nodepool-volumes")
+                worker_command = ""
+                for worker_volumes in worker_volumes_list:
+                    worker_command += worker_volumes["name"] + ":[" + worker_volumes["mountPath"] + " " + \
+                                      str(worker_volumes['capacity']["storage"]).lower().strip("gi") + " " + \
+                                      worker_volumes['storageClass'] + "]"
+                workload_cluster_create_command.append("\"" + worker_command.strip(",") + "\"")
+            elif control_plane_vol:
+                workload_cluster_create_command.append("--control-plane-volumes")
+                control_plane_command = ""
+                for control_plane_volumes in control_plane_volumes_list:
+                    control_plane_command += control_plane_volumes["name"] + ":[" + control_plane_volumes[
+                        "mountPath"] + " " + str(control_plane_volumes['capacity']["storage"]).lower().strip(
+                        "gi") + " " + control_plane_volumes['storageClass'] + "],"
+                workload_cluster_create_command.append("\"" + control_plane_command.strip(",") + "\"")
+            elif worker_vol:
+                workload_cluster_create_command.append("--nodepool-volumes")
+                worker_command = ""
+                for worker_volumes in worker_volumes_list:
+                    worker_command += worker_volumes["name"] + ":[" + worker_volumes["mountPath"] + " " + \
+                                      str(worker_volumes['capacity']["storage"]).lower().strip("gi") + " " + \
+                                      worker_volumes['storageClass'] + "]"
+                workload_cluster_create_command.append("\"" + worker_command.strip(",") + "\"")
             current_app.logger.info(workload_cluster_create_command)
             worload = runShellCommandAndReturnOutputAsList(workload_cluster_create_command)
             if worload[1] != 0:
@@ -207,11 +284,11 @@ def createTkgWorkloadCluster(env, vc_ip, vc_user, vc_password):
             return "SUCCESS", 200
         else:
             try:
-                gen = generateYamlFile(vc_ip, vc_user, vc_password)
+                gen = generateYamlFile(vc_ip, vc_user, vc_password, workload_name)
                 if gen is None:
                     return None, "Failed"
             except Exception as e:
-                return None, "Failed to genrate yaml file " + str(e)
+                return None, "Failed to generate yaml file " + str(e)
 
             command = ["kubectl", "apply", "-f", gen]
             worload = runShellCommandAndReturnOutputAsList(command)
@@ -312,38 +389,10 @@ def checkClusterStatus(vc_ip, header, name_space, cluster_id):
         return None, "Exception occurred while checking cluster config status"
 
 
-def generateYamlFile(vc_ip, vc_user, vc_password):
-    ytr = """\
-    apiVersion: run.tanzu.vmware.com/v1alpha1
-    kind: TanzuKubernetesCluster
-    metadata:
-        name: %s
-        namespace: %s
-    spec:
-        topology:
-            controlPlane:
-                count: %s
-                class: %s
-                storageClass: %s
-            workers:
-                count: %s
-                class: %s
-                storageClass: %s
-        distribution:
-            version: %s
-        settings:
-            network:
-                services:
-                    cidrBlocks: [%s]
-                pods:
-                    cidrBlocks: [%s]
-            storage:
-                classes: %s            
-                defaultClass: %s
-    """
+def generateYamlFile(vc_ip, vc_user, vc_password, workload_name):
     workload_name = request.get_json(force=True)['tkgsComponentSpec']["tkgsVsphereNamespaceSpec"][
         'tkgsVsphereWorkloadClusterSpec']['tkgsVsphereWorkloadClusterName']
-    file = "tkgs_workload.yaml"
+    file = Paths.CLUSTER_PATH + workload_name + "/tkgs_workload.yaml"
     command = ["rm", "-rf", file]
     runShellCommandAndReturnOutputAsList(command)
     name_space = \
@@ -373,6 +422,8 @@ def generateYamlFile(vc_ip, vc_user, vc_password):
     worker_vm_class = request.get_json(force=True)['tkgsComponentSpec']["tkgsVsphereNamespaceSpec"][
         'tkgsVsphereWorkloadClusterSpec']['workerVmClass']
     cluster_name = request.get_json(force=True)["envSpec"]["vcenterDetails"]["vcenterCluster"]
+    if str(cluster_name).__contains__("/"):
+        cluster_name = cluster_name[cluster_name.rindex("/")+1:]
     kube_version = request.get_json(force=True)['tkgsComponentSpec']["tkgsVsphereNamespaceSpec"][
         'tkgsVsphereWorkloadClusterSpec']['tkgsVsphereWorkloadClusterVersion']
     if not kube_version.startswith('v'):
@@ -416,13 +467,185 @@ def generateYamlFile(vc_ip, vc_user, vc_password):
         current_app.logger.error(allowed_[1])
         return None
     default_clases = str(allowed_[0])
+    try:
+        control_plane_volumes = request.get_json(force=True)['tkgsComponentSpec']["tkgsVsphereNamespaceSpec"][
+            'tkgsVsphereWorkloadClusterSpec']['controlPlaneVolumes']
+        control_plane_volumes_list = []
+        for control_plane_volume in control_plane_volumes:
+            control_plane_volumes_list.append(
+                dict(name=control_plane_volume['name'], mountPath=control_plane_volume['mountPath'],
+                     capacity=dict(storage=control_plane_volume['storage'])))
+        control_plane_vol = True
+    except Exception as e:
+        control_plane_vol = False
+    try:
+        worker_volumes = request.get_json(force=True)['tkgsComponentSpec']["tkgsVsphereNamespaceSpec"][
+            'tkgsVsphereWorkloadClusterSpec']['workerVolumes']
+        worker_vol = True
+        worker_volumes_list = []
+        for worker_volume in worker_volumes:
+            worker_volumes_list.append(dict(name=worker_volume['name'], mountPath=worker_volume['mountPath'],
+                                            capacity=dict(storage=worker_volume['storage'])))
+    except Exception as e:
+        worker_vol = False
 
+    if worker_vol and control_plane_vol:
+        topology_dict = {
+            "controlPlane": {
+                "count": int(count),
+                "class": control_plane_vm_class,
+                "storageClass": node_storage_class,
+                "volumes": control_plane_volumes_list
+            },
+            "workers": {
+                "count": int(worker_node_count),
+                "class": worker_vm_class,
+                "storageClass": node_storage_class,
+                "volumes": worker_volumes_list
+            }
+        }
+    elif control_plane_vol:
+        topology_dict = {
+            "controlPlane": {
+                "count": int(count),
+                "class": control_plane_vm_class,
+                "storageClass": node_storage_class,
+                "volumes": control_plane_volumes_list
+            },
+            "workers": {
+                "count": int(worker_node_count),
+                "class": worker_vm_class,
+                "storageClass": node_storage_class
+            }
+        }
+    elif worker_vol:
+        topology_dict = {
+            "controlPlane": {
+                "count": int(count),
+                "class": control_plane_vm_class,
+                "storageClass": node_storage_class
+            },
+            "workers": {
+                "count": int(worker_node_count),
+                "class": worker_vm_class,
+                "storageClass": node_storage_class,
+                "volumes": worker_volumes_list
+            }
+        }
+    else:
+        topology_dict = {
+            "controlPlane": {
+                "count": int(count),
+                "class": control_plane_vm_class,
+                "storageClass": node_storage_class
+            },
+            "workers": {
+                "count": int(worker_node_count),
+                "class": worker_vm_class,
+                "storageClass": node_storage_class
+            }
+        }
+    meta_dict = {
+        "name": workload_name,
+        "namespace": name_space
+    }
+    try:
+        cni = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['defaultCNI']
+        if cni:
+            defaultCNI = cni
+            isCni = True
+        else:
+            defaultCNI = "antrea"
+            isCni = False
+    except:
+        defaultCNI = "antrea"
+        isCni = False
+    spec_dict = {
+        "topology": topology_dict,
+        "distribution": {
+            "version": kube_version
+        },
+        "settings": {
+            "network": {
+                "services": {
+                    "cidrBlocks": [service_cidr]
+                },
+                "pods": {
+                    "cidrBlocks": [pod_cidr]
+                }
+            },
+            "storage": {
+                "classes": li,
+                "defaultClass": default_clases
+            }
+        }
+    }
+    if isCni:
+        default = dict(cni=dict(name=defaultCNI))
+        spec_dict["settings"]["network"].update(default)
+    try:
+        isProxyEnabled = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['enableProxy']
+        if str(isProxyEnabled).lower() == "true":
+            proxyEnabled = True
+        else:
+            proxyEnabled = False
+    except:
+        proxyEnabled = False
+    if proxyEnabled:
+        try:
+            httpProxy = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['httpProxy']
+            httpsProxy = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['httpsProxy']
+            noProxy = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['noProxy']
+            list_ = convertStringToCommaSeperated(noProxy)
+        except Exception as e:
+            return None, str(e)
+        proxy = dict(proxy=dict(httpProxy=httpProxy, httpsProxy=httpsProxy, noProxy=list_))
+        spec_dict["settings"]["network"].update(proxy)
+        cert_list = []
+        isProxy = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['proxyCert']
+        if isProxy:
+            cert = Path(isProxy).read_text()
+            string_bytes = cert.encode("ascii")
+            base64_bytes = base64.b64encode(string_bytes)
+            cert_base64 = base64_bytes.decode("ascii")
+            cert_list.append(dict(name="certProxy", data=cert_base64))
+        proxyPath = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['additionalTrustedCAs']['paths']
+        proxyEndpoints = request.get_json(force=True)['tkgsComponentSpec']['tkgServiceConfig']['additionalTrustedCAs']['endpointUrls']
+        if proxyPath:
+            proxyCert = proxyPath
+            isProxyCert = True
+            isCaPath = True
+        elif proxyEndpoints:
+            proxyCert = proxyEndpoints
+            isProxyCert = True
+            isCaPath = False
+        else:
+            isProxyCert = False
+            isCaPath = False
+        if isProxyCert:
+            count = 0
+            for certs in proxyCert:
+                count = count + 1
+                if isCaPath:
+                    cert = Path(certs).read_text()
+                    string_bytes = cert.encode("ascii")
+                    base64_bytes = base64.b64encode(string_bytes)
+                    cert_base64 = base64_bytes.decode("ascii")
+                else:
+                    getBase64CertWriteToFile(certs, "443")
+                    with open('cert.txt', 'r') as file2:
+                        cert_base64 = file2.readline()
+                cert_list.append(dict(name="cert" + str(count), data=cert_base64))
+        trust = dict(trust=dict(additionalTrustedCAs=cert_list))
+        spec_dict["settings"]["network"].update(trust)
+    ytr = dict(apiVersion='run.tanzu.vmware.com/v1alpha1', kind='TanzuKubernetesCluster', metadata=meta_dict,
+               spec=spec_dict)
     with open(file, 'w') as outfile:
-        formatted = ytr % (
-            workload_name, name_space, count, control_plane_vm_class, node_storage_class, worker_node_count,
-            worker_vm_class, node_storage_class, kube_version, service_cidr, pod_cidr, li, default_clases)
-        data1 = ryaml.load(formatted, Loader=ryaml.RoundTripLoader)
-        ryaml.dump(data1, outfile, Dumper=ryaml.RoundTripDumper, indent=2)
+        # formatted = ytr % (
+        # workload_name, name_space, count, control_plane_vm_class, node_storage_class, worker_node_count,
+        # worker_vm_class, node_storage_class, kube_version, service_cidr, pod_cidr, li, default_clases)
+        # data1 = ryaml.load(formatted, Loader=ryaml.RoundTripLoader)
+        ryaml.dump(ytr, outfile, Dumper=ryaml.RoundTripDumper, indent=2)
     return file
 
 
@@ -450,6 +673,8 @@ def createNameSpace(vcenter_ip, vcenter_username, password):
             'tkgsVsphereNamespaceName']
         url = "https://" + str(vcenter_ip) + "/api/vcenter/namespaces/instances"
         cluster_name = request.get_json(force=True)["envSpec"]["vcenterDetails"]["vcenterCluster"]
+        if str(cluster_name).__contains__("/"):
+            cluster_name = cluster_name[cluster_name.rindex("/")+1:]
         id = getClusterID(vcenter_ip, vcenter_username, password, cluster_name)
         if id[1] != 200:
             return None, id[0]
@@ -562,7 +787,8 @@ def create_workload_network(vCenter, vc_user, password, cluster_id, network_name
     port_group_name = request.get_json(force=True)['tkgsComponentSpec']['tkgsWorkloadNetwork'][
         'tkgsWorkloadPortgroupName']
     datacenter = request.get_json(force=True)['envSpec']['vcenterDetails']['vcenterDatacenter']
-
+    if str(datacenter).__contains__("/"):
+        datacenter = datacenter[datacenter.rindex("/")+1:]
     if not (worker_cidr or start or end or port_group_name):
         return None, "Details to create workload network are not provided - " + network_name
     ip_cidr = seperateNetmaskAndIp(worker_cidr)

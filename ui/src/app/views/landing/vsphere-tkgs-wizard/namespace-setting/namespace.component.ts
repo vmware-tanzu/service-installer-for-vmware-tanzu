@@ -358,7 +358,8 @@ export class NamespaceComponent extends StepFormDirective implements OnInit {
     public addNewNamespace(){
         this.resurrectField('newNamespaceName', [
             Validators.required,
-            this.validationService.noWhitespaceOnEnds()],
+            this.validationService.noWhitespaceOnEnds(),
+            this.validationService.isValidClusterName()],
             this.formGroup.value['newNamespaceName'])
         // Optional
         this.resurrectField('namespaceDescription', [

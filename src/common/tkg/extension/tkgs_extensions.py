@@ -6,7 +6,8 @@ from common.operation.ShellHelper import runShellCommandAndReturnOutputAsList, \
     runShellCommandAndReturnOutputAsListWithChangedDir, verifyPodsAreRunning, runShellCommandAndReturnOutput, \
     grabPipeOutput
 from flask import current_app, jsonify, request
-from common.operation.constants import Tkgs_Extension_Details, RegexPattern, Tkg_Extention_names, Repo, Extentions,AppName
+from common.operation.constants import Tkgs_Extension_Details, RegexPattern, Tkg_Extention_names, Repo, Extentions, \
+    AppName, Paths
 from common.common_utilities import getVersionOfPackage, loadBomFile, checkAirGappedIsEnabled, preChecks, envCheck, \
     waitForProcess, installCertManagerAndContour, deployExtention, getManagementCluster, verifyCluster, \
     switchToManagementContext, checkToEnabled, checkPromethusEnabled, installExtentionFor14, checkRepositoryAdded, loadBomFile, \
@@ -48,8 +49,8 @@ def deploy_tkgs_extensions():
                 return jsonify(d), 500
 
             current_app.logger.info("Pre-checks required before TKGs extensions deployment PASSED")
-
-            deploy_ext = deploy_extensions(env)
+            workload_cluster = request.get_json(force=True)['tanzuExtensions']['tkgClustersName']
+            deploy_ext = deploy_extensions(env, workload_cluster)
             if deploy_ext[1] != 200:
                 d = {
                     "responseType": "ERROR",
@@ -317,7 +318,7 @@ def configurePackagesRepository(env):
             return "SUCCESS", "Standard Package Repository is already deployed!"
 
 
-def deploy_extensions(env):
+def deploy_extensions(env, cluster_name):
     try:
         listOfExtention = []
         service = "all"
@@ -328,7 +329,7 @@ def deploy_extensions(env):
             listOfExtention.append(Tkg_Extention_names.PROMETHEUS)
             listOfExtention.append(Tkg_Extention_names.GRAFANA)
 
-        status = tkgsCertManagerandContour(env, service)
+        status = tkgsCertManagerandContour(env, cluster_name, service)
         if status[1] != 200:
             current_app.logger.info("Failed to deploy extension "+str(status[0].json['msg']))
             d = {
@@ -352,11 +353,12 @@ def deploy_extensions(env):
                                          " Please provide both the details")
                 d = {
                     "responseType": "ERROR",
-                    "msg": "Harbor FQDN and password are mandatory for harbor deployment. Please provide both the details",
+                    "msg": "Harbor FQDN and password are mandatory for harbor deployment. Please provide both the "
+                           "details",
                     "ERROR_CODE": 500
                 }
                 return jsonify(d), 500
-            state = installHarborTkgs(harborCertPath, harborCertKeyPath, harborPassword, host, env)
+            state = installHarborTkgs(harborCertPath, harborCertKeyPath, harborPassword, host, cluster_name, env)
             if state[1] != 200:
                 current_app.logger.error(state[0].json['msg'])
                 d = {
@@ -387,7 +389,7 @@ def deploy_extensions(env):
                 return jsonify(d), 200'''
             else:
                 for extension_name in listOfExtention:
-                    monitor_status = deploy_monitoring_extentions(env, extension_name)
+                    monitor_status = deploy_monitoring_extentions(env, extension_name, cluster_name)
                     if monitor_status[1] != 200:
                         current_app.logger.error(monitor_status[0].json['msg'])
                         d = {
@@ -436,7 +438,7 @@ def deploy_extensions(env):
         return jsonify(d), 500
 
 
-def tkgsCertManagerandContour(env, service_name):
+def tkgsCertManagerandContour(env, cluster_name, service_name):
     try:
         status_ = checkRepositoryAdded(env)
         if status_[1] != 200:
@@ -447,13 +449,13 @@ def tkgsCertManagerandContour(env, service_name):
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
-        install = installExtentionFor14(service_name, env)
+        install = installExtentionFor14(service_name, cluster_name, env)
         if install[1] != 200:
             return install[0], install[1]
         current_app.logger.info("Configured cert-manager and contour successfully")
         d = {
             "responseType": "SUCCESS",
-            "msg": "Configured cert-manager and contour extentions successfully",
+            "msg": "Configured cert-manager and contour extensions successfully",
             "ERROR_CODE": 200
         }
         return jsonify(d), 200
@@ -467,7 +469,7 @@ def tkgsCertManagerandContour(env, service_name):
         return jsonify(d), 500
 
 
-def deploy_monitoring_extentions(env, monitoringType):
+def deploy_monitoring_extentions(env, monitoringType, clusterName):
     try:
         load_bom = loadBomFile()
         if load_bom is None:
@@ -508,10 +510,10 @@ def deploy_monitoring_extentions(env, monitoringType):
                     }
                     return jsonify(d), 500
                 extention = Tkg_Extention_names.GRAFANA
-                yamlFile = "./grafana-data-values.yaml"
+                yamlFile = Paths.CLUSTER_PATH + clusterName + "/grafana-data-values.yaml"
                 appName = AppName.GRAFANA
                 namespace = "package-tanzu-system-dashboards"
-                command = ["./common/injectValue.sh",Extentions.GRAFANA_LOCATION + "/grafana-extension.yaml","fluent_bit",
+                command = ["./common/injectValue.sh", Extentions.GRAFANA_LOCATION + "/grafana-extension.yaml", "fluent_bit",
                            repository + "/" + Extentions.APP_EXTENTION]
                 runShellCommandAndReturnOutputAsList(command)
                 bom_map = getBomMap(load_bom, Tkg_Extention_names.GRAFANA)
@@ -569,7 +571,8 @@ def deploy_monitoring_extentions(env, monitoringType):
                                            "--values-file", yamlFile, "--namespace", namespace, "--create-namespace"]
                 state_extention_apply = runShellCommandAndReturnOutputAsList(deply_extension_command)
                 if state_extention_apply[1] != 0:
-                    current_app.logger.error(extention + " install command failed. Checking for reconciliation status...")
+                    current_app.logger.error(extention + "install command failed. Checking for reconciliation "
+                                                         "status...")
 
                 found = False
                 count = 0
@@ -699,14 +702,14 @@ def updateStorageClass(yamlFile, extension):
         return jsonify(d), 500
 
 
-def installHarborTkgs(harborCertPath, harborCertKeyPath, harborPassword, host, env):
+def installHarborTkgs(harborCertPath, harborCertKeyPath, harborPassword, host, clusterName, env):
     main_command = ["tanzu", "package", "installed", "list", "-A"]
     sub_command = ["grep", AppName.HARBOR]
     out = grabPipeOutput(main_command, sub_command)
     if not (verifyPodsAreRunning(AppName.HARBOR, out[0], RegexPattern.RECONCILE_SUCCEEDED)
             or verifyPodsAreRunning(AppName.HARBOR, out[0], RegexPattern.RECONCILE_FAILED)):
         timer = 0
-        current_app.logger.info("Validating contour and certmanger is running")
+        current_app.logger.info("Validating contour and cert-manager is running")
         command = ["tanzu", "package", "installed", "list", "-A"]
         status = runShellCommandAndReturnOutputAsList(command)
         verify_contour = False
@@ -725,7 +728,8 @@ def installHarborTkgs(harborCertPath, harborCertKeyPath, harborPassword, host, e
                 timer = timer + 30
                 time.sleep(30)
                 status = runShellCommandAndReturnOutputAsList(command)
-                current_app.logger.info("Waited for " + str(timer) + "s, retrying for contour and cert manager to be running")
+                current_app.logger.info("Waited for " + str(timer) + "s, retrying for contour and cert manager to be "
+                                                                     "running")
         if not verify_contour:
             current_app.logger.error("Contour is not running")
             d = {
@@ -775,10 +779,11 @@ def installHarborTkgs(harborCertPath, harborCertKeyPath, harborPassword, host, e
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
-        os.system("rm -rf ./harbor-data-values.yaml")
-        os.system("cp /tmp/harbor-package/config/values.yaml ./harbor-data-values.yaml")
+        os.system("rm -rf " + Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml")
+        os.system("cp /tmp/harbor-package/config/values.yaml " + Paths.CLUSTER_PATH + clusterName +"/harbor-data"
+                                                                                                   "-values.yaml")
         command_harbor_genrate_psswd = ["sh", "/tmp/harbor-package/config/scripts/generate-passwords.sh",
-                                        "harbor-data-values.yaml"]
+                                        Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml"]
         state_harbor_genrate_psswd = runShellCommandAndReturnOutputAsList(command_harbor_genrate_psswd)
         if state_harbor_genrate_psswd[1] == 500:
             current_app.logger.error("Failed to generate password " + str(state_harbor_genrate_psswd[0]))
@@ -788,7 +793,7 @@ def installHarborTkgs(harborCertPath, harborCertKeyPath, harborPassword, host, e
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
-        cer = certChanging(harborCertPath, harborCertKeyPath, harborPassword, host)
+        cer = certChanging(harborCertPath, harborCertKeyPath, harborPassword, host,clusterName)
         if cer[1] != 200:
             current_app.logger.error(cer[0].json['msg'])
             d = {
@@ -799,7 +804,7 @@ def installHarborTkgs(harborCertPath, harborCertKeyPath, harborPassword, host, e
             return jsonify(d), 500
         os.system("chmod +x common/injectValue.sh")
 
-        update_sc_resp = updateStorageClass("./harbor-data-values.yaml", AppName.HARBOR)
+        update_sc_resp = updateStorageClass(Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml", AppName.HARBOR)
         if update_sc_resp[1] != 200:
             current_app.logger.error(update_sc_resp[0].json['msg'])
             d = {
@@ -811,12 +816,12 @@ def installHarborTkgs(harborCertPath, harborCertKeyPath, harborPassword, host, e
         else:
             current_app.logger.info(update_sc_resp[0].json["msg"])
 
-        command = ["sh", "./common/injectValue.sh", "harbor-data-values.yaml", "remove"]
+        command = ["sh", "./common/injectValue.sh", Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml", "remove"]
         runShellCommandAndReturnOutputAsList(command)
 
         current_app.logger.info("Initiated harbor deployment")
         command = ["tanzu", "package", "install", "harbor", "--package-name", "harbor.tanzu.vmware.com", "--version",
-                   state, "--values-file", "./harbor-data-values.yaml", "--namespace", "package-tanzu-system-registry",
+                   state, "--values-file", Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml", "--namespace", "package-tanzu-system-registry",
                    "--create-namespace"]
         runShellCommandAndReturnOutputAsList(command)
 
@@ -917,7 +922,7 @@ def tkgsOverlay():
         time.sleep(30)
 
         current_app.logger.info("Deleting pods")
-        delete_command = ["kubectl", "delete", "pods", "--all", "-n", "tanzu-system-registry"]
+        delete_command = ["kubectl", "delete", "pods", "--all", "-n", "package-tanzu-system-registry"]
         delete_status = runShellCommandAndReturnOutputAsList(delete_command)
         if delete_status[1] != 0:
             return None, "Command for deleting existing harbor pods failed."

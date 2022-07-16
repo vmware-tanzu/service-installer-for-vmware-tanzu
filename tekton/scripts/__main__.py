@@ -23,6 +23,7 @@ from workflows.ra_workload_cluster_workflow import RaWorkloadClusterWorkflow
 from workflows.ra_workload_cluster_upgrade import RaWorkloadUpgradeWorkflow
 from workflows.ra_scale_workflow import ScaleWorkflow
 from workflows.ra_repave_workflow import RepaveWorkflow
+from workflows.ra_deploy_ext_workflow import RaDeployExtWorkflow
 
 logger = LoggerHelper.get_logger(name="__main__")
 
@@ -135,6 +136,19 @@ def wl_deploy(ctx):
 def wl_upgrade(ctx):
     run_config = load_run_config(ctx.obj["ROOT_DIR"])
     RaWorkloadUpgradeWorkflow(run_config).upgrade_workflow()
+
+
+@cli.group()
+@click.pass_context
+def extns(ctx):
+    ctx.ensure_object(dict)
+
+@cli.command(name="deploy")
+@click.pass_context
+def extns_deploy(ctx):
+    run_config = load_run_config(ctx.obj["ROOT_DIR"])
+    RaDeployExtWorkflow(run_config).deploy_tkg_extensions
+
 
 @cli.command(name="execute-scale")
 @click.pass_context

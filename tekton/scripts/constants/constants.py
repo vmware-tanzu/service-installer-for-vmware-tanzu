@@ -8,7 +8,9 @@ TKG_EXTENSIONS_ROOT = {
     "1.3.1": "/tanzu/tkg-extensions-v1.3.1+vmware.1",
     "1.4.0": "/tanzu/tkg-standard-repo-v1.4.0",
     "1.4.1": "/tanzu/tkg-standard-repo-v1.4.1",
-    "1.5.3": "/tanzu/tkg-standard-repo-v1.5.3"
+    "1.5.3": "/tanzu/tkg-standard-repo-v1.5.3",
+    "1.5.4": "/tanzu/tkg-standard-repo-v1.5.4"
+
 
 }
 
@@ -18,7 +20,13 @@ CLUSTER_PLAN = ["dev", "prod"]
 
 
 class Paths(str, Enum):
+    #check the below two vars
+    VSPHERE_FLUENT_BIT_YAML = './common/template/fluent_bit_data_values.yaml'
+    CLUSTER_PATH = "/opt/vmware/arcas/tanzu-clusters/"
+
     MASTER_SPEC_PATH = "config/deployment-config.json"
+    TKGS_WCP_MASTER_SPEC_PATH = "config/deployment-config-wcp.json"
+    TKGS_NS_MASTER_SPEC_PATH = "config/deployment-config-ns.json"
     DESIRED_STATE_PATH = "desired-state/desired-state.yml"
     STATE_PATH = "deployment-state/state.yml"
     KUBECONFIG_REPO_PATH = "{root_dir}/kubeconfig-repo"
@@ -122,15 +130,15 @@ class Paths(str, Enum):
     EXTERNAL_DNS_EXTENSION_CONFIG = "service-discovery/external-dns/external-dns-extension.yaml"
 
 class MarketPlaceUrl:
-    URL = "https://gtwstg.market.csp.vmware.com"
-    API_URL = "https://apistg.market.csp.vmware.com"
-    PRODUCT_SEARCH_URL = API_URL + "/products?managed=false&filters={%22Publishers%22:[%223bcbbfe3-638a-4ef8-8d63-762f5a5e79a1%22]}"
+    URL = "https://gtw.marketplace.cloud.vmware.com"
+    API_URL = "https://api.marketplace.cloud.vmware.com"
+    PRODUCT_SEARCH_URL = API_URL + "/products?managed=false&filters={%22Publishers%22:[%22318e72f1-7215-41fa-9016-ef4528b82d0a%22]}"
     TANZU_PRODUCT = "Tanzu Kubernetes Grid"
     AVI_PRODUCT = "NSX Advanced Load Balancer"
 
 class UpgradeBinaries:
     binary_list = ['tanzu-cli-bundle-linux-amd64.tar',
-                   'kubectl-linux-v1-22-8-vmware-1-gz.gz',
+                   'kubectl-linux-v1-22-9-vmware-1-gz.gz',
                    'yq_linux_amd64-tar-gz.gz']
 
 class ControllerLocation:
@@ -144,7 +152,7 @@ class ControllerLocation:
     CONTROLLER_SE_WORKLOAD_NAME2 = "tkgvmc-workload-se02"
     SE_OVA_TEMPLATE_NAME = "tkgvmc-cloud01-avi-se"
     SUBSCRIBED_CONTENT_LIBRARY = "SubscribedAutomation-Lib"
-    MARKETPLACE_CONTROLLER_FILENAME = "controller-20-1641297052015.ova" #TODO: CHANGEMARKETPLACENAME
+    # MARKETPLACE_CONTROLLER_FILENAME = "controller-20-1641297052015.ova"
     MARKETPLACE_AVI_SOLUTION_NAME = "nsx-advanced-load-balancer-1"
     VSPHERE_AVI_VERSION = "20.1.7"
     OVA_LOCATION = ''
@@ -155,22 +163,23 @@ class ControllerLocation:
     CONTROLLER_NAME_VSPHERE3 = "tkg-vsphere-avi-ctrl-03"
 
 class KubernetesOva:
-    UBUNTU_KUBERNETES_FILE_NAME = "ubuntu-2004-kube-v1.22.8+vmware.1-tkg.2-5eab4250bf00d5e78c0f04257d03360e.ova"
-    PHOTON_KUBERNETES_FILE_NAME = "photon-3-kube-v1.22.8+vmware.1-tkg.1-d69148b2a4aa7ef6d5380cc365cac8cd.ova"
-    PHOTON_KUBERNETES_TEMPLATE_FILE_NAME = "photon-3-kube-v1.22.8+vmware.1"
-    UBUNTU_KUBERNETES__TEMPLATE_FILE_NAME = "ubuntu-2004-kube-v1.22.8+vmware.1"
+    UBUNTU_KUBERNETES_FILE_NAME = "ubuntu-2004-kube-v1.22.9+vmware.1-tkg.1-2182cbabee08edf480ee9bc5866d6933.ova"
+    PHOTON_KUBERNETES_FILE_NAME = "photon-3-kube-v1.22.9+vmware.1-tkg.1-06852a87cc9526f5368519a709525c68.ova"
+    PHOTON_KUBERNETES_TEMPLATE_FILE_NAME = "photon-3-kube-v1.22.9+vmware.1"
+    UBUNTU_KUBERNETES__TEMPLATE_FILE_NAME = "ubuntu-2004-kube-v1.22.9+vmware.1"
     MARKETPLACE_KUBERNETES_SOLUTION_NAME = "tanzu-kubernetes-grid-1-1"
     MARKETPLACE_UBUNTU_KUBERNETES_FILE_NAME = "arcas-ubuntu-kube"
     MARKETPLACE_PHOTON_KUBERNETES_FILE_NAME = "arcas-photon-kube"
     MARKETPLACE_PHOTON_GROUPNAME = "Photon-OVA"
     MARKETPLACE_UBUTNU_GROUPNAME = "Ubuntu-OVA"
-    KUBERNETES_OVA_LATEST_VERSION = "v1.22.8"
+    KUBERNETES_OVA_LATEST_VERSION = "v1.22.9"
+    TARGET_VERSION = "1.5.4"
 
 class UpgradeVersions:
-    UBUNTU_KUBERNETES_FILE_NAME = "ubuntu-2004-kube-v1.21.2+vmware.1-tkg.2-14542111852555356776.ova"
-    PHOTON_KUBERNETES_FILE_NAME = "photon-3-kube-v1.21.2+vmware.1-tkg.3-6345993713475494409.ova"
-    PHOTON_KUBERNETES_TEMPLATE_FILE_NAME = "photon-3-kube-v1.21.2+vmware.1"
-    UBUNTU_KUBERNETES__TEMPLATE_FILE_NAME = "ubuntu-2004-kube-v1.21.2+vmware.1"
+    UBUNTU_KUBERNETES_FILE_NAME = "ubuntu-2004-kube-v1.21.11-vmware.1-tkg.2-d788dbbb335710c0a0d1a28670057896.ova"
+    PHOTON_KUBERNETES_FILE_NAME = "photon-3-kube-v1.21.11-vmware.1-tkg.1-0262f0ab881e294df81498075207f2b5.ova"
+    PHOTON_KUBERNETES_TEMPLATE_FILE_NAME = "photon-3-kube-v1.22.8+vmware.1"
+    UBUNTU_KUBERNETES__TEMPLATE_FILE_NAME = "ubuntu-2004-kube-v1.22.8+vmware.1"
     KUBERNETES_OVA_LATEST_VERSION = "v1.22.8"
     TARGET_VERSION = "1.5.3"
     OLD_TKG_COMP_FILE = '/root/.config/tanzu/tkg/'
@@ -293,6 +302,7 @@ class Versions:
     ako = "v1.3.2_vmware.1"
     vcenter = "7.0.2.00000"
     VCENTER_UPDATE_THREE = "7.0.3"
+    VCENTER_UPDATE_TWO = "7.0.2"
 
 class Sizing:
     medium = {
@@ -724,7 +734,57 @@ class AppName:
     AKO = "ako"
     HARBOR = "harbor"
     FLUENT_BIT = "fluent-bit"
-    PROMETHUS = "prometheus"
+    PROMETHEUS = "prometheus"
     GRAFANA = "grafana"
     CERT_MANAGER = "cert-manager"
     CONTOUR = "contour"
+    PINNIPED = "pinniped"
+
+class Avi_Version:
+    VSPHERE_AVI_VERSION = "21.1.4"
+    VMC_AVI_VERSION = "21.1.4"
+    AVI_VERSION_UPDATE_THREE = "21.1.4"
+    AVI_VERSION_UPDATE_TWO = "21.1.4"
+
+class Tkg_version:
+    TKG_VERSION = "1.5"
+    TAG = "v1.5.4"
+
+class Extentions:
+    TKG_EXTENTION_LOCATION = "/root/tkg-extensions-v1.3.1+vmware.1/"
+    CONTOUR_LOCATION = TKG_EXTENTION_LOCATION + "extensions/ingress/contour"
+    HARBOR_LOCATION = TKG_EXTENTION_LOCATION + "extensions/registry/harbor"
+    FLUENT_BIT_LOCATION = TKG_EXTENTION_LOCATION + "extensions/logging/fluent-bit"
+    PROMETHUS_LOCATION = TKG_EXTENTION_LOCATION + "extensions/monitoring/prometheus"
+    GRAFANA_LOCATION = TKG_EXTENTION_LOCATION + "extensions/monitoring/grafana"
+    CERT_MANAGER_LOCATION = TKG_EXTENTION_LOCATION + "cert-manager"
+    CERT_MANAGER_CA_INJECTOR = "cert-manager-cainjector:v0.16.1_vmware.1"
+    CERT_MANAGER_CONTROLLER = "cert-manager-controller:v0.16.1_vmware.1"
+    CERT_MANAGER_WEB_HOOK = "cert-manager-webhook:v0.16.1_vmware.1"
+    APP_EXTENTION = "tkg-extensions-templates:v1.3.1_vmware.1"
+    BOM_LOCATION = "/root/.tanzu/tkg/bom/tkg-bom-v1.3.1.yaml"
+    BOM_LOCATION_14 = "/root/.config/tanzu/tkg/bom/tkg-bom-v1.5.4.yaml"
+
+class Tkg_Extention_names:
+    FLUENT_BIT_SYSLOG = "FluentBitSysLog"
+    FLUENT_BIT_HTTP = "FluentBitHttp"
+    FLUENT_BIT_ELASTIC = "FluentBitElastic"
+    FLUENT_BIT_KAFKA = "FluentBitKafka"
+    FLUENT_BIT_SPLUNK = "FluentBitSplunk"
+    GRAFANA = "Grafana"
+    LOGGING = "Logging"
+    PROMETHEUS = "Prometheus"
+    FLUENT_BIT = "Fluent-bit"
+
+class Tkgs_Extension_Details:
+    ROLE_NAME = "arcas-automation-authenticated-user-privileged-binding"
+    PACKAGE_REPO_URL = "projects.registry.vmware.com/tkg/packages/standard/repo:v1.5.0"
+    SUPPORTED_VERSIONS_U3 = ["v1.20.7+vmware.1-tkg.1.7fb9067", "v1.20.9+vmware.1-tkg.1.a4cee5b", "v1.20.12+vmware.1-tkg.1.b9a42f3",
+                          "v1.21.2+vmware.1-tkg.1.ee25d55", "v1.21.6+vmware.1-tkg.1.b3d708a", "v1.21.6+vmware.1-tkg.1"]
+    SUPPORTED_VERSIONS_U2 = ["v1.20.12+vmware.1-tkg.1.b9a42f3", "v1.19.7+vmware.1-tkg.1.fc82c41"]
+
+class TKG_Package_Details:
+    REPO_NAME = "tanzu-standard"
+    STANDARD_PACKAGE_URL = "projects.registry.vmware.com/tkg/packages/standard/repo"
+    REPOSITORY_URL = "projects.registry.vmware.com/tkg/packages/standard/repo:v1.5.4-update.1"
+    NAMESPACE = "tanzu-package-repo-global"

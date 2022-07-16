@@ -24,12 +24,12 @@ import sys
 sys.path.append(".../")
 from common.operation.vcenter_operations import checkVmPresent
 from common.operation.constants import ResourcePoolAndFolderName, GroupNameCgw, GroupNameMgw, FirewallRuleMgw, \
-    ControllerLocation
+    ControllerLocation, Paths
 from common.common_utilities import preChecks, envCheck, getClusterStatusOnTanzu, \
     getCloudStatus, getSECloudStatus, createResourceFolderAndWait, validateNetworkAvailable, checkTmcEnabled, \
     deployCluster, registerWithTmcOnSharedAndWorkload, registerTanzuObservability, registerTSM, \
     downloadAndPushKubernetesOvaMarketPlace, getKubeVersionFullName, getNetworkPathTMC, checkDataProtectionEnabled, \
-    enable_data_protection
+    enable_data_protection, createClusterFolder
 from common.operation.ShellHelper import runShellCommandAndReturnOutput, grabKubectlCommand, grabIpAddress, \
     verifyPodsAreRunning, grabPipeOutput, runShellCommandAndReturnOutputAsList, \
     runShellCommandAndReturnOutputAsListWithChangedDir, grabPipeOutputChagedDir, runShellCommandWithPolling
@@ -1134,7 +1134,11 @@ def deploy():
     management_cluster = request.get_json(force=True)['componentSpec']['tkgMgmtSpec']['tkgMgmtClusterName']
     kubernetes_ova_version = request.get_json(force=True)['componentSpec']['tkgWorkloadSpec']['tkgWorkloadKubeVersion']
     size = str(request.get_json(force=True)['componentSpec']['tkgWorkloadSpec']['tkgWorkloadSize'])
-    if size.lower() == "medium":
+    if size.lower() == "small":
+        cpu = Sizing.small['CPU']
+        memory = Sizing.small['MEMORY']
+        disk = Sizing.small['DISK']
+    elif size.lower() == "medium":
         cpu = Sizing.medium['CPU']
         memory = Sizing.medium['MEMORY']
         disk = Sizing.medium['DISK']
@@ -1152,10 +1156,10 @@ def deploy():
         disk = request.get_json(force=True)['componentSpec']['tkgWorkloadSpec']['tkgWorkloadStorageSize']
         memory = str(int(memory) * 1024)
     else:
-        current_app.logger.error("Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom")
+        current_app.logger.error("Provided cluster size: " + size + "is not supported, please provide one of: small/medium/large/extra-large/custom")
         d = {
             "responseType": "ERROR",
-            "msg": "Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom",
+            "msg": "Provided cluster size: " + size + "is not supported, please provide one of: small/medium/large/extra-large/custom",
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
@@ -1168,11 +1172,21 @@ def deploy():
     datacenter_path = "/" + data_center
     datastore_path = datacenter_path + "/datastore/" + data_store
     workload_folder_path = datacenter_path + "/vm/" + ResourcePoolAndFolderName.WORKLOAD_FOLDER
-    if parent_resourcepool is not None:
+    if parent_resourcepool:
         workload_resource_path = datacenter_path + "/host/" + cluster_name + "/Resources/" + parent_resourcepool + "/" + ResourcePoolAndFolderName.WORKLOAD_RESOURCE_POOL
     else:
         workload_resource_path = datacenter_path + "/host/" + cluster_name + "/Resources/" + ResourcePoolAndFolderName.WORKLOAD_RESOURCE_POOL
     workload_network_path = datacenter_path + "/network/" + SegmentsName.DISPLAY_NAME_TKG_WORKLOAD
+
+    if not createClusterFolder(workload_cluster_name):
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to create directory: " + Paths.CLUSTER_PATH + workload_cluster_name,
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    current_app.logger.info(
+        "The config files for shared services cluster will be located at: " + Paths.CLUSTER_PATH + workload_cluster_name)
     if Tkg_version.TKG_VERSION == "1.3":
         control_plane_end_point = request.get_json(force=True)['componentSpec']['tkgWorkloadSpec'][
             'TKG_Workload_ControlPlane_IP']
@@ -1287,7 +1301,7 @@ def deploy():
                     "ERROR_CODE": 500
                 }
                 return jsonify(d), 500
-            createAkoFile(ip, wip[0])
+            createAkoFile(ip, wip[0], workload_cluster_name)
             commands = ["tanzu", "management-cluster", "kubeconfig", "get", management_cluster, "--admin"]
             kubeContextCommand = grabKubectlCommand(commands, RegexPattern.SWITCH_CONTEXT_KUBECTL)
             if kubeContextCommand is None:
@@ -1308,7 +1322,7 @@ def deploy():
                     "ERROR_CODE": 500
                 }
                 return jsonify(d), 500
-            lisOfCommand = ["kubectl", "apply", "-f", "ako_workloadset1.yaml", "--validate=false"]
+            lisOfCommand = ["kubectl", "apply", "-f", Paths.CLUSTER_PATH + workload_cluster_name + '/ako_workloadset1.yaml', "--validate=false"]
             status = runShellCommandAndReturnOutputAsList(lisOfCommand)
             if status[1] != 0:
                 if not str(status[0]).__contains__("already has a value"):
@@ -1576,7 +1590,7 @@ def deploy():
                     "ERROR_CODE": 500
                 }
                 return jsonify(d), 500
-        current_app.logger.info(is_enabled[1])
+            current_app.logger.info(is_enabled[1])
     elif checkTmcEnabled(env):
         current_app.logger.info("Cluster is already deployed via TMC")
     else:
@@ -1666,14 +1680,14 @@ def getVipNetworkIpNetMask(ip, csrf2, aviVersion):
         return "NOT_FOUND", "FAILED"
 
 
-def createAkoFile(ip, wipCidr):
+def createAkoFile(ip, wipCidr, clusterName):
     data = dict(
         apiVersion='networking.tkg.tanzu.vmware.com/v1alpha1',
         kind='AKODeploymentConfig',
         metadata=dict(
             finalizers=['ako-operator.networking.tkg.tanzu.vmware.com'],
-            generation=2,
-            name='tkgvmc-ako-workload-set01'
+            generation=1,
+            name='install-ako-for-workload-set01'
         ),
         spec=dict(
             adminCredentialRef=dict(
@@ -1691,14 +1705,11 @@ def createAkoFile(ip, wipCidr):
             ),
             controller=ip,
             dataNetwork=dict(cidr=wipCidr, name=Cloud.WIP_WORKLOAD_NETWORK_NAME),
-            extraConfigs=dict(image=dict(pullPolicy='IfNotPresent', repository='projects.registry.vmware.com/tkg/ako',
-                                         version=Versions.ako),
-                              ingress=dict(defaultIngressController=False, disableIngressClass=True
-                                           )),
+            extraConfigs=dict(ingress=dict(defaultIngressController=False, disableIngressClass=True)),
             serviceEngineGroup=Cloud.SE_WORKLOAD_GROUP_NAME
         )
     )
-    with open('./ako_workloadset1.yaml', 'w') as outfile:
+    with open(Paths.CLUSTER_PATH + clusterName + '/ako_workloadset1.yaml', 'w') as outfile:
         yaml = ruamel.yaml.YAML()
         yaml.indent(mapping=2, sequence=4, offset=3)
         yaml.dump(data, outfile)

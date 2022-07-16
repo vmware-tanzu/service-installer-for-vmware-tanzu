@@ -15,7 +15,8 @@ spec:
     - name: branch
       description: the branch to clone from. By default, it is set to master.
       default: alpha
-
+    - name: imagepullpolicy
+      description: imagepullpolicy for operand image("Always", "IfNotPresent", "Never")
   tasks:
     - name: start-prep-workspace
       taskRef:
@@ -30,7 +31,8 @@ spec:
           value: "$(params.giturl)"
         - name: branch
           value: "$(params.branch)"
-
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
     - name: start-avi
       taskRef:
         name: avi-setup-task
@@ -40,6 +42,8 @@ spec:
       params:
         - name: imagename
           value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
       runAfter:
           - start-prep-workspace
 
@@ -52,6 +56,8 @@ spec:
       params:
         - name: imagename
           value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
       runAfter:
             - start-avi
 
@@ -64,6 +70,8 @@ spec:
       params:
         - name: imagename
           value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
       runAfter:
             - start-mgmt-create
 
@@ -76,7 +84,35 @@ spec:
       params:
         - name: imagename
           value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
       runAfter:
             - start-shared-cluster-create
-
-
+            
+    - name: start-extns-deploy
+      taskRef:
+        name: dind-extns-setup
+      workspaces:
+          - name: task-shared-data
+            workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+      runAfter:
+            - start-shared-cluster-create
+  finally:
+      - name: gitcommit
+        taskRef:
+            name: git-commit-task
+        workspaces:
+          - name: task-shared-data
+            workspace: pipeline-shared-data
+        params:
+          - name: imagename
+            value: "$(params.imagename)"
+          - name: imagepullpolicy
+            value: "$(params.imagepullpolicy)"
+          - name: branch
+            value: "$(params.branch)"

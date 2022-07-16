@@ -197,6 +197,27 @@
                     </clr-control-error>
                 </clr-input-container>
             </div>
+            <!-- Proxy Certificate -->
+            <div class="clr-col-12 clr-col-lg-4">
+                <div class="clr-form-control" [attr.data-step-metadata]="formName">
+                    <label for="proxyCert" class="clr-control-label" >
+                        PROXY CERTIFICATE (OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    A PEM formated proxy certificate. This is required only if proxy is handling SSL termination and using Self signed Certificate
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <div class="clr-control-container clr-col-12 no-gutters">
+                        <div class="clr-textarea-wrapper">
+                            <textarea formControlName="proxyCert" id="proxyCert" placeholder="" class="clr-textarea"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="clr-col-4">
                 <button [clrLoading]="loadingState"
                         [disabled]="!this.formGroup.get('httpProxyUrl').valid || this.apiClient.proxyConfiguredVsphere"

@@ -91,6 +91,9 @@ class GovcClient:
         options = ''
         if wait_time:
             options += f'-wait {wait_time}'
+        if self.get_vm_power_state(vm_name=vm_name) == VmPowerState.OFF:
+            current_app.logger.warn(vm_name + " is in power-off state")
+            return None
         cmd = GovcCommands.GET_VM_IP.format(name=vm_name, datacenter=datacenter_name, options=options)
         exit_code, output = self.cmd_runner.run_cmd_output(cmd)
         return output if output is None or output.strip() == '' else output.strip().split('\n')

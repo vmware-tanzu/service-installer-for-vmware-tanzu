@@ -55,6 +55,7 @@ class RaWorkloadClusterWorkflow:
         jsonpath = os.path.join(self.run_config.root_dir, Paths.MASTER_SPEC_PATH)
         with open(jsonpath) as f:
             self.jsonspec = json.load(f)
+        self.rcmd = RunCmd()
         self.clusterops = RaMgmtClusterWorkflow(self.run_config)
 
         check_env_output = checkenv(self.jsonspec)
@@ -560,6 +561,12 @@ class RaWorkloadClusterWorkflow:
                 "ERROR_CODE": 500
             }
             raise Exception
+
+        # Init tanzu cli plugins
+        tanzu_init_cmd = "tanzu plugin sync"
+        command_status = self.rcmd.run_cmd_output(tanzu_init_cmd)
+        logger.debug("Tanzu plugin output: {}".format(command_status))
+
         podRunninng = ["tanzu", "cluster", "list"]
         command_status = runShellCommandAndReturnOutputAsList(podRunninng)
         if command_status[1] != 0:

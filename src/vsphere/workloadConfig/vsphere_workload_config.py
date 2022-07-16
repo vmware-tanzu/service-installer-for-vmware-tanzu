@@ -21,7 +21,7 @@ sys.path.append(".../")
 from common.operation.vcenter_operations import createResourcePool, create_folder, checkforIpAddress, getSi, \
     checkVmPresent
 from common.operation.constants import ResourcePoolAndFolderName, Vcenter, GroupNameCgw, GroupNameMgw, FirewallRuleMgw, \
-    ControllerLocation, Env, Policy_Name
+    ControllerLocation, Env, Policy_Name, Paths, TmcUser
 from common.common_utilities import isAviHaEnabled,getDomainName, getTier1Details, grabNsxtHeaders, getList, obtain_second_csrf, \
     preChecks, get_avi_version, envCheck, getClusterStatusOnTanzu, \
     getCloudStatus, getSECloudStatus, createResourceFolderAndWait, getVrfAndNextRoutId, addStaticRoute, VrfType, \
@@ -31,9 +31,9 @@ from common.common_utilities import isAviHaEnabled,getDomainName, getTier1Detail
     checkTmcEnabled, isEnvTkgs_ns, checTSMEnabled, checkToEnabled, getKubeVersionFullName, getNetworkPathTMC, \
     createProxyCredentialsTMC, checkTmcRegister, checkDataProtectionEnabled, enable_data_protection, \
     checkEnableIdentityManagement, checkPinnipedInstalled, checkPinnipedServiceStatus, \
-    checkPinnipedDexServiceStatus, createRbacUsers
+    checkPinnipedDexServiceStatus, createRbacUsers, createClusterFolder
 from common.operation.ShellHelper import runShellCommandAndReturnOutput, grabKubectlCommand, grabIpAddress, \
-    verifyPodsAreRunning, grabPipeOutput, runShellCommandAndReturnOutputAsList, \
+    verifyPodsAreRunning, grabPipeOutput, runShellCommandAndReturnOutputAsList, runProcess, \
     runShellCommandAndReturnOutputAsListWithChangedDir, grabPipeOutputChagedDir, runShellCommandWithPolling
 from common.operation.constants import SegmentsName, RegexPattern, Versions, AkoType, AppName, FirewallRuleCgw, \
     ServiceName, \
@@ -388,8 +388,18 @@ def networkConfig():
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
-    createAkoFile(ip, wip[0], data_network_workload, env)
-    lisOfCommand = ["kubectl", "apply", "-f", "ako_vsphere_workloadset1.yaml", "--validate=false"]
+    workload_cluster_name = request.get_json(force=True)['tkgWorkloadComponents']['tkgWorkloadClusterName']
+    if not createClusterFolder(workload_cluster_name):
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to create directory: " + Paths.CLUSTER_PATH + workload_cluster_name,
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    current_app.logger.info(
+        "The config files for shared services cluster will be located at: " + Paths.CLUSTER_PATH + workload_cluster_name)
+    createAkoFile(ip, workload_cluster_name, wip[0], data_network_workload, env)
+    lisOfCommand = ["kubectl", "apply", "-f", Paths.CLUSTER_PATH + workload_cluster_name + "/ako_vsphere_workloadset1.yaml", "--validate=false"]
     status = runShellCommandAndReturnOutputAsList(lisOfCommand)
     if status[1] != 0:
         if not str(status[0]).__contains__("already has a value"):
@@ -825,7 +835,11 @@ def deploy():
         }
         return jsonify(d), 500
     size = str(request.get_json(force=True)['tkgWorkloadComponents']['tkgWorkloadSize'])
-    if size.lower() == "medium":
+    if size.lower() == "small":
+        cpu = Sizing.small['CPU']
+        memory = Sizing.small['MEMORY']
+        disk = Sizing.small['DISK']
+    elif size.lower() == "medium":
         cpu = Sizing.medium['CPU']
         memory = Sizing.medium['MEMORY']
         disk = Sizing.medium['DISK']
@@ -846,10 +860,12 @@ def deploy():
             'tkgWorkloadMemorySize']
         memory = str(int(control_plane_mem_gb) * 1024)
     else:
-        current_app.logger.error("Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom")
+        current_app.logger.error("Provided cluster size: " + size + "is not supported, please provide one of: "
+                                                                    "small/medium/large/extra-large/custom")
         d = {
             "responseType": "ERROR",
-            "msg": "Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom",
+            "msg": "Provided cluster size: " + size + "is not supported, please provide one of: "
+                                                      "small/medium/large/extra-large/custom",
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
@@ -1000,10 +1016,14 @@ def deploy():
     found = False
     if command_status[0] is None:
         if Tkg_version.TKG_VERSION == "1.5" and checkTmcEnabled(env):
-            current_app.logger.info("Deploying shared cluster")
+            current_app.logger.info("Deploying Workload cluster")
             for i in tqdm(range(150), desc="Waiting for folder to be available in tmc…", ascii=False, ncols=75):
                 time.sleep(1)
             current_app.logger.info("Deploying workload cluster")
+            os.putenv("TMC_API_TOKEN",
+                      request.get_json(force=True)["envSpec"]["saasEndpoints"]['tmcDetails']['tmcRefreshToken'])
+            listOfCmdTmcLogin = ["tmc", "login", "--no-configure", "-name", TmcUser.USER_VSPHERE]
+            runProcess(listOfCmdTmcLogin)
             command_status = runShellCommandAndReturnOutputAsList(createWorkloadCluster)
             if command_status[1] != 0:
                 current_app.logger.error("Failed to run command to create workload cluster " + str(command_status[0]))
@@ -1037,6 +1057,10 @@ def deploy():
             else:
                 if checkTmcEnabled(env):
                     current_app.logger.info("Deploying workload cluster, after verification, using tmc")
+                    os.putenv("TMC_API_TOKEN",
+                              request.get_json(force=True)["envSpec"]["saasEndpoints"]['tmcDetails']['tmcRefreshToken'])
+                    listOfCmdTmcLogin = ["tmc", "login", "--no-configure", "-name", TmcUser.USER_VSPHERE]
+                    runProcess(listOfCmdTmcLogin)
                     command_status_v = runShellCommandAndReturnOutputAsList(createWorkloadCluster)
                     if command_status_v[1] != 0:
                         for i in tqdm(range(150), desc="Waiting for folders to be available in tmc…", ascii=False,
@@ -1159,7 +1183,7 @@ def deploy():
         }
         return jsonify(d), 500
     current_app.logger.info(
-        "Succesfully configured workload cluster and ako pods are running on waiting " + str(count_ako * 30))
+        "Successfully configured workload cluster and ako pods are running on waiting " + str(count_ako * 30))
     if checkEnableIdentityManagement(env):
         current_app.logger.info("Validating pinniped installation status")
         check_pinniped = checkPinnipedInstalled()
@@ -1325,7 +1349,7 @@ def getVipNetworkIpNetMask(ip, csrf2, name, aviVersion):
         return "NOT_FOUND", "FAILED"
 
 
-def createAkoFile(ip, wipCidr, tkgMgmtDataPg, env):
+def createAkoFile(ip, cluster_name, wipCidr, tkgMgmtDataPg, env):
     if checkAirGappedIsEnabled(env):
         air_gapped_repo = str(
             request.get_json(force=True)['envSpec']['customRepositorySpec']['tkgCustomImageRepository'])
@@ -1339,8 +1363,8 @@ def createAkoFile(ip, wipCidr, tkgMgmtDataPg, env):
         kind='AKODeploymentConfig',
         metadata=dict(
             finalizers=['ako-operator.networking.tkg.tanzu.vmware.com'],
-            generation=2,
-            name='tkgvsphere-ako-workload-set01'
+            generation=1,
+            name='install-ako-for-workload-set01'
         ),
         spec=dict(
             adminCredentialRef=dict(
@@ -1358,14 +1382,11 @@ def createAkoFile(ip, wipCidr, tkgMgmtDataPg, env):
             ),
             controller=ip,
             dataNetwork=dict(cidr=wipCidr, name=tkgMgmtDataPg),
-            extraConfigs=dict(image=dict(pullPolicy='IfNotPresent', repository=repository,
-                                         version=Versions.ako),
-                              ingress=dict(defaultIngressController=False, disableIngressClass=True
-                                           )),
+            extraConfigs=dict(ingress=dict(defaultIngressController=False, disableIngressClass=True)),
             serviceEngineGroup=Cloud.SE_WORKLOAD_GROUP_NAME_VSPHERE
         )
     )
-    with open('./ako_vsphere_workloadset1.yaml', 'w') as outfile:
+    with open(Paths.CLUSTER_PATH + cluster_name + '/ako_vsphere_workloadset1.yaml', 'w') as outfile:
         yaml = ruamel.yaml.YAML()
         yaml.indent(mapping=2, sequence=4, offset=3)
         yaml.dump(data, outfile)

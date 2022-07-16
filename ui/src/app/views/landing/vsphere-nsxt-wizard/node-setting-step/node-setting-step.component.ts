@@ -54,6 +54,7 @@ export class NodeSettingStepComponent extends StepFormDirective implements OnIni
     private httpsProxyUsername;
     private httpsProxyPassword;
     private noProxy;
+    private proxyCert;
     private enableProxy;
     private controlPlaneSetting;
     private devInstanceType;
@@ -153,9 +154,9 @@ export class NodeSettingStepComponent extends StepFormDirective implements OnIni
         this.formGroup.addControl('mgmtCpu',
             new FormControl('', [Validators.min(2)]));
         this.formGroup.addControl('mgmtMemory',
-            new FormControl('', [Validators.min(8)]));
+            new FormControl('', [Validators.min(4)]));
         this.formGroup.addControl('mgmtStorage',
-            new FormControl('', [Validators.min(40)]));
+            new FormControl('', [Validators.min(20)]));
         this.formGroup.addControl('clusterGroupName', 
             new FormControl('', []));
             this.networks = this.apiClient.networks;
@@ -167,6 +168,7 @@ export class NodeSettingStepComponent extends StepFormDirective implements OnIni
                     ['httpsProxyUsername', ''],
                     ['httpsProxyPassword', ''],
                     ['noProxy', ''],
+                    ['proxyCert', ''],
                 ];
         fieldsMapping.forEach((field) => {
             this.formGroup.addControl(field[0], new FormControl(field[1], []));
@@ -274,7 +276,9 @@ export class NodeSettingStepComponent extends StepFormDirective implements OnIni
                 this.subscription = this.dataService.currentArcasNoProxy.subscribe(
                     (noProxy) => this.noProxy = noProxy);
                 this.formGroup.get('noProxy').setValue(this.noProxy);
-
+                this.subscription = this.dataService.currentArcasProxyCertificate.subscribe(
+                    (proxyCert) => this.proxyCert = proxyCert);
+                this.formGroup.get('proxyCert').setValue(this.proxyCert);
                 this.subscription = this.dataService.currentArcasHttpsProxyUrl.subscribe(
                     (httpsProxyUrl) => this.httpsProxyUrl = httpsProxyUrl);
                 this.formGroup.get('httpsProxyUrl').setValue(this.httpsProxyUrl);
@@ -362,7 +366,9 @@ export class NodeSettingStepComponent extends StepFormDirective implements OnIni
                 this.subscription = this.dataService.currentMgmtNoProxy.subscribe(
                     (noProxy) => this.noProxy = noProxy);
                 this.formGroup.get('noProxy').setValue(this.noProxy);
-
+                this.subscription = this.dataService.currentMgmtProxyCert.subscribe(
+                    (proxyCert) => this.proxyCert = proxyCert);
+                this.formGroup.get('proxyCert').setValue(this.proxyCert);
                 this.subscription = this.dataService.currentMgmtHttpsProxyUrl.subscribe(
                     (httpsProxyUrl) => this.httpsProxyUrl = httpsProxyUrl);
                 this.formGroup.get('httpsProxyUrl').setValue(this.httpsProxyUrl);
@@ -416,6 +422,7 @@ export class NodeSettingStepComponent extends StepFormDirective implements OnIni
                 this.formGroup.get('httpsProxyUsername').setValue(this.httpsProxyUsername);
                 this.formGroup.get('httpsProxyPassword').setValue(this.httpsProxyPassword);
                 this.formGroup.get('noProxy').setValue(this.noProxy);
+                this.formGroup.get('proxyCert').setValue(this.proxyCert);
                 this.formGroup.get('segmentName').setValue('');
             } else {
                 this.formGroup.get('httpProxyPassword').setValue('');
@@ -528,6 +535,7 @@ export class NodeSettingStepComponent extends StepFormDirective implements OnIni
             'httpsProxyUsername',
             'httpsProxyPassword',
             'noProxy',
+            'proxyCert',
         ];
         if (this.formGroup.value['proxySettings']) {
             this.resurrectField('httpProxyUrl', [
@@ -541,6 +549,8 @@ export class NodeSettingStepComponent extends StepFormDirective implements OnIni
             this.resurrectField('noProxy', [
                 this.validationService.noWhitespaceOnEnds()
             ], this.formGroup.value['noProxy']);
+            this.resurrectField('proxyCert', [
+            ], this.formGroup.value['proxyCert']);
             if (!this.formGroup.value['isSameAsHttp']) {
                 this.resurrectField('httpsProxyUsername', [
                     this.validationService.noWhitespaceOnEnds()
@@ -583,11 +593,11 @@ export class NodeSettingStepComponent extends StepFormDirective implements OnIni
                     this.formGroup.value['mgmtCpu']);
                 this.resurrectField('mgmtMemory', [
                     Validators.required,
-                    Validators.min(8)],
+                    Validators.min(4)],
                     this.formGroup.value['mgmtMemory']);
                 this.resurrectField('mgmtStorage', [
                     Validators.required,
-                    Validators.min(40)],
+                    Validators.min(20)],
                     this.formGroup.value['mgmtStorage']);
             } else {
                 storageFields.forEach((field) => {

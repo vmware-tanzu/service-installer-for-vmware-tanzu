@@ -1,49 +1,80 @@
-# Service Installer for VMware Tanzu 1.2 Release Notes
+# Service Installer for VMware Tanzu 1.3 Release Notes
 
-## <a id="new"></a> What's New
+## What's New
 
-- Support for Tanzu Kubernetes Grid 1.5.3 and Day 0 support in Tekton-based pipelines.
-- Ability to cleanup the steps performed by Service Installer for VMware Tanzu and start from scratch.
-- Support for the following extensions:
-    - Fluent Bit with Kafka, HTTP ,and Syslog endpoints.
-    - Pinniped with OIDC and LDAP identity management.
-    - Velero.
-- The Service Installer user interface includes the following pre-checks:
-    - Name resolution check for NSX Advanced Load Balancer.
-    - Ping check for vSphere with Tanzu management cluster IPs and NSX Load Balancer IPs.
-- Support for deployments in an Internet-restricted environment.
-- Support for single network topology.
-- Support for minimum user privilege.
+### AWS Automation Enhancements and Compliance Support
 
-## Service Installer for VMware Tanzu Deployment JSON Files
-This release adds new fields to the JSON files. The new fields correspond to new extensions that are supported in this release.
+- Support for Tanzu Kubernetes Grid (TKG) 1.5.3 deployment on federal air-gapped AWS with STIG hardening and FIPS compliance
+- Support for Tanzu Kubernetes Grid (TKG) 1.5.3 deployment on internet-connected AWS (compliant and non-compliant)
+- Ability to deploy management and workload clusters
+- Support for deploying the following extensions:
 
-To update your JSON files, see the sample JSON files included with this release or generate a new file from Service Installer user interface.
+  - Harbor
+  - Prometheus
+  - Grafana
+  - Fluent Bit
+  - Contour
+  - Cert-Manager
+  - Pinniped with OIDC and LDAP identity management
+- Support for Tanzu Kubernetes Grid deployment with Ubuntu 18.04 (Ubuntu OS image is STIG hardened/FIPS compliant + TKG FIPS enabled) for airgap deployment
+- Support for Tanzu Kubernetes Grid deployment with Amazon Linux 2 (AL2 vanilla OS image + TKG FIPS enabled) for airgap deployment
+- Support for Tanzu Kubernetes Grid deployment with Ubuntu 18.04 (compliant and non-compliant)
+- Clean up feature - Ability to destroy the deployments performed by Service Installer for VMware Tanzu (SIVT) and start from scratch
+- GP2 volume support for Amazon Linux 2 and Ubuntu 18.04 for airgap deployment
+- Enhanced pre-checks for the user inputs and graceful handling of failures
+- Enhanced pre-checks to validate VPC endpoints needed for airgapped deployment.
+- User-friendly error messages and debug messages
+- Make targets are modularised into independently deployable components
+- Tarballs containing all the dependencies are made available to enable users to easily transfer all the required binaries to airgap environment
+  - `service-installer-for-AWS-Tanzu-1.3.tar.gz` - Tarball containing all the automation scripts and deployment dependencies for non-airgap compliant and non-compliant deployments.
+  - `service-installer-for-AWS-Tanzu-with-Dependency-1.3.tar.gz` - Tarball containing all the Tanzu Kubernetes Grid / Tanzu Kubernetes releases (TKR) FIPS binaries, Harbor, deployment dependencies, and automation scripts, to address following deployment usecases for airgap deployment
+      - Automated Federal compliant deployment
+      - Manual deployment (in case user wants to deploy by following the reference architecture and deployment guide)
 
-The following separate JSON files for each platform are available:
+### vSphere Enhancements
 
-  - [VMware Cloud on AWS](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.2/service-installer/GUID-VMware%20Cloud%20on%20AWS%20-%20VMC-TKOonVMConAWS.html#sample-input-file-7)
-  - [vSphere - Backed by NSX-T](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.2/service-installer/GUID-vSphere%20-%20Backed%20by%20NSX-T-tkoVsphereNSXT.html#sample-input-file-4)
-  - [vSphere - Backed by VDS and Tanzu Kubernetes Grid](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.1/service-installer/GUID-vSphere%20-%20Backed%20by%20VDS-TKGm-TKOonVsphereVDStkg.html#sample-input-file-5)
-  - [vSphere - Backed by VDS and Tanzu Kubernetes Grid Service](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/1.1/service-installer/GUID-vSphere%20-%20Backed%20by%20VDS-TKGs-TKOonVsphereVDStkgs.html#sample-input-file-4)
+- Support for Tanzu Kubernetes Grid 1.5.4 along with AVI 21.1.4
+- Support for customisation of Tanzu Kubernetes Grid Service configuration
+  - CNI - User can use either Antrea or Calico
+  - Support for Trusted CA certificate
+- Support for bring your own certificate (BYOC) / user certificate for Tanzu Kubernetes Grid proxy based deployments
+- Additional volume support for Tanzu Kubernetes Grid Service
+- Additional customisations for user-managed packages by exposing the YAML
+- Auto-completion of `arcas` commands feature
+- Implemented k alias names for `kubectl`
+- Service Installer for VMware Tanzu UI allows to skip shared services cluster and workload cluster deployments
+- Support for updated packages for Photon 3.0 operating system
 
-## <a id="resolved-issues"></a> Resolved Issues
-- <a id="MAPBUA-570"> </a> Resource pool creation fails if resource pool with same name exists in parent resource pool.
-- <a id="MAPBUA-569"> </a> Tanzu Kubernetes Grid Service issue while listing clusters for same cluster names across different datacenter.
-- <a id="MAPBUA-597"> </a> Issue with Signed certificates for NSX Advanced Load Balancer in Tanzu Kubernetes Grid Service deployment.
-- <a id="MAPBUA-606"> </a> Configure vSphere `kubectl` plugin before fetching TKr version.
-- <a id="MAPBUA-611"> </a> UI tooltip for workload cluster points to wrong pod and service CIDR.
-- <a id="MAPBUA-618"> </a> Add System message of day in Service Installer for VMware Tanzu VM.
-- <a id="MAPBUA-627"> </a> Space in datacenter and cluster name govc command id failing to create resources.
-- <a id="MAPBUA-667"> </a> Folders are listed along with clusters in UI cluster dropdown.
-- <a id="MAPBUA-736"> </a> Comma separated NTP values validation fails.
-- <a id="MAPBUA-690"> </a> Include Network troubleshooting binaries in Service Installer for VMware Tanzu OVA.
+## Resolved Issues
+
+- Datacenter, cluster, and datastores now support sub-folder structure.
+- Tanzu Service Mesh (TSM) and Tanzu Observability (TO) node size restrictions are made liberal now.
+- Work around steps for Contour issue on shared services cluster
+- WCP enablement fails with DNS compliant errors
+- Shared services and workload cluster deployment failure in VMC on AWS environment when no parent resource pool is selected in the SIVT UI
+- Allow user to retain installed OVA and susbcribed content lib after SIVT cleanup is used
+- Arcas with TMC integration of vSphere supervisor cluster fails workload cluster creation: could not find VMClass for nodepool
+- Add pre-check for valid avi-password-base64 and avi-backup-passphrase-base64 values
+
 
 ## Known Issues
-- <a id="TKG-11079"> </a> Contour package installation failure in workload cluster.
-- <a id="GCM-6212"> </a> Workload clusters integration with TSM is failing for vSphere with Tanzu
-- Deployment on Proxy environment is not supported. This will be addressed in next release.
-- Complex passwords for proxy server won't work. Passwords can contain only alphanumeric characters.
+
+- Tanzu Kubernetes Grid Service proxy deployment is not supported in this release.
+- TKGm Management cluster creation with proxy is failing with unable to update no_proxy config on kube-api server. This is not a SIVT issue.
+- TMC integration of management and workload clusters fails for AWS non air-gapped compliant deployment, due to a known issue in the TMC API.
+- Prometheus deployment fails if SaaS is enabled in non-airgap AWS deployment.
+- Harbor deployment fails both with and without SaaS in multi workload cluster configurations in non-airgap AWS deployment.
+- In case you are using proxy with self-signed or custom CA certificate, SIVT fails to pull the kind image while deploying Tanzu Kubernetes Grid management cluster in a vSphere VDS environment.</br>
+   
+   **Resolution:** Before initiating the deployment with SIVT, perform the following steps:
+     
+    1. Import the proxy certificate into the SIVT VM.
+    1. Run the following commands: 
+        ```
+        cat proxy-cert.pem >> /etc/pki/tls/certs/ca-bundle.crt
+        systemctl restart docker
+        ```
 
 ## Download
-- Download the latest Service Installer OVA from [VMware Marketplace: Service Installer for VMware Tanzu](https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true).
+
+- Download the Service Installer OVA and AWS solutions from [VMware Marketplace: Service Installer for VMware Tanzu](https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true).

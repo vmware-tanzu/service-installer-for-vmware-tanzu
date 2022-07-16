@@ -53,8 +53,25 @@
          ],
          "tkgsVsphereWorkloadClusterSpec":{
             "tkgsVsphereNamespaceName":"workload",
+            "cniName": "antrea"
             "tkgsVsphereWorkloadClusterName":"workload-cls",
             "tkgsVsphereWorkloadClusterVersion":"v1.21.6+vmware.1-tkg.1.b3d708a",
+            "controlPlaneVolumes": [
+                {
+                   "name":"",
+                   "mountPath": "",
+                   "storage": "",
+                   "storageClass": ""
+                }
+            ],
+            "workerVolumes": [
+                {
+                   "name":"",
+                   "mountPath": "",
+                   "storage": "",
+                   "storageClass": ""
+                }
+            ],
             "allowedStorageClasses":[
                "vSAN Default Storage Policy"
             ],
@@ -76,7 +93,21 @@
             "tkgWorkloadClusterCredential":"",
             "tkgWorkloadClusterBackupLocation":""
          }
-      }
+      },
+          "tkgServiceConfig": {
+              "proxySpec": {
+                  "enableProxy": "",
+                  "httpProxy": "",
+                  "httpsProxy": "",
+                  "noProxy": "",
+                  "proxyCert": ""
+              },
+              "defaultCNI": "",
+              "additionalTrustedCAs": {
+                  "paths": "",
+                  "endpointUrls": ""
+              }
+          }
    },
    "harborSpec":{
       "enableHarborExtension":"true",

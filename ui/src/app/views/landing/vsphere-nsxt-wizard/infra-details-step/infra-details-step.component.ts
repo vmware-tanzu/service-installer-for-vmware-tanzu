@@ -44,6 +44,7 @@ export class InfraDataStepComponent extends StepFormDirective implements OnInit 
     private httpsProxyPassword;
     private noProxy;
     private enableProxy;
+    private proxyCert;
 
     constructor(private validationService: ValidationService,
                 private wizardFormService: VSphereWizardFormService,
@@ -56,14 +57,6 @@ export class InfraDataStepComponent extends StepFormDirective implements OnInit 
 
     ngOnInit() {
         super.ngOnInit();
-        // this.formGroup.addControl('ntpServer', new FormControl('', [
-        //     Validators.required,
-        //     this.validationService.isCommaSeparatedIpsOrFqdn()]
-        // ));
-        // this.formGroup.addControl('dnsServer', new FormControl('', [
-        //     Validators.required,
-        //     this.validationService.isCommaSeparatedIpsOrFqdn()]
-        // ));
 
         const fieldsMapping = [
             ['httpProxyUrl', ''],
@@ -73,6 +66,7 @@ export class InfraDataStepComponent extends StepFormDirective implements OnInit 
             ['httpsProxyUsername', ''],
             ['httpsProxyPassword', ''],
             ['noProxy', ''],
+            ['proxyCert', ''],
         ];
         fieldsMapping.forEach(field => {
             this.formGroup.addControl(field[0], new FormControl(field[1], []));
@@ -117,6 +111,9 @@ export class InfraDataStepComponent extends StepFormDirective implements OnInit 
                 this.subscription = this.dataService.currentArcasNoProxy.subscribe(
                     (noProxy) => this.noProxy = noProxy);
                 this.formGroup.get('noProxy').setValue(this.noProxy);
+                this.subscription = this.dataService.currentArcasProxyCertificate.subscribe(
+                    (proxyCert) => this.proxyCert = proxyCert);
+                this.formGroup.get('proxyCert').setValue(this.proxyCert);
             }
         });
         //
@@ -176,10 +173,9 @@ export class InfraDataStepComponent extends StepFormDirective implements OnInit 
         if (!(this.apiClient.proxyConfiguredVCF) && arcasEnableProxy) {
             const httpProxy = this.getArcasHttpProxyParam();
             const httpsProxy = this.getArcasHttpsProxy();
-            // this.apiClient.proxyConfiguredVCF = true;
-            // this.loadingState = ClrLoadingState.DEFAULT;
-            // this.disabledProxy = false;
-            this.apiClient.enableArcasProxy(httpProxy, httpsProxy, arcasNoProxy, 'vsphere').subscribe((data: any) => {
+            const proxyCert = this.formGroup.get('proxyCert').value;
+
+            this.apiClient.enableArcasProxy(httpProxy, httpsProxy, arcasNoProxy, proxyCert, 'vsphere').subscribe((data: any) => {
                 if (data && data !== null) {
                     if (data.responseType === 'SUCCESS') {
                         this.apiClient.proxyConfiguredVCF = true;
@@ -299,6 +295,7 @@ export class InfraDataStepComponent extends StepFormDirective implements OnInit 
             'httpsProxyUsername',
             'httpsProxyPassword',
             'noProxy',
+            'proxyCert',
         ];
         if (this.formGroup.value['proxySettings']) {
             this.apiClient.arcasProxyEnabled = true;
@@ -313,6 +310,8 @@ export class InfraDataStepComponent extends StepFormDirective implements OnInit 
             this.resurrectField('noProxy', [
                 this.validationService.noWhitespaceOnEnds()
             ], this.formGroup.value['noProxy']);
+            this.resurrectField('proxyCert', [
+            ], this.formGroup.value['proxyCert']);
             if (!this.formGroup.value['isSameAsHttp']) {
                 this.resurrectField('httpsProxyUrl', [
                     Validators.required,

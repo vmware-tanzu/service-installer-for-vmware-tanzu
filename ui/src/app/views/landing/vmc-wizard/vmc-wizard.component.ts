@@ -346,6 +346,7 @@ export class VMCWizardComponent extends WizardBaseDirective implements OnInit {
     }
 
     public getPayload() {
+        let workloadGiven = this.apiClient.workloadClusterSettings && this.apiClient.workloadDataSettings;
         const payload = {
             'envSpec': {
                 'sddcRefreshToken': this.getFieldValue('vmcProviderForm', 'sddcToken'),
@@ -361,6 +362,7 @@ export class VMCWizardComponent extends WizardBaseDirective implements OnInit {
             'marketplaceSpec': {
                 'refreshToken': this.getFieldValue('vmcProviderForm', 'marketplaceRefreshToken'),
             },
+            'ceipParticipation' : this.getStringBoolFieldValue('vmcProviderForm', 'isCeipEnabled'),
             'envVariablesSpec': {
                 'dnsServersIp': this.getFieldValue('dnsNtpForm', 'dnsServer'),
                 'searchDomains': this.getFieldValue('dnsNtpForm', 'searchDomain'),
@@ -483,45 +485,45 @@ export class VMCWizardComponent extends WizardBaseDirective implements OnInit {
                     'tkgMgmtDataServiceEndRange': this.getFieldValue('vmcTKGMgmtDataNWForm', 'TKGMgmtServiceEndRange'),
                 },
                 'tkgWorkloadDataNetworkSpec': {
-                    'tkgWorkloadDataGatewayCidr': this.getFieldValue('vmcTKGWorkloadDataNWForm', 'TKGDataGatewayCidr'),
-                    'tkgWorkloadDataDhcpStartRange': this.getFieldValue('vmcTKGWorkloadDataNWForm', 'TKGDataDhcpStartRange'),
-                    'tkgWorkloadDataDhcpEndRange': this.getFieldValue('vmcTKGWorkloadDataNWForm', 'TKGDataDhcpEndRange'),
-                    'tkgWorkloadDataServiceStartRange': this.getFieldValue('vmcTKGWorkloadDataNWForm', 'TKGWrkServiceStartRange'),
-                    'tkgWorkloadDataServiceEndRange': this.getFieldValue('vmcTKGWorkloadDataNWForm', 'TKGWrkServiceEndRange'),
+                    'tkgWorkloadDataGatewayCidr': !workloadGiven ? "" : this.getFieldValue('vmcTKGWorkloadDataNWForm', 'TKGDataGatewayCidr'),
+                    'tkgWorkloadDataDhcpStartRange': !workloadGiven ? "" : this.getFieldValue('vmcTKGWorkloadDataNWForm', 'TKGDataDhcpStartRange'),
+                    'tkgWorkloadDataDhcpEndRange': !workloadGiven ? "" : this.getFieldValue('vmcTKGWorkloadDataNWForm', 'TKGDataDhcpEndRange'),
+                    'tkgWorkloadDataServiceStartRange': !workloadGiven ? "" : this.getFieldValue('vmcTKGWorkloadDataNWForm', 'TKGWrkServiceStartRange'),
+                    'tkgWorkloadDataServiceEndRange': !workloadGiven? "" : this.getFieldValue('vmcTKGWorkloadDataNWForm', 'TKGWrkServiceEndRange'),
                 },
                 'tkgWorkloadSpec': {
-                    'tkgWorkloadGatewayCidr': this.getFieldValue('vmcWorkloadNodeSettingForm', 'gatewayAddress'),
-                    'tkgWorkloadDhcpStartRange': this.getFieldValue('vmcWorkloadNodeSettingForm', 'workloadDhcpStartRange'),
-                    'tkgWorkloadDhcpEndRange': this.getFieldValue('vmcWorkloadNodeSettingForm', 'workloadDhcpEndRange'),
-                    'tkgWorkloadClusterName': this.getFieldValue('vmcWorkloadNodeSettingForm', 'clusterName'),
-                    'tkgWorkloadSize': this.getWorkloadClusterSize(),
-                    'tkgWorkloadCpuSize': this.getFieldValue('vmcWorkloadNodeSettingForm', 'wrkCpu').toString(),
-                    'tkgWorkloadMemorySize': this.getFieldValue('vmcWorkloadNodeSettingForm', 'wrkMemory').toString(),
-                    'tkgWorkloadStorageSize': this.getFieldValue('vmcWorkloadNodeSettingForm', 'wrkStorage').toString(),
-                    'tkgWorkloadDeploymentType': this.getFieldValue('vmcWorkloadNodeSettingForm', 'controlPlaneSetting'),
-                    'tkgWorkloadWorkerMachineCount': this.getFieldValue('vmcWorkloadNodeSettingForm', 'workerNodeCount').toString(),
-                    'tkgWorkloadClusterCidr': this.getFieldValue('vmcWorkloadNodeSettingForm', 'clusterCidr'),
-                    'tkgWorkloadServiceCidr': this.getFieldValue('vmcWorkloadNodeSettingForm', 'serviceCidr'),
-                    'tkgWorkloadBaseOs': this.getFieldValue('vmcWorkloadNodeSettingForm', 'baseImage'),
-                    'tkgWorkloadKubeVersion': this.getFieldValue('vmcWorkloadNodeSettingForm', 'baseImageVersion'),
+                    'tkgWorkloadGatewayCidr': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'gatewayAddress'),
+                    'tkgWorkloadDhcpStartRange': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'workloadDhcpStartRange'),
+                    'tkgWorkloadDhcpEndRange': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'workloadDhcpEndRange'),
+                    'tkgWorkloadClusterName': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'clusterName'),
+                    'tkgWorkloadSize': !workloadGiven ? "" : this.getWorkloadClusterSize(),
+                    'tkgWorkloadCpuSize': !workloadGiven? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'wrkCpu').toString(),
+                    'tkgWorkloadMemorySize': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'wrkMemory').toString(),
+                    'tkgWorkloadStorageSize': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'wrkStorage').toString(),
+                    'tkgWorkloadDeploymentType': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'controlPlaneSetting'),
+                    'tkgWorkloadWorkerMachineCount': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'workerNodeCount').toString(),
+                    'tkgWorkloadClusterCidr': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'clusterCidr'),
+                    'tkgWorkloadServiceCidr': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'serviceCidr'),
+                    'tkgWorkloadBaseOs': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'baseImage'),
+                    'tkgWorkloadKubeVersion': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'baseImageVersion'),
                     'tkgWorkloadRbacUserRoleSpec': {
-                        'clusterAdminUsers': this.getFieldValue('vmcWorkloadNodeSettingForm', 'clusterAdminUsers'),
-                        'adminUsers': this.getFieldValue('vmcWorkloadNodeSettingForm', 'adminUsers'),
-                        'editUsers': this.getFieldValue('vmcWorkloadNodeSettingForm', 'editUsers'),
-                        'viewUsers': this.getFieldValue('vmcWorkloadNodeSettingForm', 'viewUsers'),
+                        'clusterAdminUsers': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'clusterAdminUsers'),
+                        'adminUsers': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'adminUsers'),
+                        'editUsers': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'editUsers'),
+                        'viewUsers': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'viewUsers'),
                     },
-                    'tkgWorkloadTsmIntegration': this.setTSMEnable(),
+                    'tkgWorkloadTsmIntegration': !workloadGiven ? 'false' : this.setTSMEnable(),
                     'namespaceExclusions': {
-                        'exactName': this.setTSMExactName(),
-                        'startsWith': this.setTSMStartsWithName(),
+                        'exactName': !workloadGiven ? "" : this.setTSMExactName(),
+                        'startsWith': !workloadGiven ? "" : this.setTSMStartsWithName(),
                     },
-                    'tkgWorkloadClusterGroupName': this.getFieldValue('vmcWorkloadNodeSettingForm', 'clusterGroupName'),
-                    'tkgWorkloadEnableDataProtection': this.getStringBoolFieldValue('vmcWorkloadNodeSettingForm', 'enableDataProtection'),
-                    'tkgWorkloadClusterCredential': this.getFieldValue('vmcWorkloadNodeSettingForm', 'veleroCredential'),
-                    'tkgWorkloadClusterBackupLocation': this.getFieldValue('vmcWorkloadNodeSettingForm', 'veleroTargetLocation')
+                    'tkgWorkloadClusterGroupName': !workloadGiven ? "default" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'clusterGroupName'),
+                    'tkgWorkloadEnableDataProtection': !workloadGiven ? "false" : this.getStringBoolFieldValue('vmcWorkloadNodeSettingForm', 'enableDataProtection'),
+                    'tkgWorkloadClusterCredential': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'veleroCredential'),
+                    'tkgWorkloadClusterBackupLocation': !workloadGiven ? "" : this.getFieldValue('vmcWorkloadNodeSettingForm', 'veleroTargetLocation')
                 },
                 'harborSpec': {
-                    'enableHarborExtension': 'true',
+                    'enableHarborExtension': this.apiClient.sharedServicesClusterSettings.toString(),
                     'harborFqdn': this.getFieldValue('vmcSharedServiceNodeSettingForm', 'harborFqdn'),
                     'harborPasswordBase64': btoa(this.getFieldValue('vmcSharedServiceNodeSettingForm', 'harborPassword')),
                     'harborCertPath': this.getFieldValue('vmcSharedServiceNodeSettingForm', 'harborCertPath'),

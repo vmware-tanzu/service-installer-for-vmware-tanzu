@@ -53,6 +53,7 @@ export class TKGWorkloadNetworkSettingComponent extends StepFormDirective implem
 
     ngOnInit() {
         super.ngOnInit();
+        this.formGroup.addControl('workloadClusterSettings', new FormControl(false));
         this.formGroup.addControl('TKGDataSegmentName',
             new FormControl('', [
                 Validators.required, this.validationService.noWhitespaceOnEnds()
@@ -80,7 +81,15 @@ export class TKGWorkloadNetworkSettingComponent extends StepFormDirective implem
             ])
         );
         this.formGroup['canMoveToNext'] = () => {
-            return (this.formGroup.valid && this.apiClient.TkgWrkDataNwValidated);
+            this.toggleWorkloadClusterSettings();
+            // this.findInvalidControls();
+            if (!this.apiClient.workloadDataSettings) return this.formGroup.valid;
+            else {
+                // console.log(this.formGroup.valid);
+                // console.log(this.apiClient.TkgWrkDataNwValidated);
+                this.onTkgMgmtDataValidateClick();
+                return (this.formGroup.valid && this.apiClient.TkgWrkDataNwValidated);
+            }
         };
         setTimeout(_ => {
             this.displayForm = true;
@@ -154,26 +163,61 @@ export class TKGWorkloadNetworkSettingComponent extends StepFormDirective implem
     }
 
     onTkgMgmtDataValidateClick() {
-        if(this.formGroup.valid) {
-            this.errorNotification = '';
-            const gatewayIp = this.formGroup.get('TKGDataGatewayCidr').value;
-            const dhcpStart = this.formGroup.get('TKGDataDhcpStartRange').value;
-            const dhcpEnd = this.formGroup.get('TKGDataDhcpEndRange').value;
-            const block = new Netmask(gatewayIp);
-            if (block.contains(dhcpStart) && block.contains(dhcpEnd)) {
-                this.apiClient.TkgWrkDataNwValidated = true;
+        if (this.apiClient.workloadDataSettings){
+            if(this.formGroup.get('TKGDataGatewayCidr').valid &&
+                this.formGroup.get('TKGDataDhcpStartRange').valid &&
+                this.formGroup.get('TKGDataDhcpEndRange').valid) {
                 this.errorNotification = '';
-            } else if (!block.contains(dhcpStart) && !block.contains(dhcpEnd)) {
-                this.errorNotification = 'DHCP Start and End IP are out of the provided subnet';
-                this.apiClient.TkgWrkDataNwValidated = false;
-            } else if (!block.contains(dhcpStart)) {
-                this.errorNotification = 'DHCP Start IP is out of the provided subnet.';
-                this.apiClient.TkgWrkDataNwValidated = false;
-            } else if (!block.contains(dhcpEnd)) {
-                this.errorNotification = 'DHCP End IP is out of the provided subnet';
-                this.apiClient.TkgWrkDataNwValidated = false;
+                const gatewayIp = this.formGroup.get('TKGDataGatewayCidr').value;
+                const dhcpStart = this.formGroup.get('TKGDataDhcpStartRange').value;
+                const dhcpEnd = this.formGroup.get('TKGDataDhcpEndRange').value;
+                const block = new Netmask(gatewayIp);
+                if (block.contains(dhcpStart) && block.contains(dhcpEnd)) {
+                    this.apiClient.TkgWrkDataNwValidated = true;
+                    this.errorNotification = '';
+                } else if (!block.contains(dhcpStart) && !block.contains(dhcpEnd)) {
+                    this.errorNotification = 'DHCP Start and End IP are out of the provided subnet';
+                    this.apiClient.TkgWrkDataNwValidated = false;
+                } else if (!block.contains(dhcpStart)) {
+                    this.errorNotification = 'DHCP Start IP is out of the provided subnet.';
+                    this.apiClient.TkgWrkDataNwValidated = false;
+                } else if (!block.contains(dhcpEnd)) {
+                    this.errorNotification = 'DHCP End IP is out of the provided subnet';
+                    this.apiClient.TkgWrkDataNwValidated = false;
+                }
             }
         }
+    }
+
+    toggleWorkloadClusterSettings() {
+        const mandatoryWorkloadFields = [
+            'TKGDataSegmentName',
+            'TKGDataGatewayCidr',
+            'TKGDataDhcpStartRange',
+            'TKGDataDhcpEndRange',
+        ];
+
+        if (this.formGroup.value['workloadClusterSettings']) {
+            this.apiClient.workloadDataSettings = true;
+            this.resurrectField('TKGDataSegmentName', [Validators.required], this.formGroup.value['TKGDataSegmentName']);
+            this.resurrectField('TKGDataGatewayCidr', [Validators.required, this.validationService.isValidIpNetworkSegment(), this.validationService.noWhitespaceOnEnds()], this.formGroup.value['TKGDataGatewayCidr']);
+            this.resurrectField('TKGDataDhcpStartRange', [Validators.required, this.validationService.noWhitespaceOnEnds(), this.validationService.isValidIp()], this.formGroup.value['TKGDataDhcpStartRange']);
+            this.resurrectField('TKGDataDhcpEndRange', [Validators.required, this.validationService.isValidIp(), this.validationService.noWhitespaceOnEnds()], this.formGroup.value['TKGDataDhcpEndRange']);
+        } else {
+            this.apiClient.workloadDataSettings = false;
+            mandatoryWorkloadFields.forEach((field) => {
+                this.disarmField(field, true);
+            });
         }
+    }
+
+    public findInvalidControls() {
+        const controls = this.formGroup.controls;
+        for (const name in controls) {
+            if (controls[name].invalid) {
+                console.log(name);
+            }
+        }
+    }
 
 }

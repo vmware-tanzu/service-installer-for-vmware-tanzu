@@ -50,30 +50,44 @@ from common.common_utilities import checkMachineCountForTsm, checkClusterSizeFor
     checkToEnabled, checkOSFlavorForTMC, checkTmcEnabled, getClusterID, isWcpEnabled, checkTanzuExtentionEnabled, \
     fetchNamespaceInfo, isAviHaEnabled, getAviIpFqdnDnsMapping, checkNtpServerValidity, verifyVcenterVersion, \
     configureKubectl, checkDataProtectionEnabled, validate_backup_location, validate_cluster_credential, \
-    list_cluster_groups, checkEnableIdentityManagement, checkMachineCountForProdType
+    list_cluster_groups, checkEnableIdentityManagement, checkMachineCountForProdType, checkAVIPassword, \
+    checkClusterNameDNSCompliant
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 __author__ = 'Tasmiya'
 
 
-def get_cluster(datacenter, name):
+def get_cluster(si, datacenter, name):
     """
     Pick a cluster by its name.
     """
-    if name is not None:
-        for cluster in datacenter.hostFolder.childEntity:
-            if cluster.name == name:
-                return cluster
-        raise Exception('Failed to find cluster names: %s' % name)
-    else:
-        cluster_list = []
-        try:
-            for cluster in datacenter.hostFolder.childEntity:
-                if isinstance(cluster, vim.ClusterComputeResource):
-                    cluster_list.append(cluster.name)
-            return cluster_list
-        except:
-            raise Exception('Encountered errors while fetching clusters on datacenter: %s' % datacenter.name)
+    view_manager = si.content.viewManager
+    container = view_manager.CreateContainerView(datacenter, [vim.ClusterComputeResource], True)
+    try:
+        h_name = []
+        for host in container.view:
+            rp = host.name
+            if rp:
+                folder_name = rp
+                fp = host.parent
+                while fp is not None and fp.name is not None and fp != si.content.rootFolder:
+                    folder_name = fp.name + '/' + folder_name
+                    try:
+                        fp = fp.parent
+                    except BaseException:
+                        break
+                folder_name = '/' + folder_name
+                if name:
+                    if str(folder_name).endswith(name):
+                        content = si.RetrieveContent()
+                        return content.searchIndex.FindByInventoryPath(folder_name)
+                first_rp = folder_name[folder_name.find("/host") + 6:]
+                if first_rp:
+                    h_name.append(first_rp.strip("/"))
+        if h_name:
+            return h_name
+    finally:
+        container.Destroy()
 
 
 def getNetwork(datacenter, name):
@@ -184,7 +198,8 @@ def precheck_env():
     try:
         enable = enableProxy(env)
         if enable != 200:
-            current_app.logger.error("Wrong value for ['arcasVm']['enableProxy'] is provided, provide either true/false")
+            current_app.logger.error(
+                "Wrong value for ['arcasVm']['enableProxy'] is provided, provide either true/false")
             d = {
                 "responseType": "ERROR",
                 "msg": "Wrong value for ['arcasVm']['enableProxy'] is provided, provide either true/false",
@@ -199,7 +214,42 @@ def precheck_env():
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
-    val = validate_proxy_starts_wit_http(env)
+
+    try:
+        if env == Env.VSPHERE:
+            shared_cluster_name = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents'][
+                'tkgSharedserviceClusterName']
+        elif env == Env.VCF:
+            shared_cluster_name = request.get_json(force=True)['tkgComponentSpec']['tkgSharedserviceSpec'][
+                'tkgSharedserviceClusterName']
+        elif env == Env.VMC:
+            shared_cluster_name = request.get_json(force=True)['componentSpec']['tkgSharedServiceSpec'][
+                'tkgSharedClusterName']
+
+        if shared_cluster_name:
+            isShared = True
+        else:
+            isShared = False
+    except Exception as e:
+        isShared = False
+
+    try:
+        if env == Env.VSPHERE:
+            workload_cluster_name = request.get_json(force=True)['tkgWorkloadComponents']['tkgWorkloadClusterName']
+        elif env == Env.VCF:
+            workload_cluster_name = request.get_json(force=True)['tkgWorkloadComponents']['tkgWorkloadClusterName']
+        elif env == Env.VMC:
+            workload_cluster_name = request.get_json(force=True)['componentSpec']['tkgWorkloadSpec'][
+                'tkgWorkloadClusterName']
+
+        if workload_cluster_name:
+            isWorkload = True
+        else:
+            isWorkload = False
+    except Exception as e:
+        isWorkload = False
+
+    val = validate_proxy_starts_wit_http(env, isShared, isWorkload)
     if val != "Success":
         current_app.logger.error(
             "Error: Unsupported Proxy protocol found for " + val + ", The Proxy URLs must start with http://")
@@ -221,7 +271,7 @@ def precheck_env():
     if not checkAirGappedIsEnabled(env):
         if not (isEnvTkgs_wcp(env) or isEnvTkgs_ns(env)):
             if checkTmcEnabled(env):
-                osFlavor = checkOSFlavorForTMC(env)
+                osFlavor = checkOSFlavorForTMC(env, isShared, isWorkload)
                 if osFlavor[1] != 200:
                     current_app.logger.info(str(osFlavor[0].json['msg']))
                     d = {
@@ -232,33 +282,35 @@ def precheck_env():
                     return jsonify(d), 500
 
     if not (isEnvTkgs_wcp(env) or isEnvTkgs_ns(env)):
-        to = checkClusterSizeForTo(env)
-        if to[1] != 200:
-            current_app.logger.error(str(to[0].json['msg']))
-            d = {
-                "responseType": "ERROR",
-                "msg": str(to[0].json['msg']),
-                "ERROR_CODE": 500
-            }
-            return jsonify(d), 500
-        tsm = checkMachineCountForTsm(env)
-        if tsm[1] != 200:
-            current_app.logger.error(str(tsm[0].json['msg']))
-            d = {
-                "responseType": "ERROR",
-                "msg": str(tsm[0].json['msg']),
-                "ERROR_CODE": 500
-            }
-            return jsonify(d), 500
-        prod_machine_count = checkMachineCountForProdType(env)
-        if prod_machine_count[1] != 200:
-            current_app.logger.error(str(prod_machine_count[0].json['msg']))
-            d = {
-                "responseType": "ERROR",
-                "msg": str(prod_machine_count[0].json['msg']),
-                "ERROR_CODE": 500
-            }
-            return jsonify(d), 500
+        if isWorkload:
+            to = checkClusterSizeForTo(env)
+            if to[1] != 200:
+                current_app.logger.debug(str(to[0].json['msg']))
+                # d = {
+                #     "responseType": "ERROR",
+                #     "msg": str(to[0].json['msg']),
+                #     "ERROR_CODE": 500
+                # }
+                # return jsonify(d), 500
+            tsm = checkMachineCountForTsm(env)
+            if tsm[1] != 200:
+                current_app.logger.debug("Recommended to use atleast 3 worker machine count for TSM integration")
+            #     d = {
+            #         "responseType": "ERROR",
+            #         "msg": str(tsm[0].json['msg']),
+            #         "ERROR_CODE": 500
+            #     }
+            #     return jsonify(d), 500
+        if isShared or isWorkload:
+            prod_machine_count = checkMachineCountForProdType(env, isShared, isWorkload)
+            if prod_machine_count[1] != 200:
+                current_app.logger.error(str(prod_machine_count[0].json['msg']))
+                d = {
+                    "responseType": "ERROR",
+                    "msg": str(prod_machine_count[0].json['msg']),
+                    "ERROR_CODE": 500
+                }
+                return jsonify(d), 500
     os.system("cp common/vsphere-overlay.yaml " + Env.YTT_FILE_LOCATION)
     os.putenv("HOME", "/root")
     cmd = ["sudo", "sysctl", "net/netfilter/nf_conntrack_max=131072"]
@@ -301,11 +353,12 @@ def precheck_env():
             elif not isEnvTkgs_ns(env):
                 portGroups = [
                     request.get_json(force=True)['tkgComponentSpec']['aviMgmtNetwork']['aviMgmtNetworkName'],
-                    request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents'][
-                        'tkgMgmtNetworkName'],
-                    request.get_json(force=True)['tkgMgmtDataNetwork']['tkgMgmtDataNetworkName'],
-                    request.get_json(force=True)['tkgWorkloadDataNetwork']['tkgWorkloadDataNetworkName'],
-                    request.get_json(force=True)['tkgWorkloadComponents']['tkgWorkloadNetworkName']]
+                    request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtNetworkName'],
+                    request.get_json(force=True)['tkgMgmtDataNetwork']['tkgMgmtDataNetworkName']]
+                if isWorkload:
+                    portGroups.append(
+                        request.get_json(force=True)['tkgWorkloadDataNetwork']['tkgWorkloadDataNetworkName'])
+                    portGroups.append(request.get_json(force=True)['tkgWorkloadComponents']['tkgWorkloadNetworkName'])
 
     elif env == Env.VMC:
         vCenter = current_app.config['VC_IP']
@@ -362,7 +415,7 @@ def precheck_env():
             return jsonify(d), 500
 
         try:
-            cluster_obj = get_cluster(datacenter, vCenter_cluster)
+            cluster_obj = get_cluster(si, datacenter, vCenter_cluster)
             if isEnvTkgs_wcp(env) or isEnvTkgs_ns(env):
                 hostCount = verify_host_count(cluster_obj)
                 if hostCount[0] is None:
@@ -379,7 +432,7 @@ def precheck_env():
 
         if not isEnvTkgs_ns(env):
             try:
-                get_ds(datacenter, vCenter_datastore)
+                get_ds(si,datacenter, vCenter_datastore)
             except Exception as e:
                 errors.append(e)
 
@@ -422,8 +475,9 @@ def precheck_env():
     else:
         token_valdity = validateMarketplaceRefreshToken()
         if token_valdity[1] != 200:
-            #if not ('msg' in token_valdity[0]):
-            current_app.logger.error("Marketplace token validation failed. Please ensure connectivity to external networks.")
+            # if not ('msg' in token_valdity[0]):
+            current_app.logger.error(
+                "Marketplace token validation failed. Please ensure connectivity to external networks.")
             d = {
                 "responseType": "ERROR",
                 "msg": "Marketplace token validation failed. Please ensure connectivity to external networks.",
@@ -491,6 +545,19 @@ def precheck_env():
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
+        if checkTmcEnabled(env):
+            current_app.logger.info("Checking whether Supervisor cluster name is DNS Compliant")
+            supervisor_cluster_name = request.get_json(force=True)['envSpec']["saasEndpoints"]['tmcDetails'][
+                'tmcSupervisorClusterName']
+            dns_compliant = checkClusterNameDNSCompliant(supervisor_cluster_name, env)
+            if not dns_compliant[0]:
+                current_app.logger.error("Failed while checking if Supervisor cluster name is DNS Compliant")
+                d = {
+                    "responseType": "ERROR",
+                    "msg": dns_compliant[1],
+                    "ERROR_CODE": 500
+                }
+                return jsonify(d), 500
 
     elif isEnvTkgs_ns(env):
         current_app.logger.info("Checking if WCP is enabled on selected cluster...")
@@ -562,6 +629,19 @@ def precheck_env():
             return jsonify(d), 500
         else:
             current_app.logger.info(policy_validation[1])
+        current_app.logger.info("Checking whether Workload cluster name is DNS Compliant")
+        supervisor_cluster_name = \
+        request.get_json(force=True)['tkgsComponentSpec']["tkgsVsphereNamespaceSpec"]['tkgsVsphereWorkloadClusterSpec'][
+            'tkgsVsphereWorkloadClusterName']
+        dns_compliant = checkClusterNameDNSCompliant(supervisor_cluster_name, env)
+        if not dns_compliant[0]:
+            current_app.logger.error("Failed while checking if Supervisor cluster name is DNS Compliant")
+            d = {
+                "responseType": "ERROR",
+                "msg": dns_compliant[1],
+                "ERROR_CODE": 500
+            }
+            return jsonify(d), 500
     if not isEnvTkgs_ns(env):
         current_app.logger.info("Checking if NTP server is valid")
         valid_ntp_server = validityOfNtpServer(ntp_server=ntp_server)
@@ -571,6 +651,19 @@ def precheck_env():
             d = {
                 "responseType": "ERROR",
                 "msg": valid_ntp_server[1],
+                "ERROR_CODE": 500
+            }
+            return jsonify(d), 500
+
+    if not isEnvTkgs_ns(env):
+        current_app.logger.info("NSX ALB Password complexity check..")
+        password_check = checkAVIPassword(env)
+        if not password_check[0]:
+            current_app.logger.error("NSX ALB Password and Backup passphrase must contain a combination of 3: "
+                                     "Uppercase character, Lowercase character, Numeric or Special Character.")
+            d = {
+                "responseType": "ERROR",
+                "msg": "Password complexity check failed for NSX ALB",
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
@@ -589,13 +682,13 @@ def precheck_env():
             return jsonify(d), 500
 
         # Checking DNS Resolution of AVI FQDN
-        current_app.logger.info("Checking that the AVI Load balancer's FQDN and "
+        current_app.logger.info("Checking that the AVI Load balancer FQDN and "
                                 "IP addresses are valid and can be resolved successfully.")
         avi_ip_fqdn_check = checkAVIFqdnDNSResolution()
         if not avi_ip_fqdn_check[0]:
             current_app.logger.error(avi_ip_fqdn_check[1])
 
-    veleroResponse = veleroPrechecks(env)
+    veleroResponse = veleroPrechecks(env, isShared, isWorkload)
     if veleroResponse[1] != 200:
         d = {
             "responseType": "ERROR",
@@ -604,7 +697,7 @@ def precheck_env():
         }
         return jsonify(d), 500
     else:
-        current_app.logger.info("Data protection prerequisites validated successfully")
+        current_app.logger.info("Data protection pre-requisites validated successfully")
     d = {
         "responseType": "SUCCESS",
         "msg": "Pre-check performed Successfully",
@@ -876,7 +969,8 @@ def validateMarketplaceRefreshToken():
         elif env == Env.VSPHERE or env == Env.VCF:
             REFRESH_TOKEN = request.get_json(force=True)['envSpec']['marketplaceSpec']['refreshToken']
             if not REFRESH_TOKEN:
-                current_app.logger.error("Marketplace refresh token is found null, please enter a valid marketplace token")
+                current_app.logger.error(
+                    "Marketplace refresh token is found null, please enter a valid marketplace token")
                 d = {
                     "responseType": "ERROR",
                     "msg": "Marketplace refresh token is found null, please enter a valid marketplace token",
@@ -920,6 +1014,7 @@ def validateMarketplaceRefreshToken():
         }
         return jsonify(d), 500
 
+
 @vcenter_precheck.route("/api/tanzu/pingTestSupervisorControlPlane", methods=['POST'])
 def pingTestSupervisorControlPlane():
     env = envCheck()
@@ -951,6 +1046,7 @@ def pingTestSupervisorControlPlane():
     }
     return jsonify(d), 200
 
+
 @vcenter_precheck.route("/api/tanzu/aviNameResolution", methods=['POST'])
 def aviNameResolution():
     env = envCheck()
@@ -966,7 +1062,8 @@ def aviNameResolution():
     if not (isEnvTkgs_ns(env) or env == Env.VMC):
         current_app.config['VC_IP'] = request.get_json(force=True)['envSpec']['vcenterDetails']["vcenterAddress"]
         current_app.config['VC_USER'] = request.get_json(force=True)['envSpec']['vcenterDetails']["vcenterSsoUser"]
-        current_app.config['VC_PASSWORD'] = decode_from_b64(request.get_json(force=True)['envSpec']['vcenterDetails']["vcenterSsoPasswordBase64"])
+        current_app.config['VC_PASSWORD'] = decode_from_b64(
+            request.get_json(force=True)['envSpec']['vcenterDetails']["vcenterSsoPasswordBase64"])
         # vCenter = current_app.config['VC_IP']
         # vc_user = current_app.config['VC_USER']
         # vc_password = current_app.config['VC_PASSWORD']
@@ -1001,6 +1098,7 @@ def aviNameResolution():
     }
     return jsonify(d), 200
 
+
 def validateToken(token, serviceList):
     try:
         url = "https://console.cloud.vmware.com/csp/gateway/am/api/auth/api-tokens/authorize?refresh_token=" + token
@@ -1019,7 +1117,7 @@ def validateToken(token, serviceList):
             else:
                 error = 'unknown error'
             current_app.logger.error(serviceList[0] + " login failed using Refresh_Token - %s: %s" %
-                    token, error)
+                                     token, error)
             return error, 500
         access_token = response_login.json()["access_token"]
 
@@ -1120,7 +1218,7 @@ def verifyHADRS(content, clusterName):
 
     d = {
         "responseType": "SUCCESS",
-        "msg": "HA and DRS is enabled on cluster: "+clusterName,
+        "msg": "HA and DRS is enabled on cluster: " + clusterName,
         "ERROR_CODE": 200
     }
     return jsonify(d), 200
@@ -1489,7 +1587,8 @@ def pingCheckTkgsMgmtStartIp():
     try:
         vCenter = request.get_json(force=True)['envSpec']['vcenterDetails']["vcenterAddress"]
         vc_user = request.get_json(force=True)['envSpec']['vcenterDetails']["vcenterSsoUser"]
-        vc_password = decode_from_b64(request.get_json(force=True)['envSpec']['vcenterDetails']["vcenterSsoPasswordBase64"])
+        vc_password = decode_from_b64(
+            request.get_json(force=True)['envSpec']['vcenterDetails']["vcenterSsoPasswordBase64"])
         # vCenter = current_app.config['VC_IP']
         # vc_user = current_app.config['VC_USER']
         # vc_password = current_app.config['VC_PASSWORD']
@@ -1641,7 +1740,7 @@ def ping_test(string_command):
     try:
         command = string_command.split(" ")
         l, o = runShellCommandAndReturnOutputAsList(command)
-        s = l[4].replace(" ","")
+        s = l[4].replace(" ", "")
         if s.__contains__(",100.0%packetloss,"):
             return 1
         elif s.__contains__(",0%packetloss,"):
@@ -1652,36 +1751,37 @@ def ping_test(string_command):
         return 1
 
 
-def veleroPrechecks(env):
+def veleroPrechecks(env, isShared, isWorkload):
     try:
         current_app.logger.info("checking pre-requisites for data protection")
         if not isEnvTkgs_wcp(env):
-            current_app.logger.info("checking pre-requisites for workload cluster data protection")
-            if checkDataProtectionEnabled(env, "workload"):
-                valid_backup = validate_backup_location(env, "workload")
-                if not valid_backup[0]:
-                    current_app.logger.error(valid_backup[1])
-                    d = {
-                        "responseType": "ERROR",
-                        "msg": valid_backup[1],
-                        "ERROR_CODE": 500
-                    }
-                    return jsonify(d), 500
-                current_app.logger.info(valid_backup[1])
-                valid_credential = validate_cluster_credential(env, "workload")
-                if not valid_credential[0]:
-                    current_app.logger.error(valid_credential[1])
-                    d = {
-                        "responseType": "ERROR",
-                        "msg": valid_credential[1],
-                        "ERROR_CODE": 500
-                    }
-                    return jsonify(d), 500
-                current_app.logger.info(valid_credential[1])
-            else:
-                current_app.logger.info("Data protection not enabled for workload cluster")
+            if isWorkload or isEnvTkgs_ns(env):
+                current_app.logger.info("checking pre-requisites for workload cluster data protection")
+                if checkDataProtectionEnabled(env, "workload"):
+                    valid_backup = validate_backup_location(env, "workload")
+                    if not valid_backup[0]:
+                        current_app.logger.error(valid_backup[1])
+                        d = {
+                            "responseType": "ERROR",
+                            "msg": valid_backup[1],
+                            "ERROR_CODE": 500
+                        }
+                        return jsonify(d), 500
+                    current_app.logger.info(valid_backup[1])
+                    valid_credential = validate_cluster_credential(env, "workload")
+                    if not valid_credential[0]:
+                        current_app.logger.error(valid_credential[1])
+                        d = {
+                            "responseType": "ERROR",
+                            "msg": valid_credential[1],
+                            "ERROR_CODE": 500
+                        }
+                        return jsonify(d), 500
+                    current_app.logger.info(valid_credential[1])
+                else:
+                    current_app.logger.info("Data protection not enabled for workload cluster")
 
-            if not isEnvTkgs_ns(env):
+            if not isEnvTkgs_ns(env) and isShared:
                 current_app.logger.info("checking pre-requisites for shared cluster data protection")
                 if checkDataProtectionEnabled(env, "shared"):
                     valid_backup = validate_backup_location(env, "shared")

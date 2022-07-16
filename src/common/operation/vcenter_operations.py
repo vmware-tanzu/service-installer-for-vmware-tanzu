@@ -30,18 +30,24 @@ def get_obj(content, vimtype, name):
     obj = None
     container = content.viewManager.CreateContainerView(
         content.rootFolder, vimtype, True)
-    for c in container.view:
-        try:
-            c.name
-        except:
-            pass
-        if name:
-            if c.name.strip() == name.strip():
-                obj = c
-                break
-        else:
-            obj = c
-            break
+    if container is not None:
+        for host in container.view:
+            rp = host.name
+            if rp:
+                folder_name = rp
+                fp = host.parent
+                while fp is not None and fp.name is not None and fp != content.rootFolder:
+                    folder_name = fp.name + '/' + folder_name
+                    try:
+                        fp = fp.parent
+                    except BaseException:
+                        break
+                folder_name = '/' + folder_name
+                if name:
+                    if str(folder_name).endswith(name):
+                        return content.searchIndex.FindByInventoryPath(folder_name)
+                else:
+                   return content.searchIndex.FindByInventoryPath(folder_name)
 
     return obj
 
@@ -95,7 +101,7 @@ def deploySeOva(vcenterhost, username, password, vm_name, folder, datacenter_nam
             resource_pool = get_largest_free_rp(si, datacenter)
 
         if datastore_name:
-            datastore = get_ds(datacenter, datastore_name)
+            datastore = get_ds(si,datacenter, datastore_name)
         else:
             datastore = get_largest_free_ds(datacenter)
 
@@ -282,7 +288,7 @@ def get_obj_in_list(obj_name, obj_list):
     exit(1)
 
 
-def get_dc(si, name):
+def get_dc_objs(si, name):
     """
     Get a datacenter by its name.
     """
@@ -297,6 +303,42 @@ def get_dc(si, name):
             return dcs
         else:
             raise Exception('No datacenters found on provided VC')
+
+
+def get_dc(si, name):
+    content = si.RetrieveContent()
+    container = content.viewManager.CreateContainerView(
+        content.rootFolder, [vim.Datacenter], True)
+    if name is not None:
+        try:
+            return content.searchIndex.FindByInventoryPath("/" + name)
+        finally:
+            container.Destroy()
+    else:
+        dc_name = []
+        try:
+            for dc in container.view:
+                rp = dc.name
+                if rp:
+                    folder_name = rp
+                    fp = dc.parent
+                    while fp is not None and fp.name is not None and fp != si.content.rootFolder:
+                        folder_name = fp.name + '/' + folder_name
+                        try:
+                            fp = fp.parent
+                        except BaseException:
+                            break
+                    folder_name = '/' + folder_name
+                    first_dc = folder_name.strip("/")
+                    if first_dc:
+                        dc_name.append(first_dc)
+            if dc_name:
+                return dc_name
+            else:
+                current_app.logger.info("No datacenter found")
+                return None
+        finally:
+            container.Destroy()
 
 
 def get_rp(si, datacenter, name):
@@ -322,9 +364,7 @@ def get_rp(si, datacenter, name):
                 rp = resource_pool.name
                 if rp:
                     folder_name = rp
-                    current_app.logger.info(folder_name)
                     fp = resource_pool.parent
-                    current_app.logger.info(fp)
                     while fp is not None and fp.name is not None and fp != si.content.rootFolder:
                         folder_name = fp.name + '/' + folder_name
                         try:
@@ -380,26 +420,38 @@ def get_largest_free_rp(si, datacenter):
     return largest_rp
 
 
-def get_ds(datacenter, name):
+def get_ds(si, datacenter, name):
     """
-    Pick a datastore by its name.
+    Pick a cluster by its name.
     """
-    if name is not None:
-        for datastore in datacenter.datastore:
-            try:
-                if datastore.name == name:
-                    return datastore
-            except Exception:  # Ignore datastores that have issues
-                pass
-        raise Exception("Failed to find %s on datacenter %s" % (name, datacenter.name))
-    else:
-        datastore_list = []
-        try:
-            for ds in datacenter.datastore:
-                datastore_list.append(ds.name)
-            return datastore_list
-        except:
-            raise Exception('Encountered errors while fetching datastores %s' % datacenter.name)
+    view_manager = si.content.viewManager
+    container = view_manager.CreateContainerView(datacenter, [vim.Datastore], True)
+    try:
+        h_name = []
+        if container is not None:
+            for host in container.view:
+                rp = host.name
+                if rp:
+                    folder_name = rp
+                    fp = host.parent
+                    while fp is not None and fp.name is not None and fp != si.content.rootFolder:
+                        folder_name = fp.name + '/' + folder_name
+                        try:
+                            fp = fp.parent
+                        except BaseException:
+                            break
+                    folder_name = '/' + folder_name
+                    if name:
+                        if str(folder_name).endswith(name):
+                            content = si.RetrieveContent()
+                            return content.searchIndex.FindByInventoryPath(folder_name)
+                    first_rp = folder_name[folder_name.find("/datastore") + 11:]
+                    if first_rp:
+                        h_name.append(first_rp.strip("/"))
+        if h_name:
+            return h_name
+    finally:
+        container.Destroy()
 
 
 def get_largest_free_ds(datacenter):

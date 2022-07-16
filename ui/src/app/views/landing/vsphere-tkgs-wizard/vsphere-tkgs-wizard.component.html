@@ -156,6 +156,21 @@
                     <app-step-controller (nextStep)="onNextStep()"></app-step-controller>
                 </clr-step-content>
             </clr-stepper-panel>
+            <clr-stepper-panel formGroupName="TKGSGlobalConfigForm" removeAriaLabelleedBy>
+                <clr-step-title i18n="Global TKG Service step name">
+                    TKG Service Configuration
+                </clr-step-title>
+                <clr-step-description i18n="IaaS provider step description">
+                    Set TKG Service configuration default parameters for Workload Clusters
+                </clr-step-description>
+                <ng-container *ngIf="steps[8]">
+                    <app-global-config-step [formGroup]="form.controls.TKGSGlobalConfigForm" formName="TKGSGlobalConfigForm">
+                    </app-global-config-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="onNextStep()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
         </ng-container>
 
         <ng-container *ngIf="this.apiClient.tkgsStage==='namespace'">
@@ -252,6 +267,21 @@
                     <app-step-controller (nextStep)="onTkgsWrkNextClick()"></app-step-controller>
                 </clr-step-content>
             </clr-stepper-panel>
+            <clr-stepper-panel formGroupName="TKGSGlobalConfigForm" removeAriaLabelleedBy>
+                <clr-step-title i18n="Global TKG Service step name">
+                    TKG Service Configuration
+                </clr-step-title>
+                <clr-step-description i18n="IaaS provider step description">
+                    Override TKG Service configuration default parameters for Workload Cluster
+                </clr-step-description>
+                <ng-container *ngIf="steps[5]">
+                    <app-global-config-step [formGroup]="form.controls.TKGSGlobalConfigForm" formName="TKGSGlobalConfigForm">
+                    </app-global-config-step>
+                </ng-container>
+                <clr-step-content *clrIfExpanded>
+                    <app-step-controller (nextStep)="onNextStep()"></app-step-controller>
+                </clr-step-content>
+            </clr-stepper-panel>
             <clr-stepper-panel formGroupName="extensionSettingForm" removeAriaLabelledBy>
                 <clr-accordion-title>
                     <clr-step-title i18n="node setting step name">
@@ -263,7 +293,7 @@
                         Configure User-Managed Packages for Tanzu workload cluster
                     </clr-step-description>
                 </clr-accordion-description>
-                <ng-container *ngIf="steps[5]">
+                <ng-container *ngIf="steps[6]">
                     <app-extension-setting-step [formGroup]="form.controls.extensionSettingForm" [providerType]="(provider | async)"
                                                 formName="extensionSettings">
                     </app-extension-setting-step>

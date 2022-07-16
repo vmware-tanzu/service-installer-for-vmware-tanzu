@@ -4,8 +4,10 @@
 CLUSTER_CIDR: {{ clustercidr }}
 CLUSTER_NAME: {{ sharedClusterName }}
 CLUSTER_PLAN: {{ clusterPlan }}
-ENABLE_CEIP_PARTICIPATION: 'true'
+ENABLE_CEIP_PARTICIPATION: {{ ceip }}
 ENABLE_MHC: 'true'
+MHC_UNKNOWN_STATUS_TIMEOUT: 5m
+MHC_FALSE_STATUS_TIMEOUT: 12m
 {% if identity_mgmt_type == "oidc" %}
 IDENTITY_MANAGEMENT_TYPE: {{identity_mgmt_type}}
 {% elif identity_mgmt_type == "ldap" %}
@@ -55,12 +57,18 @@ TKG_HTTP_PROXY_ENABLED: 'true'
 TKG_HTTP_PROXY: {{ config.envSpec.proxySpec.tkgSharedservice.httpProxy }}
 TKG_HTTPS_PROXY: {{ config.envSpec.proxySpec.tkgSharedservice.httpsProxy }}
 TKG_NO_PROXY: {{ config.envSpec.proxySpec.tkgSharedservice.noProxy }}
+{% if config.envSpec.proxySpec.tkgSharedservice.proxyCert %}
+TKG_PROXY_CA_CERT: {{ proxyCert }}
+{% endif %}
 {% endif %}
 {% if type == "workload" and config.envSpec.proxySpec and config.envSpec.proxySpec.tkgWorkload.enableProxy == "true" %}
 TKG_HTTP_PROXY_ENABLED: 'true'
 TKG_HTTP_PROXY: {{ config.envSpec.proxySpec.tkgWorkload.httpProxy }}
 TKG_HTTPS_PROXY: {{ config.envSpec.proxySpec.tkgWorkload.httpsProxy }}
 TKG_NO_PROXY: {{ config.envSpec.proxySpec.tkgWorkload.noProxy }}
+{% if isProxyCert == "true" %}
+TKG_PROXY_CA_CERT: {{ proxyCert }}
+{% endif %}
 {% endif %}
 
 #! ---------------------------------------------------------------------

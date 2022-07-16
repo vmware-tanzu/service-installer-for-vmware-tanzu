@@ -1,3 +1,4 @@
+AVI_CONTROLLER_VERSION: {{ avi_version }}
 AVI_CA_DATA_B64: {{ cert }}
 AVI_CLOUD_NAME: tkgvmc-cloud01
 AVI_CONTROLLER: {{ ip }}
@@ -12,8 +13,10 @@ AVI_USERNAME: admin
 CLUSTER_CIDR: {{ config.componentSpec.tkgMgmtSpec.tkgMgmtClusterCidr }}
 CLUSTER_NAME: {{ config.componentSpec.tkgMgmtSpec.tkgMgmtClusterName }}
 CLUSTER_PLAN: {{ config.componentSpec.tkgMgmtSpec.tkgMgmtDeploymentType }}
-ENABLE_CEIP_PARTICIPATION: 'true'
+ENABLE_CEIP_PARTICIPATION: {{ ceip }}
 ENABLE_MHC: 'true'
+MHC_UNKNOWN_STATUS_TIMEOUT: 5m
+MHC_FALSE_STATUS_TIMEOUT: 12m
 {% if identity_mgmt_type == "oidc" %}
 IDENTITY_MANAGEMENT_TYPE: {{identity_mgmt_type}}
 OIDC_IDENTITY_PROVIDER_CLIENT_ID: {{oidc_provider_client_id}}

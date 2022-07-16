@@ -5,29 +5,242 @@ import time
 from pathlib import Path
 
 import requests
+import ruamel
 from flask import Blueprint, current_app, jsonify, request
 from tqdm import tqdm
+from src.common.util.local_cmd_helper import LocalCmdHelper
 
 sys.path.append(".../")
+from src.common.lib.govc_client import GovcClient
 from common.operation.vcenter_operations import createResourcePool, create_folder
-from common.operation.constants import ResourcePoolAndFolderName, Env, Repo, Sizing
+from common.operation.constants import ResourcePoolAndFolderName, Env, Repo, Sizing, ControllerLocation, Cloud
 from common.operation.ShellHelper import runShellCommandAndReturnOutput, grabKubectlCommand, verifyPodsAreRunning, \
     grabPipeOutput, runShellCommandAndReturnOutputAsList, \
     runShellCommandAndReturnOutputAsListWithChangedDir
 from common.operation.constants import SegmentsName, RegexPattern, Versions, AkoType, AppName, Extentions, Tkg_version, \
-    Type, PLAN
+    Type, PLAN, Paths
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from common.common_utilities import preChecks, installCertManagerAndContour, envCheck, get_avi_version, \
     checkAirGappedIsEnabled, deployExtention, getVersionOfPackage, createOverlayYaml, \
     waitForGrepProcessWithoutChangeDir, deployCluster, checkTmcEnabled, registerWithTmcOnSharedAndWorkload, \
     registerTanzuObservability, registerTSM, downloadAndPushKubernetesOvaMarketPlace, \
     registerTanzuObservability, getNetworkPathTMC, getKubeVersionFullName, checkDataProtectionEnabled, \
-    enable_data_protection, checkEnableIdentityManagement, checkPinnipedInstalled, createRbacUsers
+    enable_data_protection, checkEnableIdentityManagement, checkPinnipedInstalled, createRbacUsers, \
+    obtain_second_csrf, createClusterFolder
 from common.model.vmcSpec import VmcMasterSpec
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 shared_config = Blueprint("shared_config", __name__, static_folder="sharedConfig")
+
+def akoDeploymentConfigSharedCluster(shared_cluster_name):
+    env = envCheck()
+    if env[1] != 200:
+        current_app.logger.error("Wrong env provided " + env[0])
+        d = {
+            "responseType": "ERROR",
+            "msg": "Wrong env provided " + env[0],
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    env = env[0]
+    management_cluster = request.get_json(force=True)['componentSpec']['tkgMgmtSpec']['tkgMgmtClusterName']
+    commands = ["tanzu", "management-cluster", "kubeconfig", "get", management_cluster, "--admin"]
+
+    kubeContextCommand = grabKubectlCommand(commands, RegexPattern.SWITCH_CONTEXT_KUBECTL)
+    if kubeContextCommand is None:
+        current_app.logger.error("Failed to get switch to management cluster context command")
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to get switch to management cluster context command",
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+
+    lisOfSwitchContextCommand = str(kubeContextCommand).split(" ")
+    status = runShellCommandAndReturnOutputAsList(lisOfSwitchContextCommand)
+    if status[1] != 0:
+        current_app.logger.error("Failed to get switch to management cluster context " + str(status[0]))
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to get switch to management cluster context " + str(status[0]),
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+
+    podRunninng_ako_main = ["kubectl", "get", "pods", "-A"]
+    podRunninng_ako_grep = ["grep", AppName.AKO]
+    time.sleep(30)
+    timer = 30
+    ako_pod_running = False
+    while timer < 600:
+        current_app.logger.info("Check AKO pods are running. Waited for " + str(timer) + "s retrying")
+        command_status_ako = grabPipeOutput(podRunninng_ako_main, podRunninng_ako_grep)
+        if command_status_ako[1] != 0:
+            time.sleep(30)
+            timer = timer + 30
+        else:
+            ako_pod_running = True
+            break
+
+    if not ako_pod_running:
+        current_app.logger.error("AKO pods are not running on waiting for 10m " + command_status_ako[0])
+        d = {
+            "responseType": "ERROR",
+            "msg": "AKO pods are not running on waiting for 10m " + str(command_status_ako[0]),
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    data_center = current_app.config['VC_DATACENTER']
+    govc_client = GovcClient(current_app.config, LocalCmdHelper())
+    ip = govc_client.get_vm_ip(ControllerLocation.CONTROLLER_NAME, datacenter_name=data_center)
+    if ip is None:
+        current_app.logger.error("Failed to get ip of avi controller")
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to get ip of avi controller",
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    ip = ip[0]
+    current_app.logger.info("Checking if AKO Deployment Config already exists for Shared services cluster: " + shared_cluster_name)
+    command_main = ["kubectl", "get", "adc"]
+    command_grep = ["grep", "install-ako-for-shared-services-cluster"]
+    command_status_adc = grabPipeOutput(command_main, command_grep)
+    if command_status_adc[1] == 0:
+        current_app.logger.debug("Found an already existing AKO Deployment Config: "
+                                 "install-ako-for-shared-services-cluster")
+        command = ["kubectl", "delete", "adc", "install-ako-for-shared-services-cluster"]
+        status = runShellCommandAndReturnOutputAsList(command)
+        if status[1] != 0:
+            current_app.logger.error("Failed to delete an already present AKO Deployment config")
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to delete an already present AKO Deployment config",
+                "ERROR_CODE": 500
+            }
+            return jsonify(d), 500
+    csrf2 = obtain_second_csrf(ip, env)
+    if csrf2 is None:
+        current_app.logger.error("Failed to get csrf from new set password")
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to get csrf from new set password",
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    aviVersion = get_avi_version(env)
+    tkg_mgmt_data_netmask = getVipNetworkIpNetMask(ip, csrf2, aviVersion, Cloud.WIP_NETWORK_NAME)
+    if tkg_mgmt_data_netmask[0] is None or tkg_mgmt_data_netmask[0] == "NOT_FOUND":
+        current_app.logger.error("Failed to get TKG Management Data netmask")
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to get TKG Management Data netmask",
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    tkg_cluster_vip_netmask = getVipNetworkIpNetMask(ip, csrf2, aviVersion, Cloud.WIP_CLUSTER_NETWORK_NAME)
+    if tkg_cluster_vip_netmask[0] is None or tkg_cluster_vip_netmask[0] == "NOT_FOUND":
+        current_app.logger.error("Failed to get Cluster VIP netmask")
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to get Cluster VIP netmask",
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    current_app.logger.info("Creating AkoDeploymentConfig for shared services cluster...")
+    createAkoFile(ip, shared_cluster_name, tkg_mgmt_data_netmask[0], Cloud.WIP_NETWORK_NAME)
+    yaml_file_path = Paths.CLUSTER_PATH + shared_cluster_name + "/tkgvmc-ako-shared-services-cluster.yaml"
+    listOfCommand = ["kubectl", "create", "-f", yaml_file_path]
+    status = runShellCommandAndReturnOutputAsList(listOfCommand)
+    if status[1] != 0:
+        if not str(status[0]).__contains__("already has a value"):
+            current_app.logger.error("Failed to apply ako" + str(status[0]))
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to create new AkoDeploymentConfig " + str(status[0]),
+                "ERROR_CODE": 500
+            }
+            return jsonify(d), 500
+    current_app.logger.info("Successfully created a new AkoDeploymentConfig for shared services cluster")
+    d = {
+        "responseType": "SUCCESS",
+        "msg": "Successfully validated running status for AKO",
+        "ERROR_CODE": 200
+    }
+    return jsonify(d), 200
+
+
+def createAkoFile(ip, shared_cluster_name, tkgMgmtDataVipCidr, tkgMgmtDataPg):
+    repository = 'projects.registry.vmware.com/tkg/ako'
+    data = dict(
+        apiVersion='networking.tkg.tanzu.vmware.com/v1alpha1',
+        kind='AKODeploymentConfig',
+        metadata=dict(
+            finalizers=['ako-operator.networking.tkg.tanzu.vmware.com'],
+            generation=1,
+            name='install-ako-for-shared-services-cluster'
+        ),
+        spec=dict(
+            adminCredentialRef=dict(
+                name='avi-controller-credentials',
+                namespace='tkg-system-networking'),
+            certificateAuthorityRef=dict(
+                name='avi-controller-ca',
+                namespace='tkg-system-networking'
+            ),
+            cloudName=Cloud.CLOUD_NAME,
+            clusterSelector=dict(
+                matchLabels=dict(
+                    type=AkoType.SHARED_CLUSTER_SELECTOR
+                )
+            ),
+            controller=ip,
+            dataNetwork=dict(cidr=tkgMgmtDataVipCidr, name=tkgMgmtDataPg),
+            extraConfigs=dict(ingress=dict(defaultIngressController=False, disableIngressClass=True)),
+            serviceEngineGroup=Cloud.SE_GROUP_NAME
+        )
+    )
+    with open(Paths.CLUSTER_PATH +shared_cluster_name+'/tkgvmc-ako-shared-services-cluster.yaml', 'w') as outfile:
+        yaml = ruamel.yaml.YAML()
+        yaml.indent(mapping=2, sequence=4, offset=3)
+        yaml.dump(data, outfile)
+
+
+def getVipNetworkIpNetMask(ip, csrf2, aviVersion, networkName):
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Cookie": csrf2[1],
+        "referer": "https://" + ip + "/login",
+        "x-avi-version": aviVersion,
+        "x-csrftoken": csrf2[0]
+    }
+    body = {}
+    url = "https://" + ip + "/api/network"
+    try:
+        response_csrf = requests.request("GET", url, headers=headers, data=body, verify=False)
+        if response_csrf.status_code != 200:
+            return None, response_csrf.text
+        else:
+            for re in response_csrf.json()["results"]:
+                if re['name'] == networkName:
+                    for sub in re["configured_subnets"]:
+                        return str(sub["prefix"]["ip_addr"]["addr"]) + "/" + str(sub["prefix"]["mask"]), "SUCCESS"
+            else:
+                next_url = None if not response_csrf.json()["next"] else response_csrf.json()["next"]
+                while len(next_url) > 0:
+                    response_csrf = requests.request("GET", next_url, headers=headers, data=body, verify=False)
+                    for re in response_csrf.json()["results"]:
+                        if re['name'] == networkName:
+                            for sub in re["configured_subnets"]:
+                                return str(sub["prefix"]["ip_addr"]["addr"]) + "/" + str(
+                                    sub["prefix"]["mask"]), "SUCCESS"
+                    next_url = None if not response_csrf.json()["next"] else response_csrf.json()["next"]
+
+        return "NOT_FOUND", "FAILED"
+    except KeyError:
+        return "NOT_FOUND", "FAILED"
 
 
 @shared_config.route("/api/tanzu/vmc/tkgsharedsvc", methods=['POST'])
@@ -172,7 +385,10 @@ def deploy():
     shared_cluster_name = vmcSpec.componentSpec.tkgSharedServiceSpec.tkgSharedClusterName
     datacenter_path = "/" + data_center
     size = vmcSpec.componentSpec.tkgSharedServiceSpec.tkgSharedserviceSize
-    if size.lower() == "medium":
+    if size.lower() == "small":
+        current_app.logger.debug("Recommended size for shared services cluster is: medium/large/extra-large/custom")
+        pass
+    elif size.lower() == "medium":
         pass
     elif size.lower() == "large":
         pass
@@ -182,14 +398,18 @@ def deploy():
         pass
     else:
 
-        current_app.logger.error("Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom")
+        current_app.logger.error("Provided cluster size: " + size + "is not supported, please provide one of: small/medium/large/extra-large/custom")
         d = {
             "responseType": "ERROR",
-            "msg": "Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom",
+            "msg": "Provided cluster size: " + size + "is not supported, please provide one of: small/medium/large/extra-large/custom",
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
-    if size.lower() == "medium":
+    if size.lower() == "small":
+        cpu = Sizing.small['CPU']
+        memory = Sizing.small['MEMORY']
+        disk = Sizing.small['DISK']
+    elif size.lower() == "medium":
         cpu = Sizing.medium['CPU']
         memory = Sizing.medium['MEMORY']
         disk = Sizing.medium['DISK']
@@ -207,10 +427,10 @@ def deploy():
         disk = request.get_json(force=True)['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceStorageSize']
         memory = str(int(memory)*1024)
     else:
-        current_app.logger.error("Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom")
+        current_app.logger.error("Provided cluster size: " + size + "is not supported, please provide one of: small/medium/large/extra-large/custom")
         d = {
             "responseType": "ERROR",
-            "msg": "Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom",
+            "msg": "Provided cluster size: " + size + "is not supported, please provide one of: small/medium/large/extra-large/custom",
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
@@ -220,11 +440,19 @@ def deploy():
     cluster_plan = vmcSpec.componentSpec.tkgSharedServiceSpec.tkgSharedserviceDeploymentType
     datastore_path = f"{datacenter_path}/datastore/{data_store}"
     shared_folder_path = f"{datacenter_path}/vm/{ResourcePoolAndFolderName.SHARED_FOLDER_NAME}"
-    if parent_resourcepool is not None:
+    if parent_resourcepool:
         shared_resource_path = f"{datacenter_path}/host/{cluster_name}/Resources/{parent_resourcepool}/{ResourcePoolAndFolderName.SHARED_RESOURCE_POOL_NAME}"
     else:
         shared_resource_path = f"{datacenter_path}/host/{cluster_name}/Resources/{ResourcePoolAndFolderName.SHARED_RESOURCE_POOL_NAME}"
     shared_network_path = f"{datacenter_path}/network/{SegmentsName.DISPLAY_NAME_TKG_SharedService_Segment}"
+    if not createClusterFolder(shared_cluster_name):
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to create directory: " + Paths.CLUSTER_PATH + shared_cluster_name,
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    current_app.logger.info("The config files for shared services cluster will be located at: " + Paths.CLUSTER_PATH + shared_cluster_name)
     if Tkg_version.TKG_VERSION == "1.3":
         control_plane_end_point = request.get_json(force=True)['componentSpec']['tkgSharedServiceSpec'][
             'TKG_Shared_ControlPlane_IP']
@@ -305,6 +533,16 @@ def deploy():
     isCheck = False
     if command_status[0] is None:
         if Tkg_version.TKG_VERSION == "1.5" and checkTmcEnabled(env):
+            current_app.logger.info("Creating AkoDeploymentConfig for shared services cluster")
+            ako_deployment_config_status = akoDeploymentConfigSharedCluster(shared_cluster_name)
+            if ako_deployment_config_status[1] != 200:
+                current_app.logger.info("Failed to create AKO Deployment Config for shared services cluster")
+                d = {
+                    "responseType": "SUCCESS",
+                    "msg": ako_deployment_config_status[0].json['msg'],
+                    "ERROR_CODE": 500
+                }
+                return jsonify(d), 500
             current_app.logger.info("Deploying shared cluster...")
             command_status = runShellCommandAndReturnOutputAsList(createSharedCluster)
             if command_status[1] != 0:
@@ -321,6 +559,16 @@ def deploy():
         if not verifyPodsAreRunning(shared_cluster_name, command_status[0], RegexPattern.running):
             isCheck = True
             if not checkTmcEnabled(env):
+                current_app.logger.info("Creating AkoDeploymentConfig for shared services cluster")
+                ako_deployment_config_status = akoDeploymentConfigSharedCluster(shared_cluster_name)
+                if ako_deployment_config_status[1] != 200:
+                    current_app.logger.info("Failed to create AKO Deployment Config for shared services cluster")
+                    d = {
+                        "responseType": "SUCCESS",
+                        "msg": ako_deployment_config_status[0].json['msg'],
+                        "ERROR_CODE": 500
+                    }
+                    return jsonify(d), 500
                 current_app.logger.info("Deploying shared cluster using tanzu 1.5")
                 deploy_status = deployCluster(shared_cluster_name, cluster_plan,
                                               data_center, data_store, shared_folder_path, shared_network_path,
@@ -337,6 +585,16 @@ def deploy():
                     return jsonify(d), 500
             else:
                 if checkTmcEnabled(env):
+                    current_app.logger.info("Creating AkoDeploymentConfig for shared services cluster")
+                    ako_deployment_config_status = akoDeploymentConfigSharedCluster(shared_cluster_name)
+                    if ako_deployment_config_status[1] != 200:
+                        current_app.logger.info("Failed to create AKO Deployment Config for shared services cluster")
+                        d = {
+                            "responseType": "SUCCESS",
+                            "msg": ako_deployment_config_status[0].json['msg'],
+                            "ERROR_CODE": 500
+                        }
+                        return jsonify(d), 500
                     current_app.logger.info("Deploying shared cluster, after verification using tmc")
                     command_status_v = runShellCommandAndReturnOutputAsList(createSharedCluster)
                     if command_status_v[1] != 0:
@@ -441,7 +699,7 @@ def deploy():
                 }
                 return jsonify(d), 500
             lisOfCommand = ["kubectl", "label", "cluster",
-                            shared_cluster_name, AkoType.KEY + "=" + AkoType.VALUE, "--overwrite=true"]
+                            shared_cluster_name, AkoType.KEY + "=" + AkoType.SHARED_CLUSTER_SELECTOR, "--overwrite=true"]
             status = runShellCommandAndReturnOutputAsList(lisOfCommand)
             if status[1] != 0:
                 if not str(status[0]).__contains__("already has a value"):
@@ -512,8 +770,10 @@ def deploy():
                 current_app.logger.info("Successfully created RBAC for all the provided users")
             else:
                 current_app.logger.info("Identity Management is not enabled")
-            podRunninng_ako_main = ["kubectl", "get", "pods", "-A"]
-            podRunninng_ako_grep = ["grep", AppName.AKO]
+
+            current_app.logger.info("Verifying if AKO pods are running...")
+            podRunninng_ako_main = ["kubectl", "get", "pods", "-n", "avi-system"]
+            podRunninng_ako_grep = ["grep", "ako-0"]
             count_ako = 0
             time.sleep(30)
             timer = 30
@@ -694,7 +954,7 @@ def deployExtentions():
             return jsonify(d), 500
         current_app.logger.info("Validate harbor is running")
         if Tkg_version.TKG_VERSION == "1.3":
-            state = installHarbor13(service, repo_address, harborCertPath, harborCertKeyPath, harborPassword, host)
+            state = installHarbor13(service, repo_address, harborCertPath, harborCertKeyPath, harborPassword, host, shared_cluster_name)
             if state[1] != 500:
                 current_app.logger.error(state[0].json['msg'])
                 d = {
@@ -704,7 +964,7 @@ def deployExtentions():
                 }
                 return jsonify(d), 500
         if Tkg_version.TKG_VERSION == "1.5":
-            state = installHarbor14(service, repo_address, harborCertPath, harborCertKeyPath, harborPassword, host)
+            state = installHarbor14(service, repo_address, harborCertPath, harborCertKeyPath, harborPassword, host, shared_cluster_name)
             if state[1] != 200:
                 current_app.logger.error(state[0].json['msg'])
                 d = {
@@ -722,7 +982,7 @@ def deployExtentions():
     return jsonify(d), 200
 
 
-def installHarbor13(service, repo_address, harborCertPath, harborCertKeyPath, harborPassword, host):
+def installHarbor13(service, repo_address, harborCertPath, harborCertKeyPath, harborPassword, host, clusterName):
     cnd = ["kubectl", "get", "app", AppName.HARBOR, "-n", "tanzu-system-registry"]
     validate_harbor = runShellCommandAndReturnOutputAsList(cnd)
     if validate_harbor[1] != 0:
@@ -742,10 +1002,10 @@ def installHarbor13(service, repo_address, harborCertPath, harborCertKeyPath, ha
             runShellCommandAndReturnOutput(listCm)
     if not verifyPodsAreRunning(AppName.HARBOR, validate_harbor[0], RegexPattern.RECONCILE_SUCCEEDED):
         current_app.logger.info("Deploying harbor")
-        command_harbor_copy = ["rm", "-rf", "harbor-data-values.yaml"]
+        command_harbor_copy = ["rm", "-rf", Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml"]
         runShellCommandAndReturnOutputAsListWithChangedDir(command_harbor_copy,
                                                            Extentions.HARBOR_LOCATION)
-        command_harbor_copy = ["cp", "harbor-data-values.yaml.example", "harbor-data-values.yaml"]
+        command_harbor_copy = ["cp", "harbor-data-values.yaml.example", Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml"]
         state_harbor_copy = runShellCommandAndReturnOutputAsListWithChangedDir(command_harbor_copy,
                                                                                Extentions.HARBOR_LOCATION)
         if state_harbor_copy[1] == 500:
@@ -771,7 +1031,7 @@ def installHarbor13(service, repo_address, harborCertPath, harborCertKeyPath, ha
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
-        command_harbor_genrate_psswd = ["sh", "./generate-passwords.sh", "harbor-data-values.yaml"]
+        command_harbor_genrate_psswd = ["sh", "./generate-passwords.sh", Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml"]
         state_harbor_genrate_psswd = runShellCommandAndReturnOutputAsListWithChangedDir(
             command_harbor_genrate_psswd, Extentions.HARBOR_LOCATION)
         if state_harbor_genrate_psswd[1] == 500:
@@ -782,7 +1042,7 @@ def installHarbor13(service, repo_address, harborCertPath, harborCertKeyPath, ha
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
-        cer = certChanging(harborCertPath, harborCertKeyPath, harborPassword, host)
+        cer = certChanging(harborCertPath, harborCertKeyPath, harborPassword, host, clusterName)
         if cer[1] != 200:
             current_app.logger.error(cer[0].json['msg'])
             d = {
@@ -793,7 +1053,7 @@ def installHarbor13(service, repo_address, harborCertPath, harborCertKeyPath, ha
             return jsonify(d), 500
 
         command_harbor_create_secret = ["kubectl", "create", "secret", "generic", "harbor-data-values",
-                                        "--from-file=values.yaml=harbor-data-values.yaml", "-n",
+                                        "--from-file=values.yaml=" + Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml", "-n",
                                         "tanzu-system-registry"]
         state_harbor_create_secret = runShellCommandAndReturnOutputAsListWithChangedDir(
             command_harbor_create_secret,
@@ -849,7 +1109,7 @@ def installHarbor13(service, repo_address, harborCertPath, harborCertKeyPath, ha
             return jsonify(d), 200
 
 
-def installHarbor14(service, repo_address, harborCertPath, harborCertKeyPath, harborPassword, host):
+def installHarbor14(service, repo_address, harborCertPath, harborCertKeyPath, harborPassword, host, clusterName):
     main_command = ["tanzu", "package", "installed", "list", "-A"]
     sub_command = ["grep", AppName.HARBOR]
     out = grabPipeOutput(main_command, sub_command)
@@ -925,10 +1185,10 @@ def installHarbor14(service, repo_address, harborCertPath, harborCertKeyPath, ha
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
-        os.system("rm -rf ./harbor-data-values.yaml")
-        os.system("cp /tmp/harbor-package/config/values.yaml ./harbor-data-values.yaml")
+        os.system("rm -rf " + Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml")
+        os.system("cp /tmp/harbor-package/config/values.yaml " + Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml")
         command_harbor_genrate_psswd = ["sh", "/tmp/harbor-package/config/scripts/generate-passwords.sh",
-                                        "harbor-data-values.yaml"]
+                                        Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml"]
         state_harbor_genrate_psswd = runShellCommandAndReturnOutputAsList(command_harbor_genrate_psswd)
         if state_harbor_genrate_psswd[1] == 500:
             current_app.logger.error("Failed to generate password " + str(state_harbor_genrate_psswd[0]))
@@ -938,7 +1198,7 @@ def installHarbor14(service, repo_address, harborCertPath, harborCertKeyPath, ha
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
-        cer = certChanging(harborCertPath, harborCertKeyPath, harborPassword, host)
+        cer = certChanging(harborCertPath, harborCertKeyPath, harborPassword, host, clusterName)
         if cer[1] != 200:
             current_app.logger.error(cer[0].json['msg'])
             d = {
@@ -948,13 +1208,14 @@ def installHarbor14(service, repo_address, harborCertPath, harborCertKeyPath, ha
             }
             return jsonify(d), 500
         os.system("chmod +x common/injectValue.sh")
-        command = ["sh", "./common/injectValue.sh", "harbor-data-values.yaml", "remove"]
+        command = ["sh", "./common/injectValue.sh", Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml", "remove"]
         runShellCommandAndReturnOutputAsList(command)
         command = ["tanzu", "package", "install", "harbor", "--package-name", "harbor.tanzu.vmware.com", "--version",
-                   state, "--values-file", "./harbor-data-values.yaml", "--namespace", "package-tanzu-system-registry",
+                   state, "--values-file", Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml", "--namespace", "package-tanzu-system-registry",
                    "--create-namespace"]
         runShellCommandAndReturnOutputAsList(command)
-        createOverlayYaml(repo_address)
+        createOverlayYaml(repo_address, clusterName)
+        os.system("cp ./common/harbor-overlay.yaml "+Paths.CLUSTER_PATH)
         os.system("chmod +x ./common/create_secrets.sh")
         apply = ["sh", "./common/create_secrets.sh"]
         apply_state = runShellCommandAndReturnOutput(apply)
@@ -1007,10 +1268,10 @@ def installHarbor14(service, repo_address, harborCertPath, harborCertKeyPath, ha
         return jsonify(d), 200
 
 
-def certChanging(harborCertPath, harborCertKeyPath, harborPassword, host):
+def certChanging(harborCertPath, harborCertKeyPath, harborPassword, host, clusterName):
     os.system("chmod +x common/inject.sh")
     if Tkg_version.TKG_VERSION == "1.5":
-        location = "harbor-data-values.yaml"
+        location = Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml"
     if Tkg_version.TKG_VERSION == "1.3":
         location = Extentions.HARBOR_LOCATION + "/harbor-data-values.yaml"
     if harborCertPath and harborCertKeyPath:

@@ -4,7 +4,7 @@ metadata:
   name: tekton-day0
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   volumeMode: Filesystem
   resources:
     requests:

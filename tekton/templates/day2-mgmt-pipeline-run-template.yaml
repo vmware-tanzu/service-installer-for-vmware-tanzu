@@ -16,6 +16,8 @@ spec:
       value: #@ data.values.git.branch
     - name: targetcluster
       value: mgmt
+    - name: imagepullpolicy
+      value: #@ data.values.imagepullpolicy
   workspaces:
     - name: pipeline-shared-data
       persistentVolumeClaim:

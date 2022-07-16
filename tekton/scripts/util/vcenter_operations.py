@@ -21,6 +21,7 @@ from pathlib import Path
 import urllib3
 from constants.constants import SegmentsName
 
+from util.cmd_helper import CmdHelper
 logger = LoggerHelper.get_logger(Path(__file__).stem)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -734,3 +735,19 @@ def getDvPortGroupId(vcenterIp, vcenterUser, vcenterPassword, networkName, vc_da
     except Exception as e:
         logger.error(str(e))
         return None
+
+def verifyVcenterVersion(version, jsonspec):
+    # vCenter = current_app.config['VC_IP']
+    # vCenter_user = current_app.config['VC_USER']
+    # VC_PASSWORD = current_app.config['VC_PASSWORD']
+    vcpass_base64 = jsonspec['envSpec']['vcenterDetails']['vcenterSsoPasswordBase64']
+    password = CmdHelper.decode_base64(vcpass_base64)
+    vcenter_username = jsonspec['envSpec']['vcenterDetails']['vcenterSsoUser']
+    vcenter_ip = jsonspec['envSpec']['vcenterDetails']['vcenterAddress']
+    si = connect.SmartConnectNoSSL(host=vcenter_ip, user=vcenter_username, pwd=password)
+    content = si.RetrieveContent()
+    vcVersion = content.about.version
+    if vcVersion.startswith(version):
+        return True
+    else:
+        return False

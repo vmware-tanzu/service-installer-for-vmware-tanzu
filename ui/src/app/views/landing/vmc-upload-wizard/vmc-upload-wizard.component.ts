@@ -288,6 +288,15 @@ export class VMCUploadWizardComponent implements OnInit {
                         input['marketplaceSpec']['refreshToken']);
                 }
             }
+            if(input.hasOwnProperty('ceipParticiaption')) {
+                if(input['ceipParticiaption'] === 'true') {
+                    this.vmcDataService.changeCeipParticipation(true);
+                } else {
+                    this.vmcDataService.changeCeipParticipation(false);
+                }
+            }else {
+                this.vmcDataService.changeCeipParticipation(false);
+            }
             if (input.hasOwnProperty('saasEndpoints')) {
                 if (input['saasEndpoints'].hasOwnProperty('tmcDetails')) {
                     if (input['saasEndpoints']['tmcDetails'].hasOwnProperty('tmcAvailability')) {
@@ -607,33 +616,63 @@ export class VMCUploadWizardComponent implements OnInit {
                 }
                 if (input['componentSpec'].hasOwnProperty('tkgSharedServiceSpec')) {
                     if (input['componentSpec']['tkgSharedServiceSpec'].hasOwnProperty('tkgSharedserviceDeploymentType')) {
+                        if (input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceDeploymentType'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeSharedDeploymentType(input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceDeploymentType']);
                     }
                     if (input['componentSpec']['tkgSharedServiceSpec'].hasOwnProperty('tkgSharedserviceSize')) {
+                        if (input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceSize'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeSharedDeploymentSize(input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceSize']);
                     }
                     if(input['componentSpec']['tkgSharedServiceSpec'].hasOwnProperty('tkgSharedserviceCpuSize')){
+                        if (input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceCpuSize'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeSharedCpu(input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceCpuSize']);
                     }
                     if(input['componentSpec']['tkgSharedServiceSpec'].hasOwnProperty('tkgSharedserviceMemorySize')){
+                        if (input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceMemorySize'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeSharedMemory(input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceMemorySize']);
                     }
                     if(input['componentSpec']['tkgSharedServiceSpec'].hasOwnProperty('tkgSharedserviceStorageSize')){
+                        if (input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceStorageSize'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeSharedStorage(input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceStorageSize']);
                     }
                     if (input['componentSpec']['tkgSharedServiceSpec'].hasOwnProperty('tkgSharedClusterName')) {
+                        if (input['componentSpec']['tkgSharedServiceSpec']['tkgSharedClusterName'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeSharedClusterName(input['componentSpec']['tkgSharedServiceSpec']['tkgSharedClusterName']);
                     }
                     if (input['componentSpec']['tkgSharedServiceSpec'].hasOwnProperty('tkgSharedserviceWorkerMachineCount')) {
+                        if (input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceWorkerMachineCount'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeSharedWorkerNodeCount(input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceWorkerMachineCount']);
                     }
                     if (input['componentSpec']['tkgSharedServiceSpec'].hasOwnProperty('tkgSharedGatewayCidr')) {
+                        if (input['componentSpec']['tkgSharedServiceSpec']['tkgSharedGatewayCidr'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeSharedGateway(input['componentSpec']['tkgSharedServiceSpec']['tkgSharedGatewayCidr']);
                     }
                     if (input['componentSpec']['tkgSharedServiceSpec'].hasOwnProperty('tkgSharedDhcpStartRange')) {
+                        if (input['componentSpec']['tkgSharedServiceSpec']['tkgSharedDhcpStartRange'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeSharedDhcpStart(input['componentSpec']['tkgSharedServiceSpec']['tkgSharedDhcpStartRange']);
                     }
                     if (input['componentSpec']['tkgSharedServiceSpec'].hasOwnProperty('tkgSharedDhcpEndRange')) {
+                        if (input['componentSpec']['tkgSharedServiceSpec']['tkgSharedDhcpEndRange'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeSharedDhcpEnd(input['componentSpec']['tkgSharedServiceSpec']['tkgSharedDhcpEndRange']);
                     }
                     if (input['componentSpec']['tkgSharedServiceSpec'].hasOwnProperty('tkgSharedserviceClusterCidr')) {
@@ -649,28 +688,46 @@ export class VMCUploadWizardComponent implements OnInit {
                         }
                     }
                     if (input['componentSpec']['tkgSharedServiceSpec'].hasOwnProperty('tkgSharedserviceBaseOs')) {
+                        if (input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceBaseOs'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeSharedBaseImage(
                             input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceBaseOs']);
                     }
                     if (input['componentSpec']['tkgSharedServiceSpec'].hasOwnProperty('tkgSharedserviceKubeVersion')) {
+                        if (input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceKubeVersion'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeSharedBaseImageVersion(
                             input['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceKubeVersion']);
                     }
                     if (this.apiClient.enableIdentityManagement) {
                         if (input['componentSpec'].hasOwnProperty('tkgSharedserviceRbacUserRoleSpec')) {
                             if (input['componentSpec']['tkgSharedserviceRbacUserRoleSpec'].hasOwnProperty('clusterAdminUsers')) {
+                                if (input['componentSpec']['tkgSharedserviceRbacUserRoleSpec']['clusterAdminUsers'] !== ""){
+                                    this.apiClient.sharedServicesClusterSettings = true;
+                                }
                                 this.vmcDataService.changeSharedClusterAdminUsers(
                                     input['componentSpec']['tkgSharedserviceRbacUserRoleSpec']['clusterAdminUsers']);
                             }
                             if (input['componentSpec']['tkgSharedserviceRbacUserRoleSpec'].hasOwnProperty('adminUsers')) {
+                                if (input['componentSpec']['tkgSharedserviceRbacUserRoleSpec']['adminUsers'] !== ""){
+                                    this.apiClient.sharedServicesClusterSettings = true;
+                                }
                                 this.vmcDataService.changeSharedAdminUsers(
                                     input['componentSpec']['tkgSharedserviceRbacUserRoleSpec']['adminUsers']);
                             }
                             if (input['componentSpec']['tkgSharedserviceRbacUserRoleSpec'].hasOwnProperty('editUsers')) {
+                                if (input['componentSpec']['tkgSharedserviceRbacUserRoleSpec']['editUsers'] !== ""){
+                                    this.apiClient.sharedServicesClusterSettings = true;
+                                }
                                 this.vmcDataService.changeSharedEditUsers(
                                     input['componentSpec']['tkgSharedserviceRbacUserRoleSpec']['editUsers']);
                             }
                             if (input['componentSpec']['tkgSharedserviceRbacUserRoleSpec'].hasOwnProperty('viewUsers')) {
+                                if (input['componentSpec']['tkgSharedserviceRbacUserRoleSpec']['viewUsers'] !== ""){
+                                    this.apiClient.sharedServicesClusterSettings = true;
+                                }
                                 this.vmcDataService.changeSharedViewUsers(
                                     input['componentSpec']['tkgSharedserviceRbacUserRoleSpec']['viewUsers']);
                             }
@@ -681,10 +738,16 @@ export class VMCUploadWizardComponent implements OnInit {
                             this.vmcDataService.changeSharedEnableDataProtection(true);
                             this.apiClient.sharedDataProtectonEnabled = true;
                             if (input['componentSpec']['tkgSharedServiceSpec'].hasOwnProperty('tkgSharedClusterCredential')) {
+                                if (input['componentSpec']['tkgSharedServiceSpec']['tkgSharedClusterCredential'] !== ""){
+                                    this.apiClient.sharedServicesClusterSettings = true;
+                                }
                                 this.vmcDataService.changeSharedDataProtectionCreds(
                                     input['componentSpec']['tkgSharedServiceSpec']['tkgSharedClusterCredential']);
                             }
                             if (input['componentSpec']['tkgSharedServiceSpec'].hasOwnProperty('tkgSharedClusterBackupLocation')) {
+                                if (input['componentSpec']['tkgSharedServiceSpec']['tkgSharedClusterBackupLocation'] !== ""){
+                                    this.apiClient.sharedServicesClusterSettings = true;
+                                }
                                 this.vmcDataService.changeSharedDataProtectionTargetLocation(
                                     input['componentSpec']['tkgSharedServiceSpec']['tkgSharedClusterBackupLocation']);
                             }
@@ -700,64 +763,121 @@ export class VMCUploadWizardComponent implements OnInit {
                 if (input['componentSpec'].hasOwnProperty('harborSpec')) {
                     this.vmcDataService.changeEnableHarbor(true);
                     if (input['componentSpec']['harborSpec'].hasOwnProperty('harborFqdn')) {
+                        if (input['componentSpec']['harborSpec']['harborFqdn'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeHarborFqdn(input['componentSpec']['harborSpec']['harborFqdn']);
                     }
                     if (input['componentSpec']['harborSpec'].hasOwnProperty('harborPasswordBase64')) {
+                        if (input['componentSpec']['harborSpec']['harborPasswordBase64'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeHarborPassword(atob(input['componentSpec']['harborSpec']['harborPasswordBase64']));
                     }
                     if (input['componentSpec']['harborSpec'].hasOwnProperty('harborCertPath')) {
+                        if (input['componentSpec']['harborSpec']['harborCertPath'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeHarborCertPath(input['componentSpec']['harborSpec']['harborCertPath']);
                     }
                     if (input['componentSpec']['harborSpec'].hasOwnProperty('harborCertKeyPath')) {
+                        if (input['componentSpec']['harborSpec']['harborCertKeyPath'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.vmcDataService.changeHarborCertKey(input['componentSpec']['harborSpec']['harborCertKeyPath']);
                     }
                 }
                 if (input['componentSpec'].hasOwnProperty('tkgWorkloadDataNetworkSpec')) {
                     if (input['componentSpec']['tkgWorkloadDataNetworkSpec'].hasOwnProperty('tkgWorkloadDataGatewayCidr')) {
+                        if (input['componentSpec']['tkgWorkloadDataNetworkSpec']['tkgWorkloadDataGatewayCidr'] !== ""){
+                            this.apiClient.workloadDataSettings = true;
+                        }
                         this.vmcDataService.changeTkgWrkDataGateway(input['componentSpec']['tkgWorkloadDataNetworkSpec']['tkgWorkloadDataGatewayCidr']);
                     }
                     if (input['componentSpec']['tkgWorkloadDataNetworkSpec'].hasOwnProperty('tkgWorkloadDataDhcpStartRange')) {
+                        if (input['componentSpec']['tkgWorkloadDataNetworkSpec']['tkgWorkloadDataDhcpStartRange'] !== ""){
+                            this.apiClient.workloadDataSettings = true;
+                        }
                         this.vmcDataService.changeTkgWrkDataDhcpStart(input['componentSpec']['tkgWorkloadDataNetworkSpec']['tkgWorkloadDataDhcpStartRange']);
                     }
                     if (input['componentSpec']['tkgWorkloadDataNetworkSpec'].hasOwnProperty('tkgWorkloadDataDhcpEndRange')) {
+                        if (input['componentSpec']['tkgWorkloadDataNetworkSpec']['tkgWorkloadDataDhcpEndRange'] !== ""){
+                            this.apiClient.workloadDataSettings = true;
+                        }
                         this.vmcDataService.changeTkgWrkDataDhcpEnd(input['componentSpec']['tkgWorkloadDataNetworkSpec']['tkgWorkloadDataDhcpEndRange']);
                     }
                     if (input['componentSpec']['tkgWorkloadDataNetworkSpec'].hasOwnProperty('tkgWorkloadDataServiceStartRange')) {
+                        if (input['componentSpec']['tkgWorkloadDataNetworkSpec']['tkgWorkloadDataServiceStartRange'] !== ""){
+                            this.apiClient.workloadDataSettings = true;
+                        }
                         this.vmcDataService.changeTkgWrkDataServiceStart(input['componentSpec']['tkgWorkloadDataNetworkSpec']['tkgWorkloadDataServiceStartRange']);
                     }
                     if (input['componentSpec']['tkgWorkloadDataNetworkSpec'].hasOwnProperty('tkgWorkloadDataServiceEndRange')) {
+                        if (input['componentSpec']['tkgWorkloadDataNetworkSpec']['tkgWorkloadDataServiceEndRange'] !== ""){
+                            this.apiClient.workloadDataSettings = true;
+                        }
                         this.vmcDataService.changeTkgWrkDataServiceEnd(input['componentSpec']['tkgWorkloadDataNetworkSpec']['tkgWorkloadDataServiceEndRange']);
                     }
                 }
                 if (input['componentSpec'].hasOwnProperty('tkgWorkloadSpec')) {
                     if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadDeploymentType')) {
+                        if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadDeploymentType'] !== ""){
+                            this.apiClient.workloadClusterSettings = true;
+                        }
                         this.vmcDataService.changeWrkDeploymentType(input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadDeploymentType']);
                     }
                     if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadSize')) {
+                        if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadSize'] !== ""){
+                            this.apiClient.workloadClusterSettings = true;
+                        }
                         this.vmcDataService.changeWrkDeploymentSize(input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadSize']);
                     }
                     if(input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadCpuSize')){
+                        if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadCpuSize'] !== ""){
+                            this.apiClient.workloadClusterSettings = true;
+                        }
                         this.vmcDataService.changeWrkCpu(input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadCpuSize']);
                     }
                     if(input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadMemorySize')){
+                        if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadMemorySize'] !== ""){
+                            this.apiClient.workloadClusterSettings = true;
+                        }
                         this.vmcDataService.changeWrkMemory(input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadMemorySize']);
                     }
                     if(input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadStorageSize')){
+                        if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadStorageSize'] !== ""){
+                            this.apiClient.workloadClusterSettings = true;
+                        }
                         this.vmcDataService.changeWrkStorage(input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadStorageSize']);
                     }
                     if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadWorkerMachineCount')) {
+                        if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadWorkerMachineCount'] !== ""){
+                            this.apiClient.workloadClusterSettings = true;
+                        }
                         this.vmcDataService.changeWrkWorkerNodeCount(input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadWorkerMachineCount']);
                     }
                     if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadClusterName')) {
+                        if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadClusterName'] !== ""){
+                            this.apiClient.workloadClusterSettings = true;
+                        }
                         this.vmcDataService.changeWrkClusterName(input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadClusterName']);
                     }
                     if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadGatewayCidr')) {
+                        if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadGatewayCidr'] !== ""){
+                            this.apiClient.workloadClusterSettings = true;
+                        }
                         this.vmcDataService.changeWrkGateway(input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadGatewayCidr']);
                     }
                     if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadDhcpStartRange')) {
+                        if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadDhcpStartRange'] !== ""){
+                            this.apiClient.workloadClusterSettings = true;
+                        }
                         this.vmcDataService.changeWrkDhcpStart(input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadDhcpStartRange']);
                     }
                     if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadDhcpEndRange')) {
+                        if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadDhcpEndRange'] !== ""){
+                            this.apiClient.workloadClusterSettings = true;
+                        }
                         this.vmcDataService.changeWrkDhcpEnd(input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadDhcpEndRange']);
                     }
                     if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadClusterCidr')) {
@@ -773,28 +893,46 @@ export class VMCUploadWizardComponent implements OnInit {
                         }
                     }
                     if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadBaseOs')) {
+                        if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadBaseOs'] !== ""){
+                            this.apiClient.workloadClusterSettings = true;
+                        }
                         this.vmcDataService.changeWrkBaseImage(
                             input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadBaseOs']);
                     }
                     if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadKubeVersion')) {
+                        if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadKubeVersion'] !== ""){
+                            this.apiClient.workloadClusterSettings = true;
+                        }
                         this.vmcDataService.changeWrkBaseImageVersion(
                             input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadKubeVersion']);
                     }
                     if (this.apiClient.enableIdentityManagement) {
                         if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadRbacUserRoleSpec')) {
                             if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadRbacUserRoleSpec'].hasOwnProperty('clusterAdminUsers')) {
+                                if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadRbacUserRoleSpec']['clusterAdminUsers'] !== ""){
+                                    this.apiClient.workloadClusterSettings = true;
+                                }
                                 this.vmcDataService.changeWrkClusterAdminUsers(
                                     input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadRbacUserRoleSpec']['clusterAdminUsers']);
                             }
                             if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadRbacUserRoleSpec'].hasOwnProperty('adminUsers')) {
+                                if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadRbacUserRoleSpec']['adminUsers'] !== ""){
+                                    this.apiClient.workloadClusterSettings = true;
+                                }
                                 this.vmcDataService.changeWrkAdminUsers(
                                     input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadRbacUserRoleSpec']['adminUsers']);
                             }
                             if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadRbacUserRoleSpec'].hasOwnProperty('editUsers')) {
+                                if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadRbacUserRoleSpec']['editUsers'] !== ""){
+                                    this.apiClient.workloadClusterSettings = true;
+                                }
                                 this.vmcDataService.changeWrkEditUsers(
                                     input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadRbacUserRoleSpec']['editUsers']);
                             }
                             if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadRbacUserRoleSpec'].hasOwnProperty('viewUsers')) {
+                                if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadRbacUserRoleSpec']['viewUsers'] !== ""){
+                                    this.apiClient.workloadClusterSettings = true;
+                                }
                                 this.vmcDataService.changeWrkViewUsers(
                                     input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadRbacUserRoleSpec']['viewUsers']);
                             }
@@ -808,10 +946,16 @@ export class VMCUploadWizardComponent implements OnInit {
                                 this.vmcDataService.changeEnableTSM(true);
                                 if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('namespaceExclusions')) {
                                     if (input['componentSpec']['tkgWorkloadSpec']['namespaceExclusions'].hasOwnProperty('exactName')) {
+                                        if (input['componentSpec']['tkgWorkloadSpec']['namespaceExclusions']['exactName'] !== ""){
+                                            this.apiClient.workloadClusterSettings = true;
+                                        }
                                         this.vmcDataService.changeTsmExactNamespaceExclusion(
                                             input['componentSpec']['tkgWorkloadSpec']['namespaceExclusions']['exactName']);
                                     }
                                     if (input['componentSpec']['tkgWorkloadSpec']['namespaceExclusions'].hasOwnProperty('startsWith')) {
+                                        if (input['componentSpec']['tkgWorkloadSpec']['namespaceExclusions']['startsWith'] !== ""){
+                                            this.apiClient.workloadClusterSettings = true;
+                                        }
                                         this.vmcDataService.changeTsmStartsWithNamespaceExclusion(
                                             input['componentSpec']['tkgWorkloadSpec']['namespaceExclusions']['startsWith']);
                                     }
@@ -822,6 +966,9 @@ export class VMCUploadWizardComponent implements OnInit {
                         }
                     }
                     if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadClusterGroupName')) {
+                        if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadClusterGroupName'] !== ""){
+                            this.apiClient.workloadClusterSettings = true;
+                        }
                         this.vmcDataService.changeWrkClusterGroupName(input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadClusterGroupName']);
                     }
                     if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadEnableDataProtection')) {
@@ -829,10 +976,16 @@ export class VMCUploadWizardComponent implements OnInit {
                             this.vmcDataService.changeWrkEnableDataProtection(true);
                             this.apiClient.wrkDataProtectionEnabled = true;
                             if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadClusterCredential')) {
+                                if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadClusterCredential'] !== ""){
+                                    this.apiClient.workloadClusterSettings = true;
+                                }
                                 this.vmcDataService.changeWrkDataProtectionCreds(
                                     input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadClusterCredential']);
                             }
                             if (input['componentSpec']['tkgWorkloadSpec'].hasOwnProperty('tkgWorkloadClusterBackupLocation')) {
+                                if (input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadClusterBackupLocation'] !== ""){
+                                    this.apiClient.workloadClusterSettings = true;
+                                }
                                 this.vmcDataService.changeWrkDataProtectionTargetLocation(
                                     input['componentSpec']['tkgWorkloadSpec']['tkgWorkloadClusterBackupLocation']);
                             }

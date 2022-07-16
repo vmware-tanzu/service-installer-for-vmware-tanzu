@@ -17,6 +17,8 @@ from util.cmd_runner import RunCmd
 from util.file_helper import FileHelper
 from util.cmd_helper import CmdHelper
 
+from constants.constants import Tkg_version, Extentions
+
 logger = LoggerHelper.get_logger('common_utils')
 logging.getLogger("paramiko").setLevel(logging.WARNING)
 
@@ -164,6 +166,50 @@ def deployExtentions(jsonspec, runconfig):
     d = {
         "responseType": "SUCCESS",
         "msg": "Configured all extentions successfully",
+        "ERROR_CODE": 200
+    }
+    return json.dumps(d), 200
+
+
+def certChanging(harborCertPath, harborCertKeyPath, harborPassword, host, clusterName):
+    os.system("chmod +x common/inject.sh")
+    if Tkg_version.TKG_VERSION == "1.5":
+        location = Paths.CLUSTER_PATH + clusterName + "/harbor-data-values.yaml"
+    if Tkg_version.TKG_VERSION == "1.3":
+        location = Extentions.HARBOR_LOCATION + "/harbor-data-values.yaml"
+    if harborCertPath and harborCertKeyPath:
+        harbor_cert = Path(harborCertPath).read_text()
+        harbor_cert_key = Path(harborCertKeyPath).read_text()
+        certContent = harbor_cert
+        certKeyContent = harbor_cert_key
+        command_harbor_change_host_password_cert = ["sh", "./common/inject.sh",
+                                                    location,
+                                                    harborPassword, host, certContent, certKeyContent]
+        state_harbor_change_host_password_cert = runShellCommandAndReturnOutput(
+            command_harbor_change_host_password_cert)
+        if state_harbor_change_host_password_cert[1] == 500:
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to change host, password and cert " + str(state_harbor_change_host_password_cert[0]),
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+    else:
+        command_harbor_change_host_password_cert = ["sh", "./common/inject.sh",
+                                                    location,
+                                                    harborPassword, host, "", ""]
+        state_harbor_change_host_password_cert = runShellCommandAndReturnOutput(
+            command_harbor_change_host_password_cert)
+        if state_harbor_change_host_password_cert[1] == 500:
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to change host, password and cert " + str(state_harbor_change_host_password_cert[0]),
+                "ERROR_CODE": 500
+            }
+            return json.dumps(d), 500
+    d = {
+        "responseType": "SUCCESS",
+        "msg": "Updated harbor data-values yaml",
         "ERROR_CODE": 200
     }
     return json.dumps(d), 200

@@ -1,7 +1,8 @@
 from .extentions import extentions_types, deploy_extentions
-from common.operation.constants import Tkg_Extention_names, Repo, RegexPattern, Extentions, Env, AppName
+from common.operation.constants import Tkg_Extention_names, Repo, RegexPattern, Extentions, Env, AppName, Paths
 from flask import current_app, jsonify, request
-from common.common_utilities import getVersionOfPackage,switchToContext, loadBomFile, checkAirGappedIsEnabled, preChecks, envCheck, \
+from common.common_utilities import getVersionOfPackage, switchToContext, loadBomFile, checkAirGappedIsEnabled, \
+    preChecks, envCheck, \
     waitForProcess, installCertManagerAndContour, deployExtention, getManagementCluster, verifyCluster, \
     switchToManagementContext, checkToEnabled, checkFluentBitInstalled, deploy_fluent_bit
 from common.operation.ShellHelper import runShellCommandAndReturnOutputAsList, \
@@ -116,7 +117,8 @@ def captureVersion(extention):
 def generateYamlFile(extention, version, certKey_Path, cert_Path, fqdn, secret, yaml_file_name):
     extention = extention.lower()
     get_repo = ["kubectl", "-n", "tanzu-package-repo-global", "get", "packages",
-                extention + ".tanzu.vmware.com." + version, "-o", "jsonpath='{.spec.template.spec.fetch[0].imgpkgBundle.image}'"]
+                extention + ".tanzu.vmware.com." + version, "-o",
+                "jsonpath='{.spec.template.spec.fetch[0].imgpkgBundle.image}'"]
 
     get_repo_state = runShellCommandAndReturnOutput(get_repo)
     if get_repo_state[1] != 0:
@@ -128,13 +130,14 @@ def generateYamlFile(extention, version, certKey_Path, cert_Path, fqdn, secret, 
         }
         return jsonify(d), 500
 
-    generate_file = ["imgpkg", "pull", "-b", get_repo_state[0].replace("'", "").strip(), "-o", "/tmp/"+extention+"-package"]
+    generate_file = ["imgpkg", "pull", "-b", get_repo_state[0].replace("'", "").strip(), "-o",
+                     "/tmp/" + extention + "-package"]
     generate_file_state = runShellCommandAndReturnOutputAsList(generate_file)
     if generate_file_state[1] != 0:
-        current_app.logger.error("Failed to extention yaml copy " + str(generate_file_state[0]))
+        current_app.logger.error("Failed to generate extension yaml copy " + str(generate_file_state[0]))
         d = {
             "responseType": "ERROR",
-            "msg": "Failed to extention yaml copy " + str(generate_file_state[0]),
+            "msg": "Failed to generate extension yaml copy " + str(generate_file_state[0]),
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
@@ -144,15 +147,15 @@ def generateYamlFile(extention, version, certKey_Path, cert_Path, fqdn, secret, 
 
     copy_state = runShellCommandAndReturnOutputAsList(command_yaml_copy)
     if copy_state[1] != 0:
-        current_app.logger.error("Failed to extention yaml copy " + str(copy_state[0]))
+        current_app.logger.error("Failed to copy extension yaml " + str(copy_state[0]))
         d = {
             "responseType": "ERROR",
-            "msg": "Failed to extention yaml copy " + str(copy_state[0]),
+            "msg": "Failed to copy extension yaml " + str(copy_state[0]),
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
 
-    #modify yaml file, add fqdn etc..
+    # modify yaml file, add fqdn etc..
 
     if extention == 'grafana':
         command = ["./common/injectValue.sh", yaml_file_name, "inject_secret", secret, "tanzu-system-dashboards"]
@@ -180,7 +183,7 @@ def generateYamlFile(extention, version, certKey_Path, cert_Path, fqdn, secret, 
 
     d = {
         "responseType": "SUCCESS",
-        "msg": "Yaml file extention deployment created",
+        "msg": "Yaml file for extension deployment created",
         "ERROR_CODE": 200
     }
     return jsonify(d), 200
@@ -210,10 +213,10 @@ def monitoringDeployment(monitoringType):
                 return jsonify(d), 500
             env = env[0]
             if checkToEnabled(env):
-                current_app.logger.info("Tanzu observability is enabled, skipping promethus and grafana deployment")
+                current_app.logger.info("Tanzu observability is enabled, skipping prometheus and grafana deployment")
                 d = {
                     "responseType": "SUCCESS",
-                    "msg": "Tanzu observability is enabled, skipping promethus and grafana deployment",
+                    "msg": "Tanzu observability is enabled, skipping prometheus and grafana deployment",
                     "ERROR_CODE": 200
                 }
                 return jsonify(d), 200
@@ -280,7 +283,7 @@ def monitoringDeployment(monitoringType):
                 bom_map = getBomMap(load_bom, Tkg_Extention_names.PROMETHEUS)
                 appName = AppName.PROMETHUS
                 namespace = "package-tanzu-system-monitoring"
-                yamlFile = "./prometheus-data-values.yaml"
+                yamlFile = Paths.CLUSTER_PATH + cluster + "/prometheus-data-values.yaml"
                 service = "all"
                 cert_ext_status = installCertManagerAndContour(env, str(listOfCluster).strip(), repo_address, service)
                 if cert_ext_status[1] != 200:
@@ -302,10 +305,11 @@ def monitoringDeployment(monitoringType):
                 extention = Tkg_Extention_names.GRAFANA
                 secret_name = "grafana-data-values"
                 extention_yaml = "grafana-extension.yaml"
-                yamlFile = "./grafana-data-values.yaml"
+                yamlFile = Paths.CLUSTER_PATH + cluster + "/grafana-data-values.yaml"
                 appName = AppName.GRAFANA
                 namespace = "package-tanzu-system-dashboards"
-                command = ["./common/injectValue.sh",Extentions.GRAFANA_LOCATION + "/grafana-extension.yaml","fluent_bit",repository + "/" + Extentions.APP_EXTENTION]
+                command = ["./common/injectValue.sh", Extentions.GRAFANA_LOCATION + "/grafana-extension.yaml",
+                           "fluent_bit", repository + "/" + Extentions.APP_EXTENTION]
                 runShellCommandAndReturnOutputAsList(command)
                 bom_map = getBomMap(load_bom, Tkg_Extention_names.GRAFANA)
                 cert_Path = request.get_json(force=True)['tanzuExtensions']['monitoring']['grafanaCertPath']
@@ -343,7 +347,8 @@ def monitoringDeployment(monitoringType):
                                            "--values-file", yamlFile, "--namespace", namespace, "--create-namespace"]
                 state_extention_apply = runShellCommandAndReturnOutputAsList(deply_extension_command)
                 if state_extention_apply[1] != 0:
-                    current_app.logger.error(extention + " install command failed. Checking for reconciliation status...")
+                    current_app.logger.error(
+                        extention + " install command failed. Checking for reconciliation status...")
 
                 found = False
                 count = 0
@@ -438,10 +443,11 @@ def deploy_extension_fluent(fluent_bit_endpoint):
                     }
                     return jsonify(d), 500
                 if str(mgmt).strip() == listOfCluster.strip():
-                    current_app.logger.info("Currently fluentbit " + fluent_bit_endpoint + " is not supported on management cluster")
+                    current_app.logger.info("Currently fluent-bit " + fluent_bit_endpoint + "is not supported on "
+                                                                                            "management cluster")
                     d = {
                         "responseType": "ERROR",
-                        "msg": "Currently fluentbit " + fluent_bit_endpoint + " is not supported on management cluster",
+                        "msg": "Currently fluent-bit " + fluent_bit_endpoint + " is not supported on management cluster",
                         "ERROR_CODE": 500
                     }
                     return jsonify(d), 500

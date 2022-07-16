@@ -228,9 +228,7 @@
                         <label i18n="password label" clr-control-label>
                             HARBOR PASSWORD
                         </label>
-                        <input clrPassword formControlName="harborPassword" placeholder="Password"
-                               (ngModelChange)="onSharedServiceValidateClick()" (blur)="onSharedServiceValidateClick()"
-                               (onChange)="onSharedServiceValidateClick()"/>
+                        <input clrPassword formControlName="harborPassword" placeholder="Password"/>
                         <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
                         <clr-control-helper></clr-control-helper>
                         <clr-control-error i18n="Password required msg" *clrIfError="validatorEnum.REQUIRED">

@@ -10,6 +10,10 @@ export const vSphereNodeTypes: Array<NodeType> = [
         name: 'custom'
     },
     {
+        id: 'small',
+        name: 'small (CPU: 2, RAM: 4 GB, Disk: 20 GB)'
+    },
+    {
         id: 'medium',
         name: 'medium (CPU: 2, RAM: 8 GB, Disk: 40 GB)'
     },

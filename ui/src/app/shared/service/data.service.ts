@@ -18,6 +18,7 @@ export  class DataService {
     private arcasHttpsProxyUsername = new BehaviorSubject('');
     private arcasHttpsProxyPassword  = new BehaviorSubject('');
     private arcasNoProxy = new BehaviorSubject('');
+    private arcasProxyCert = new BehaviorSubject('');
     // Iaas Provider
     private vcAddress = new BehaviorSubject('');
     private vcUser = new BehaviorSubject('');
@@ -35,6 +36,7 @@ export  class DataService {
     private customerConnect = new BehaviorSubject<boolean>(false);
     private isMarketplace = new BehaviorSubject<boolean>(false);
     private marketplaceRefreshToken = new BehaviorSubject('');
+    private isCeipEnabled = new BehaviorSubject<boolean>(false);
     // TMC
     private enableTMC = new BehaviorSubject<boolean>(false);
     private apiToken = new BehaviorSubject('');
@@ -125,6 +127,7 @@ export  class DataService {
     private mgmtHttpsProxyUsername = new BehaviorSubject('');
     private mgmtHttpsProxyPassword  = new BehaviorSubject('');
     private mgmtNoProxy = new BehaviorSubject('');
+    private mgmtProxyCert = new BehaviorSubject('');
     private mgmtClusterCidr = new BehaviorSubject('100.96.0.0/11');
     private mgmtServiceCidr = new BehaviorSubject('100.64.0.0/13');
     private mgmtBaseImage = new BehaviorSubject('');
@@ -154,6 +157,7 @@ export  class DataService {
     private sharedHttpsProxyUsername = new BehaviorSubject('');
     private sharedHttpsProxyPassword  = new BehaviorSubject('');
     private sharedNoProxy = new BehaviorSubject('');
+    private sharedProxyCert = new BehaviorSubject('');
     private sharedClusterCidr = new BehaviorSubject('100.96.0.0/11');
     private sharedServiceCidr = new BehaviorSubject('100.64.0.0/13');
     private enableHarbor = new BehaviorSubject<boolean>(false);
@@ -225,6 +229,7 @@ export  class DataService {
     private wrkHttpsProxyUsername = new BehaviorSubject('');
     private wrkHttpsProxyPassword  = new BehaviorSubject('');
     private wrkNoProxy = new BehaviorSubject('');
+    private wrkProxyCert = new BehaviorSubject('');
     private wrkClusterCidr = new BehaviorSubject('100.96.0.0/11');
     private wrkServiceCidr = new BehaviorSubject('100.64.0.0/13');
     private enableTSM = new BehaviorSubject<boolean>(false);
@@ -260,6 +265,7 @@ export  class DataService {
     currentArcasHttpsProxyUsername = this.arcasHttpsProxyUsername.asObservable();
     currentArcasHttpsProxyPassword = this.arcasHttpsProxyPassword.asObservable();
     currentArcasNoProxy = this.arcasNoProxy.asObservable();
+    currentArcasProxyCertificate = this.arcasProxyCert.asObservable();
     // Iaas Provider
     currentVcAddress = this.vcAddress.asObservable();
     currentVcUser = this.vcUser.asObservable();
@@ -277,6 +283,7 @@ export  class DataService {
     currentKubernetesOva = this.kubernetesOva.asObservable();
     currentMarketplace = this.isMarketplace.asObservable();
     currentMarketplaceRefreshToken = this.marketplaceRefreshToken.asObservable();
+    currentCeipParticipation = this.isCeipEnabled.asObservable();
     // TMC
     currentEnableTMC = this.enableTMC.asObservable();
     currentApiToken = this.apiToken.asObservable();
@@ -366,6 +373,7 @@ export  class DataService {
     currentMgmtHttpsProxyUsername = this.mgmtHttpsProxyUsername.asObservable();
     currentMgmtHttpsProxyPassword = this.mgmtHttpsProxyPassword.asObservable();
     currentMgmtNoProxy = this.mgmtNoProxy.asObservable();
+    currentMgmtProxyCert = this.mgmtProxyCert.asObservable();
     currentMgmtClusterCidr = this.mgmtClusterCidr.asObservable();
     currentMgmtServiceCidr = this.mgmtServiceCidr.asObservable();
     currentMgmtBaseImage = this.mgmtBaseImage.asObservable();
@@ -394,6 +402,7 @@ export  class DataService {
     currentSharedHttpsProxyUsername = this.sharedHttpsProxyUsername.asObservable();
     currenSharedHttpsProxyPassword = this.sharedHttpsProxyPassword.asObservable();
     currentSharedNoProxy = this.sharedNoProxy.asObservable();
+    currentSharedProxyCert = this.sharedProxyCert.asObservable();
     currentSharedClusterCidr = this.sharedClusterCidr.asObservable();
     currentSharedServiceCidr = this.sharedServiceCidr.asObservable();
     currentEnableHarbor = this.enableHarbor.asObservable();
@@ -466,6 +475,7 @@ export  class DataService {
     currentWrkHttpsProxyUsername = this.wrkHttpsProxyUsername.asObservable();
     currentWrkHttpsProxyPassword = this.wrkHttpsProxyPassword.asObservable();
     currentWrkNoProxy = this.wrkNoProxy.asObservable();
+    currentWrkProxyCert = this.wrkProxyCert.asObservable();
     currentWrkClusterCidr = this.wrkClusterCidr.asObservable();
     currentWrkServiceCidr = this.wrkServiceCidr.asObservable();
     currentEnableTSM = this.enableTSM.asObservable();
@@ -527,6 +537,9 @@ export  class DataService {
     changeArcasNoProxy(arcasNoProxy: string) {
         this.arcasNoProxy.next(arcasNoProxy);
     }
+    changeArcasProxyCert(arcasProxyCert: string) {
+        this.arcasProxyCert.next(arcasProxyCert);
+    }
     // Upload Status
     changeInputFileStatus(useInputFile:boolean) {
         this.useInputFile.next(useInputFile);
@@ -579,6 +592,10 @@ export  class DataService {
     }
     changeMarketplaceRefreshToken(marketplaceRefreshToken: string) {
         this.marketplaceRefreshToken.next(marketplaceRefreshToken);
+    }
+    // GLOBAL CEIP SETTING
+    changeCeipParticipation(ceip: boolean) {
+        this.isCeipEnabled.next(ceip);
     }
     // TMC Parameter
     changeEnableTMC(enableTMC: boolean) {
@@ -821,6 +838,9 @@ export  class DataService {
     changeMgmtNoProxy(mgmtNoProxy: string) {
         this.mgmtNoProxy.next(mgmtNoProxy);
     }
+    changeMgmtProxyCert(mgmtProxyCert: string) {
+        this.mgmtProxyCert.next(mgmtProxyCert);
+    }
     changeMgmtClusterCidr(mgmtClusterCidr: string) {
         this.mgmtClusterCidr.next(mgmtClusterCidr);
     }
@@ -898,6 +918,9 @@ export  class DataService {
     }
     changeSharedNoProxy(sharedNoProxy: string) {
         this.sharedNoProxy.next(sharedNoProxy);
+    }
+    changeSharedProxyCert(sharedProxyCert: string) {
+        this.sharedProxyCert.next(sharedProxyCert);
     }
     changeSharedClusterCidr(sharedClusterCidr: string) {
         this.sharedClusterCidr.next(sharedClusterCidr);
@@ -1104,6 +1127,9 @@ export  class DataService {
     }
     changeWrkNoProxy(wrkNoProxy: string) {
         this.wrkNoProxy.next(wrkNoProxy);
+    }
+    changeWrkProxyCert(wrkProxyCert: string) {
+        this.wrkProxyCert.next(wrkProxyCert);
     }
     changeWrkClusterCidr(wrkClusterCidr: string) {
         this.wrkClusterCidr.next(wrkClusterCidr);

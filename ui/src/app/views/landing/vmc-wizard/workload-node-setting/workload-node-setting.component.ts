@@ -111,6 +111,9 @@ export class WorkloadNodeSettingComponent extends StepFormDirective implements O
 
     ngOnInit() {
         super.ngOnInit();
+
+        this.formGroup.addControl('workloadClusterSettings', new FormControl(false));
+
         this.formGroup.addControl(
             'controlPlaneSetting',
             new FormControl('', [
@@ -179,9 +182,9 @@ export class WorkloadNodeSettingComponent extends StepFormDirective implements O
         this.formGroup.addControl('wrkCpu',
             new FormControl('', [Validators.min(2)]));
         this.formGroup.addControl('wrkMemory',
-            new FormControl('', [Validators.min(8)]));
+            new FormControl('', [Validators.min(4)]));
         this.formGroup.addControl('wrkStorage',
-            new FormControl('', [Validators.min(40)]));
+            new FormControl('', [Validators.min(20)]));
 
         this.formGroup.addControl('clusterAdminUsers',
             new FormControl('',
@@ -220,25 +223,30 @@ export class WorkloadNodeSettingComponent extends StepFormDirective implements O
                         }
                     });
             });
-            this.formGroup['canMoveToNext'] = () => {
-            this.onTkgWrkValidateClick();
-            this.setMinWorker();
-            if (this.apiClient.wrkDataProtectionEnabled) {
-                if (this.uploadStatus) {
+        this.formGroup['canMoveToNext'] = () => {
+            this.toggleWorkloadClusterSettings();
+            if(!this.apiClient.workloadClusterSettings){
+                return this.formGroup.valid;
+            } else {
+                this.onTkgWrkValidateClick();
+                this.setMinWorker();
+                if (this.apiClient.wrkDataProtectionEnabled) {
+                    if (this.uploadStatus) {
+                        return (this.formGroup.valid && this.apiClient.TkgWrkNwValidated &&
+                            !this.rbacErrorClusterAdmin && !this.rbacErrorAdmin &&
+                            !this.rbacErrorEdit && !this.rbacErrorView &&
+                            this.validatedDataProtection);
+                    }
                     return (this.formGroup.valid && this.apiClient.TkgWrkNwValidated &&
                         !this.rbacErrorClusterAdmin && !this.rbacErrorAdmin &&
                         !this.rbacErrorEdit && !this.rbacErrorView &&
+                        this.fetchCredential && this.fetchBackupLocation &&
                         this.validatedDataProtection);
+                } else {
+                    return (this.formGroup.valid && this.apiClient.TkgWrkNwValidated &&
+                        !this.rbacErrorClusterAdmin && !this.rbacErrorAdmin &&
+                        !this.rbacErrorEdit && !this.rbacErrorView);
                 }
-                return (this.formGroup.valid && this.apiClient.TkgWrkNwValidated &&
-                    !this.rbacErrorClusterAdmin && !this.rbacErrorAdmin &&
-                    !this.rbacErrorEdit && !this.rbacErrorView &&
-                    this.fetchCredential && this.fetchBackupLocation &&
-                    this.validatedDataProtection);
-            } else {
-                return (this.formGroup.valid && this.apiClient.TkgWrkNwValidated &&
-                    !this.rbacErrorClusterAdmin && !this.rbacErrorAdmin &&
-                    !this.rbacErrorEdit && !this.rbacErrorView);
             }
         };
         setTimeout(_ => {
@@ -262,12 +270,14 @@ export class WorkloadNodeSettingComponent extends StepFormDirective implements O
                 this.formGroup.controls['prodInstanceType'].updateValueAndValidity();
             });
             this.formGroup.get('workerNodeCount').valueChanges.subscribe(data => {
-                if(this.apiClient.tmcEnabled){
-                    this.formGroup.get('workerNodeCount').setValidators([
-                        Validators.required, Validators.min(3)]);
-                }else{
-                    this.formGroup.get('workerNodeCount').setValidators([
-                        Validators.required, Validators.min(1)]);
+                if (this.apiClient.workloadClusterSettings){
+                    if(this.apiClient.tmcEnabled && this.nodeType === 'prod'){
+                        this.formGroup.get('workerNodeCount').setValidators([
+                            Validators.required, Validators.min(3)]);
+                    }else{
+                        this.formGroup.get('workerNodeCount').setValidators([
+                            Validators.required, Validators.min(1)]);
+                    }
                 }
             });
 
@@ -319,11 +329,11 @@ export class WorkloadNodeSettingComponent extends StepFormDirective implements O
                     this.subscription = this.dataService.currentWrkDeploymentSize.subscribe(
                         (devInstanceType) => this.devInstanceType = devInstanceType);
                     if (this.apiClient.toEnabled) {
-                        if (['large', 'extra-large'].indexOf(this.devInstanceType) !== -1) {
+                        if (['small', 'medium', 'large', 'extra-large'].indexOf(this.devInstanceType) !== -1) {
                             this.formGroup.get('devInstanceType').setValue(this.devInstanceType);
                         }
                     } else {
-                        if (['medium', 'large', 'extra-large'].indexOf(this.devInstanceType) !== -1) {
+                        if (['small', 'medium', 'large', 'extra-large'].indexOf(this.devInstanceType) !== -1) {
                             this.formGroup.get('devInstanceType').setValue(this.devInstanceType);
                         }
                     }
@@ -331,11 +341,11 @@ export class WorkloadNodeSettingComponent extends StepFormDirective implements O
                     this.subscription = this.dataService.currentWrkDeploymentSize.subscribe(
                         (prodInstanceType) => this.prodInstanceType = prodInstanceType);
                     if (this.apiClient.toEnabled) {
-                        if (['large', 'extra-large'].indexOf(this.prodInstanceType) !== -1) {
+                        if (['small', 'medium', 'large', 'extra-large'].indexOf(this.prodInstanceType) !== -1) {
                             this.formGroup.get('prodInstanceType').setValue(this.prodInstanceType);
                         }
                     } else {
-                        if (['medium', 'large', 'extra-large'].indexOf(this.prodInstanceType) !== -1) {
+                        if (['small', 'medium', 'large', 'extra-large'].indexOf(this.prodInstanceType) !== -1) {
                             this.formGroup.get('prodInstanceType').setValue(this.prodInstanceType);
                         }
                     }
@@ -434,7 +444,7 @@ export class WorkloadNodeSettingComponent extends StepFormDirective implements O
                 }
                 this.subscription = this.dataService.currentWrkWorkerNodeCount.subscribe(
                     (worker) => this.workerNodeCount = worker);
-                if (this.apiClient.tmcEnabled) {
+                if (this.apiClient.tmcEnabled && this.nodeType==='prod') {
                     if (this.workerNodeCount >= 3) {
                         this.formGroup.get('workerNodeCount').setValue(this.workerNodeCount);
                     }
@@ -473,7 +483,7 @@ export class WorkloadNodeSettingComponent extends StepFormDirective implements O
     }
 
     setMinWorker() {
-        if (this.formGroup.controls['controlPlaneSetting'].value === 'prod' || this.formGroup.get('tsmSettings').value) {
+        if (this.formGroup.controls['controlPlaneSetting'].value === 'prod' && this.apiClient.tmcEnabled) {
             this.formGroup.get('workerNodeCount').setValidators([Validators.min(3), Validators.required]);
         } else {
             this.formGroup.get('workerNodeCount').setValidators([Validators.min(1), Validators.required]);
@@ -532,25 +542,27 @@ export class WorkloadNodeSettingComponent extends StepFormDirective implements O
     }
 
     public onTkgWrkValidateClick() {
-        if (this.formGroup.get('gatewayAddress').valid &&
-            this.formGroup.get('workloadDhcpStartRange').valid &&
-            this.formGroup.get('workloadDhcpEndRange').valid) {
-            const gatewayIp = this.formGroup.get('gatewayAddress').value;
-            const dhcpStart = this.formGroup.get('workloadDhcpStartRange').value;
-            const dhcpEnd = this.formGroup.get('workloadDhcpEndRange').value;
-            const block = new Netmask(gatewayIp);
-            if (block.contains(dhcpStart) && block.contains(dhcpEnd)) {
-                this.apiClient.TkgWrkNwValidated = true;
-                this.errorNotification = '';
-            } else if (!(block.contains(dhcpStart)) && !(block.contains(dhcpEnd))) {
-                this.apiClient.TkgWrkNwValidated = false;
-                this.errorNotification = 'DHCP Start and End IP is out of the provided subnet';
-            } else if (!block.contains(dhcpStart)) {
-                this.apiClient.TkgWrkNwValidated = false;
-                this.errorNotification = 'DHCP Start IP is out of the provided subnet';
-            } else if (!block.contains(dhcpEnd)) {
-                this.apiClient.TkgSharedNwValidated = false;
-                this.errorNotification = 'DHCP End IP is out of the provided subnet';
+        if (this.apiClient.workloadClusterSettings){
+            if (this.formGroup.get('gatewayAddress').valid &&
+                this.formGroup.get('workloadDhcpStartRange').valid &&
+                this.formGroup.get('workloadDhcpEndRange').valid) {
+                const gatewayIp = this.formGroup.get('gatewayAddress').value;
+                const dhcpStart = this.formGroup.get('workloadDhcpStartRange').value;
+                const dhcpEnd = this.formGroup.get('workloadDhcpEndRange').value;
+                const block = new Netmask(gatewayIp);
+                if (block.contains(dhcpStart) && block.contains(dhcpEnd)) {
+                    this.apiClient.TkgWrkNwValidated = true;
+                    this.errorNotification = '';
+                } else if (!(block.contains(dhcpStart)) && !(block.contains(dhcpEnd))) {
+                    this.apiClient.TkgWrkNwValidated = false;
+                    this.errorNotification = 'DHCP Start and End IP is out of the provided subnet';
+                } else if (!block.contains(dhcpStart)) {
+                    this.apiClient.TkgWrkNwValidated = false;
+                    this.errorNotification = 'DHCP Start IP is out of the provided subnet';
+                } else if (!block.contains(dhcpEnd)) {
+                    this.apiClient.TkgSharedNwValidated = false;
+                    this.errorNotification = 'DHCP End IP is out of the provided subnet';
+                }
             }
         }
     }
@@ -571,11 +583,11 @@ export class WorkloadNodeSettingComponent extends StepFormDirective implements O
                     this.formGroup.value['wrkCpu']);
                 this.resurrectField('wrkMemory', [
                     Validators.required,
-                    Validators.min(8)],
+                    Validators.min(4)],
                     this.formGroup.value['wrkMemory']);
                 this.resurrectField('wrkStorage', [
                     Validators.required,
-                    Validators.min(40)],
+                    Validators.min(20)],
                     this.formGroup.value['wrkStorage']);
             } else {
                 storageFields.forEach((field) => {
@@ -586,7 +598,9 @@ export class WorkloadNodeSettingComponent extends StepFormDirective implements O
     }
 
     onClusterAdminFieldChange() {
-        if (this.formGroup.get('clusterAdminUsers').valid && this.formGroup.get('clusterAdminUsers').value !== "") {
+        if (this.formGroup.get('clusterAdminUsers').valid &&
+            this.formGroup.get('clusterAdminUsers').value !== "" &&
+            this.formGroup.get('clusterAdminUsers').value !== null) {
             let clusterAdminUsers = this.formGroup.get('clusterAdminUsers').value.split(',');
             this.clusterAdminUserSet.clear();
             for (let item of clusterAdminUsers) {
@@ -618,7 +632,9 @@ export class WorkloadNodeSettingComponent extends StepFormDirective implements O
 
 
     onAdminFieldChange() {
-        if (this.formGroup.get('adminUsers').valid && this.formGroup.get('adminUsers').value !== "") {
+        if (this.formGroup.get('adminUsers').valid &&
+            this.formGroup.get('adminUsers').value !== "" &&
+            this.formGroup.get('adminUsers').value !== null) {
             let adminUsers = this.formGroup.get('adminUsers').value.split(',');
             this.adminUserSet.clear();
             for (let item of adminUsers) {
@@ -650,7 +666,9 @@ export class WorkloadNodeSettingComponent extends StepFormDirective implements O
 
 
     onEditFieldChange() {
-        if (this.formGroup.get('editUsers').valid && this.formGroup.get('editUsers').value !== "") {
+        if (this.formGroup.get('editUsers').valid &&
+            this.formGroup.get('editUsers').value !== "" &&
+            this.formGroup.get('editUsers').value !== null) {
             let editUsers = this.formGroup.get('editUsers').value.split(',');
             this.editUserSet.clear();
             for (let item of editUsers) {
@@ -682,7 +700,9 @@ export class WorkloadNodeSettingComponent extends StepFormDirective implements O
 
 
     onViewFieldChange() {
-        if (this.formGroup.get('viewUsers').valid && this.formGroup.get('viewUsers').value !== "") {
+        if (this.formGroup.get('viewUsers').valid &&
+            this.formGroup.get('viewUsers').value !== "" &&
+            this.formGroup.get('viewUsers').value !== null) {
             let viewUsers = this.formGroup.get('viewUsers').value.split(',');
             this.viewUserSet.clear();
             for (let item of viewUsers) {
@@ -936,6 +956,68 @@ export class WorkloadNodeSettingComponent extends StepFormDirective implements O
 
     getDisabled(): boolean {
         return !(this.formGroup.get('veleroCredential').valid && this.formGroup.get('veleroTargetLocation').valid);
+    }
+
+    toggleWorkloadClusterSettings() {
+        const mandatoryWorkloadFields = [
+            'controlPlaneSetting',
+            'devInstanceType',
+            'prodInstanceType',
+            'clusterName',
+            'gatewayAddress',
+            'workloadDhcpStartRange',
+            'workloadDhcpEndRange',
+            'clusterCidr',
+            'serviceCidr',
+            'baseImage',
+            'baseImageVersion',
+            'wrkCpu',
+            'wrkMemory',
+            'wrkStorage',
+            'workerNodeCount',
+            'clusterAdminUsers',
+            'adminUsers',
+            'editUsers',
+            'viewUsers',
+            'tsmSettings',
+            'exactName',
+            'startsWithName',
+            'clusterGroupName',
+            'enableDataProtection',
+            'veleroCredential',
+            'veleroTargetLocation',
+        ];
+
+        if (this.formGroup.value['workloadClusterSettings']) {
+            this.apiClient.workloadClusterSettings = true;
+            this.resurrectField('controlPlaneSetting', [Validators.required], this.formGroup.value['controlPlaneSetting']);
+            this.resurrectField('devInstanceType', [], this.formGroup.value['devInstanceType']);
+            this.resurrectField('prodInstanceType', [], this.formGroup.value['prodInstanceType']);
+            this.resurrectField('clusterName', [Validators.required, this.validationService.isValidClusterName(), this.validationService.noWhitespaceOnEnds()], this.formGroup.value['clusterName']);
+
+            this.resurrectField('gatewayAddress', [Validators.required, this.validationService.isValidIpNetworkSegment(), this.validationService.noWhitespaceOnEnds()], this.formGroup.value['gatewayAddress']);
+            this.resurrectField('workloadDhcpStartRange', [Validators.required, this.validationService.isValidIp(), this.validationService.noWhitespaceOnEnds()], this.formGroup.value['workloadDhcpStartRange']);
+            this.resurrectField('workloadDhcpEndRange', [Validators.required, this.validationService.isValidIp(), this.validationService.noWhitespaceOnEnds()], this.formGroup.value['workloadDhcpEndRange']);
+
+            this.resurrectField('clusterCidr', [Validators.required, this.validationService.noWhitespaceOnEnds(), this.validationService.isValidIpNetworkSegment()], this.formGroup.value['clusterCidr']);
+            this.resurrectField('serviceCidr', [Validators.required, this.validationService.isValidIpNetworkSegment(), this.validationService.noWhitespaceOnEnds()], this.formGroup.value['serviceCidr']);
+            this.resurrectField('baseImage', [Validators.required], this.formGroup.value['baseImage']);
+            this.resurrectField('baseImageVersion', [Validators.required], this.formGroup.value['baseImageVersion']);
+            this.resurrectField('wrkCpu', [Validators.min(2)], this.formGroup.value['wrkCpu']);
+            this.resurrectField('wrkMemory', [Validators.min(4)], this.formGroup.value['wrkMemory']);
+            this.resurrectField('wrkStorage', [Validators.min(20)], this.formGroup.value['wrkStorage']);
+            this.resurrectField('workerNodeCount', [Validators.required], this.formGroup.value['workerNodeCount']);
+
+            this.resurrectField('clusterAdminUsers', [this.validationService.noWhitespaceOnEnds()], this.formGroup.value['clusterAdminUsers']);
+            this.resurrectField('adminUsers', [this.validationService.noWhitespaceOnEnds()], this.formGroup.value['adminUsers']);
+            this.resurrectField('editUsers', [this.validationService.noWhitespaceOnEnds()], this.formGroup.value['editUsers']);
+            this.resurrectField('viewUsers', [this.validationService.noWhitespaceOnEnds()], this.formGroup.value['viewUsers']);
+        } else {
+            this.apiClient.workloadClusterSettings = false;
+            mandatoryWorkloadFields.forEach((field) => {
+                this.disarmField(field, true);
+            });
+        }
     }
 
 }

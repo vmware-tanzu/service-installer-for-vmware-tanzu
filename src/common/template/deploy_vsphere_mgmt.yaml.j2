@@ -1,6 +1,7 @@
 #! ---------------------------------------------------------------------
 #! vSphere non proxy env configs
 #! ---------------------------------------------------------------------
+AVI_CONTROLLER_VERSION: {{ avi_version }}
 AVI_CA_DATA_B64: {{ avi_cert }}
 AVI_CLOUD_NAME: tkgvsphere-cloud01
 AVI_CONTROLLER: {{ ip }}
@@ -15,8 +16,10 @@ AVI_USERNAME: admin
 CLUSTER_CIDR: {{ config.tkgComponentSpec.tkgMgmtComponents.tkgMgmtClusterCidr }}
 CLUSTER_NAME: {{ cluster_name }}
 CLUSTER_PLAN: {{ config.tkgComponentSpec.tkgMgmtComponents.tkgMgmtDeploymentType }}
-ENABLE_CEIP_PARTICIPATION: 'true'
+ENABLE_CEIP_PARTICIPATION: {{ ceip }}
 ENABLE_MHC: 'true'
+MHC_UNKNOWN_STATUS_TIMEOUT: 5m
+MHC_FALSE_STATUS_TIMEOUT: 12m
 INFRASTRUCTURE_PROVIDER: vsphere
 SERVICE_CIDR: {{ config.tkgComponentSpec.tkgMgmtComponents.tkgMgmtServiceCidr }}
 TKG_HTTP_PROXY_ENABLED: false
@@ -36,6 +39,7 @@ ENABLE_AUDIT_LOGGING: 'true'
 OS_ARCH: amd64
 OS_NAME: {{ osName }}
 OS_VERSION: {{ osVersion }}
+TKG_IP_FAMILY: ipv4
 AVI_MANAGEMENT_CLUSTER_VIP_NETWORK_NAME: {{ config.tkgComponentSpec.tkgClusterVipNetwork.tkgClusterVipNetworkName }}
 AVI_MANAGEMENT_CLUSTER_VIP_NETWORK_CIDR: {{ avi_cluster_vip_network_gateway_cidr }}
 {% if size == "custom" %}
@@ -84,6 +88,9 @@ TKG_HTTP_PROXY_ENABLED: 'true'
 TKG_HTTP_PROXY: {{ config.envSpec.proxySpec.tkgMgmt.httpProxy }}
 TKG_HTTPS_PROXY: {{ config.envSpec.proxySpec.tkgMgmt.httpsProxy }}
 TKG_NO_PROXY: {{ config.envSpec.proxySpec.tkgMgmt.noProxy }}
+{% if isProxyCert == "true" %}
+TKG_PROXY_CA_CERT: {{ proxyCert }}
+{% endif %}
 {% endif %}
 
 #! ---------------------------------------------------------------------

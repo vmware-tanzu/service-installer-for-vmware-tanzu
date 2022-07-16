@@ -29,6 +29,7 @@ import { NamespaceComponent } from './namespace-setting/namespace.component';
 import { WorkloadClusterComponent } from './wrk-cluster-setting/wrk-cluster.component';
 import { EnvDetailsComponent } from './env-details-step/env-details.component';
 import { WorkloadNamespaceComponent } from './workload-namespace-setting/workload-namespace-setting.component';
+import { TKGSGlobalConfig } from './tkgs-global-config/tkgs-global-config.component';
 @NgModule({
     declarations: [
         VSphereTkgsWizardComponent,
@@ -45,7 +46,8 @@ import { WorkloadNamespaceComponent } from './workload-namespace-setting/workloa
         WorkloadClusterComponent,
         ExtensionSettingComponent,
         EnvDetailsComponent,
-        WorkloadNamespaceComponent
+        WorkloadNamespaceComponent,
+        TKGSGlobalConfig,
     ],
     imports: [
         CommonModule,

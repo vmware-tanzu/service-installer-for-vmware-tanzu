@@ -35,7 +35,7 @@ class RunCmd:
 
     def run_cmd_output(self, cmd: str):
 
-        logger.debug(f"Running cmd: {cmd.strip()}")
+        logger.debug(f"Running cmd: {cmd}")
         try:
             cmd_out = subprocess.check_output(cmd, shell=True, encoding='UTF-8')
             return cmd_out

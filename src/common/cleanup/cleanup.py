@@ -887,17 +887,26 @@ def fetch_avi_vms(govc_client, env, data_center):
 
     if govc_client.find_vms_by_name(vm_name=avi_fqdn):
         vm_list.append(avi_fqdn)
-        ip = govc_client.get_vm_ip(avi_fqdn, datacenter_name=data_center)[0]
-        if ip is None:
+        try:
+            ip = govc_client.get_vm_ip(avi_fqdn, datacenter_name=data_center)[0]
+            if ip is None:
+                current_app.logger.warn("Unable to fetch IP address for NSX ALB LoadBalancer")
+                return True, vm_list
+        except Exception:
             current_app.logger.warn("Unable to fetch IP address for NSX ALB LoadBalancer")
             return True, vm_list
-        deployed_avi_version = obtain_avi_version(ip, env)
-        if deployed_avi_version[0] is None:
-            current_app.logger.warn("Failed to obtain deployed AVI version")
-            return True, vm_list
-        csrf2 = obtain_second_csrf(ip, env)
-        if csrf2 is None:
-            current_app.logger.warn("Failed to get csrf for AVI")
+
+        try:
+            deployed_avi_version = obtain_avi_version(ip, env)
+            if deployed_avi_version[0] is None:
+                current_app.logger.warn("Failed to obtain deployed AVI version")
+                return True, vm_list
+            csrf2 = obtain_second_csrf(ip, env)
+            if csrf2 is None:
+                current_app.logger.warn("Failed to get csrf for AVI")
+                return True, vm_list
+        except Exception:
+            current_app.logger.error("Failed to login to NSX ALB LoadBalancer")
             return True, vm_list
 
         url = "https://" + str(ip) + "/api/serviceengine-inventory"
@@ -1037,46 +1046,69 @@ def fetch_resource_pools(env, vc_datcenter, vc_cluster, parent_rp):
 
 def cleanup_content_libraries(env):
     delete_lib = []
-    if isEnvTkgs_wcp(env) or isEnvTkgs_ns(env):
-        delete_lib.append(ControllerLocation.SUBSCRIBED_CONTENT_LIBRARY)
-
-    delete_lib.append(ControllerLocation.CONTROLLER_CONTENT_LIBRARY)
-
-    list_libraries = ["govc", "library.ls"]
-    list_output = runShellCommandAndReturnOutputAsList(list_libraries)
-    if list_output[1] != 0:
-        current_app.logger.error(list_output[0])
-        return False, "Command to list content libraries failed"
-
-    for library in delete_lib:
-        if "/"+library in list_output[0]:
-            current_app.logger.info(library + " - Content Library exists, deleting it")
-            delete_command = ["govc", "library.rm", "/" + library]
-            delete_output = runShellCommandAndReturnOutputAsList(delete_command)
-            if delete_output[1] != 0:
-                current_app.logger.error(delete_output[0])
-                return False, "Failed to delete content library - " + library
-            elif delete_output[0]:
-                if delete_output[0][0].__contains__("403 Forbidden"):
-                    current_app.logger.info(delete_output[0])
-                    current_app.logger.info(library + " - could not be deleted due to permission issue")
-            else:
-                current_app.logger.info(library + " - Content Library deleted successfully")
+    try:
+        retain_content_lib = request.headers['Retain']
+        if retain_content_lib.lower() == "true":
+            retain_content_lib = True
         else:
-            current_app.logger.info(library + " - Content Library does not exist")
+            retain_content_lib = False
+    except Exception as e:
+        retain_content_lib = False
 
-    return True, "Content Libraries cleanup is successful"
+    if not retain_content_lib:
+        if isEnvTkgs_wcp(env) or isEnvTkgs_ns(env):
+            delete_lib.append(ControllerLocation.SUBSCRIBED_CONTENT_LIBRARY)
+
+        delete_lib.append(ControllerLocation.CONTROLLER_CONTENT_LIBRARY)
+
+        list_libraries = ["govc", "library.ls"]
+        list_output = runShellCommandAndReturnOutputAsList(list_libraries)
+        if list_output[1] != 0:
+            current_app.logger.error(list_output[0])
+            return False, "Command to list content libraries failed"
+
+        for library in delete_lib:
+            if "/"+library in list_output[0]:
+                current_app.logger.info(library + " - Content Library exists, deleting it")
+                delete_command = ["govc", "library.rm", "/" + library]
+                delete_output = runShellCommandAndReturnOutputAsList(delete_command)
+                if delete_output[1] != 0:
+                    current_app.logger.error(delete_output[0])
+                    return False, "Failed to delete content library - " + library
+                elif delete_output[0]:
+                    if delete_output[0][0].__contains__("403 Forbidden"):
+                        current_app.logger.info(delete_output[0])
+                        current_app.logger.info(library + " - could not be deleted due to permission issue")
+                else:
+                    current_app.logger.info(library + " - Content Library deleted successfully")
+            else:
+                current_app.logger.info(library + " - Content Library does not exist")
+
+        return True, "Content Libraries cleanup is successful"
+    else:
+        return True, "Skipped deleting content library"
 
 
 def cleanup_downloaded_ovas(env):
-    path = "/tmp/"
-    delete_files = [ControllerLocation.CONTENT_LIBRARY_OVA_NAME + ".ova", "arcas-photon-kube-v*.ova",
-                    "arcas-ubuntu-kube-v*.ova"]
+    try:
+        retain_downloaded_ova = request.headers['Retain']
+        if retain_downloaded_ova.lower() == "true":
+            retain_downloaded_ova = True
+        else:
+            retain_downloaded_ova = False
+    except Exception as e:
+        retain_downloaded_ova = False
+    if not retain_downloaded_ova:
+        path = "/tmp/"
+        delete_files = [ControllerLocation.CONTENT_LIBRARY_OVA_NAME + ".ova", "arcas-photon-kube-v*.ova",
+                        "arcas-ubuntu-kube-v*.ova"]
 
-    for file in delete_files:
-        delete_ova = "rm " + path + file
-        os.system(delete_ova)
-    return True, "All OVAs downloaded during SIVT deployment are deleted."
+        for file in delete_files:
+            delete_ova = "rm " + path + file
+            os.system(delete_ova)
+        return True, "All OVAs downloaded during SIVT deployment are deleted."
+    else:
+        return True, "Skipped deleting downloaded Kubernetes OVAs"
 
 
 def get_ova_filename(os, version):
@@ -1093,19 +1125,31 @@ def get_ova_filename(os, version):
 
 def delete_kubernetes_templates(govc_client, vcenter_host, username, password, datacenter, avi_uuid):
     try:
-        deployed_templates = get_deployed_templates(vcenter_host, username, password, avi_uuid)
-        if deployed_templates[0]:
-            deployed_templates = deployed_templates[1]
+        try:
+            retain_k8s_templates = request.headers['Retain']
+            if retain_k8s_templates.lower() == "true":
+                retain_k8s_templates = True
+            else:
+                retain_k8s_templates = False
+        except Exception as e:
+            retain_k8s_templates = False
+        if not retain_k8s_templates:
+            deployed_templates = get_deployed_templates(vcenter_host, username, password, avi_uuid)
+            if deployed_templates[0]:
+                deployed_templates = deployed_templates[1]
+            else:
+                return False
+            for template in deployed_templates:
+                current_app.logger.info("deleting template - " + template)
+                datacenter = datacenter.replace(' ', "#remove_me#")
+                vm_path = govc_client.get_vm_path(template, datacenter)
+                if vm_path:
+                    govc_client.delete_vm(template, vm_path)
+                current_app.logger.info(f"{template} deleted.")
+            return True
         else:
-            return False
-        for template in deployed_templates:
-            current_app.logger.info("deleting template - " + template)
-            datacenter = datacenter.replace(' ', "#remove_me#")
-            vm_path = govc_client.get_vm_path(template, datacenter)
-            if vm_path:
-                govc_client.delete_vm(template, vm_path)
-            current_app.logger.info(f"{template} deleted.")
-        return True
+            current_app.logger.info("Skipped deleting kubernetes templates")
+            return True
     except Exception as e:
         current_app.logger.error("Exception occurred while deleting Kubernetes templates ")
         current_app.logger.error(str(e))

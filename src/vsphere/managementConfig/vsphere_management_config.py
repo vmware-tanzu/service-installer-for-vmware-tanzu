@@ -24,23 +24,26 @@ from common.operation.vcenter_operations import createResourcePool, create_folde
 from common.operation.constants import ResourcePoolAndFolderName, Cloud, AkoType, CIDR, TmcUser, Type, Avi_Version, \
     RegexPattern, Env, KubernetesOva
 import os
-from common.common_utilities import isAviHaEnabled,checkAndWaitForAllTheServiceEngineIsUp, createSubscribedLibrary, \
+from common.common_utilities import isAviHaEnabled, create_virtual_service, checkAndWaitForAllTheServiceEngineIsUp, \
+    createSubscribedLibrary, \
     preChecks, registerWithTmc, get_avi_version, runSsh, \
     getCloudStatus, \
     getSECloudStatus, envCheck, getClusterStatusOnTanzu, getVipNetworkIpNetMask, getVrfAndNextRoutId, addStaticRoute, \
     VrfType, checkMgmtProxyEnabled, enableProxy, disable_proxy, checkAirGappedIsEnabled, loadBomFile, grabPortFromUrl, \
     grabHostFromUrl, checkTmcEnabled, registerTMCTKGs, downloadAndPushKubernetesOvaMarketPlace, \
     VrfType, checkMgmtProxyEnabled, enableProxy, checkAirGappedIsEnabled, loadBomFile, grabPortFromUrl, \
-    grabHostFromUrl, checkTmcEnabled, registerTMCTKGs, obtain_second_csrf, isEnvTkgs_ns, isEnvTkgs_wcp, obtain_avi_version, \
+    grabHostFromUrl, checkTmcEnabled, registerTMCTKGs, obtain_second_csrf, isEnvTkgs_ns, isEnvTkgs_wcp, \
+    obtain_avi_version, \
     configureKubectl, getClusterID, checkEnableIdentityManagement, switchToManagementContext, checkPinnipedInstalled, \
-    checkPinnipedServiceStatus, checkPinnipedDexServiceStatus, createRbacUsers
+    checkPinnipedServiceStatus, checkPinnipedDexServiceStatus, createRbacUsers, createClusterFolder
 from common.certificate_base64 import getBase64CertWriteToFile
 from common.replace_value import generateVsphereConfiguredSubnets, generateVsphereConfiguredSubnetsForSe, \
     replaceValueSysConfig, replaceSeGroup, replaceMac
 from common.operation.ShellHelper import runShellCommandAndReturnOutput, runShellCommandWithPolling, grabKubectlCommand, \
     runShellCommandAndReturnOutputAsList, runProcess, verifyPodsAreRunning
 from common.operation.constants import ControllerLocation, Tkg_version
-from vsphere.managementConfig.vsphere_tkgs_management_config import configTkgsCloud, enableWCP
+from vsphere.managementConfig.vsphere_tkgs_management_config import configTkgsCloud, enableWCP, \
+    configureTkgConfiguration
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -96,7 +99,7 @@ def configCloud():
         }
         return jsonify(d), 500
     env = env[0]
-    #aviVersion = get_avi_version(env)
+    # aviVersion = get_avi_version(env)
     password = current_app.config['VC_PASSWORD']
     vcenter_username = current_app.config['VC_USER']
     vcenter_ip = current_app.config['VC_IP']
@@ -157,7 +160,7 @@ def configCloud():
         return jsonify(d), 500
     deployed_avi_version = obtain_avi_version(ip, env)
     if deployed_avi_version[0] is None:
-        current_app.logger.error("Failed to login and obtain avi version"+str(deployed_avi_version[1]))
+        current_app.logger.error("Failed to login and obtain avi version" + str(deployed_avi_version[1]))
         d = {
             "responseType": "ERROR",
             "msg": "Failed to login and obtain avi version " + deployed_avi_version[1],
@@ -508,6 +511,16 @@ def configCloud():
                         "ERROR_CODE": 500
                     }
                     return jsonify(d), 500
+        virtual_service, error = create_virtual_service(ip, csrf2, uuid, Cloud.SE_GROUP_NAME_VSPHERE, get_vip[0], 2,
+                                                        aviVersion)
+        if virtual_service is None:
+            current_app.logger.error("Failed to create virtual service " + str(error))
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to create virtual service " + str(error),
+                "ERROR_CODE": 500
+            }
+            return jsonify(d), 500
     current_app.logger.info("Configured management cluster cloud successfully")
     d = {
         "responseType": "SUCCESS",
@@ -546,7 +559,7 @@ def enable_wcp():
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
-    #aviVersion = get_avi_version(env)
+    # aviVersion = get_avi_version(env)
     password = current_app.config['VC_PASSWORD']
     vcenter_username = current_app.config['VC_USER']
     vcenter_ip = current_app.config['VC_IP']
@@ -597,7 +610,7 @@ def enable_wcp():
         return jsonify(d), 500
     deployed_avi_version = obtain_avi_version(avi_ip, env)
     if deployed_avi_version[0] is None:
-        current_app.logger.error("Failed to login and obtain avi version"+str(deployed_avi_version[1]))
+        current_app.logger.error("Failed to login and obtain avi version" + str(deployed_avi_version[1]))
         d = {
             "responseType": "ERROR",
             "msg": "Failed to login and obtain avi version " + deployed_avi_version[1],
@@ -624,7 +637,6 @@ def enable_wcp():
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
-
     current_app.logger.info("Setting up kubectl vsphere plugin...")
     url_ = "https://" + vcenter_ip + "/"
     sess = requests.post(url_ + "rest/com/vmware/cis/session", auth=(vcenter_username, password), verify=False)
@@ -658,7 +670,8 @@ def enable_wcp():
         return jsonify(d), 500
 
     cluster_endpoint = clusterip_resp.json()["api_server_cluster_endpoint"]
-
+    current_app.logger.info("Waiting for 2 min status == ready")
+    time.sleep(120)
     configure_kubectl = configureKubectl(cluster_endpoint)
     if configure_kubectl[1] != 200:
         current_app.logger.error(configure_kubectl[0])
@@ -670,6 +683,14 @@ def enable_wcp():
         return jsonify(d), 500
 
     current_app.logger.info("Configured Wcp successfully")
+    configTkgs, message = configureTkgConfiguration(vcenter_username, password, cluster_endpoint)
+    if configTkgs is None:
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to configure tkgs service configuration " + str(message),
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
 
     if checkTmcEnabled(env):
         tmc_register_response = registerTMCTKGs(vcenter_ip, vcenter_username, password)
@@ -799,6 +820,8 @@ def getClusterUrl(ip, csrf2, cluster_name, aviVersion):
     if response_csrf.status_code != 200:
         return None, response_csrf.text
     else:
+        if str(cluster_name).__contains__("/"):
+            cluster_name = cluster_name[cluster_name.rindex("/")+1:]
         for cluster in response_csrf.json()["results"]:
             if cluster["name"] == cluster_name:
                 return cluster["url"], "SUCCESS"
@@ -908,11 +931,20 @@ def configTkgMgmt():
         controller_fqdn = avi_fqdn
     else:
         controller_fqdn = ip
+    if not createClusterFolder(management_cluster):
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to create directory: " + Paths.CLUSTER_PATH + management_cluster,
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    current_app.logger.info(
+        "The config files for management cluster will be located at: " + Paths.CLUSTER_PATH + management_cluster)
     current_app.logger.info("Deploying Management Cluster " + management_cluster)
     deploy_status = deployManagementCluster(management_cluster, controller_fqdn, data_center, data_store, cluster_name,
                                             data_network,
                                             get_wip[0],
-                                            vcenter_ip, vcenter_username, password, env, vsSpec)
+                                            vcenter_ip, vcenter_username, aviVersion, password, env, vsSpec)
     if deploy_status[0] is None:
         current_app.logger.error("Failed to deploy management cluster " + deploy_status[1])
         d = {
@@ -979,10 +1011,18 @@ def configTkgMgmt():
                     return jsonify(d), 500
                 current_app.logger.info("External IP for Pinniped is set as: " + check_pinniped_svc[0])
 
-            cluster_admin_users = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtRbacUserRoleSpec']['clusterAdminUsers']
-            admin_users = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtRbacUserRoleSpec']['adminUsers']
-            edit_users = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtRbacUserRoleSpec']['editUsers']
-            view_users = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtRbacUserRoleSpec']['viewUsers']
+            cluster_admin_users = \
+                request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtRbacUserRoleSpec'][
+                    'clusterAdminUsers']
+            admin_users = \
+                request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtRbacUserRoleSpec'][
+                    'adminUsers']
+            edit_users = \
+                request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtRbacUserRoleSpec'][
+                    'editUsers']
+            view_users = \
+                request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtRbacUserRoleSpec'][
+                    'viewUsers']
             rbac_user_status = createRbacUsers(management_cluster, isMgmt=True, env=env, edit_users=edit_users,
                                                cluster_admin_users=cluster_admin_users, admin_users=admin_users,
                                                view_users=view_users)
@@ -1016,7 +1056,8 @@ def configTkgMgmt():
         if checkTmcEnabled(env):
             if Tkg_version.TKG_VERSION == "1.5":
                 current_app.logger.info("TMC registration on management cluster is supported on tanzu 1.5")
-                clusterGroup = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtClusterGroupName']
+                clusterGroup = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents'][
+                    'tkgMgmtClusterGroupName']
                 if not clusterGroup:
                     clusterGroup = "default"
                 if checkMgmtProxyEnabled(env):
@@ -1057,20 +1098,20 @@ def configTkgMgmt():
         air_gapped_repo = air_gapped_repo.replace("https://", "").replace("http://", "")
         bom = loadBomFile()
         if bom is None:
-            current_app.logger.error("Faied to load bom")
+            current_app.logger.error("Failed to load bom")
             d = {
                 "responseType": "ERROR",
-                "msg": "Faied to load bom",
+                "msg": "Failed to load bom",
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
         try:
             tag = bom['components']['kube_rbac_proxy'][0]['images']['kubeRbacProxyControllerImage']['tag']
         except Exception as e:
-            current_app.logger.error("Faied to load bom key " + str(e))
+            current_app.logger.error("Failed to load bom key " + str(e))
             d = {
                 "responseType": "ERROR",
-                "msg": "Faied to load bom key " + str(e),
+                "msg": "Failed to load bom key " + str(e),
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
@@ -1186,6 +1227,11 @@ def createNewCloud(ip, csrf2, aviVersion):
         "x-avi-version": aviVersion,
         "x-csrftoken": csrf2[0]
     }
+    datacenter = current_app.config['VC_DATACENTER']
+    if str(datacenter).__contains__("/"):
+        dc = datacenter[datacenter.rindex("/")+1:]
+    else:
+        dc = datacenter
     body = {
         "name": Cloud.CLOUD_NAME_VSPHERE,
         "vtype": "CLOUD_VCENTER",
@@ -1195,7 +1241,7 @@ def createNewCloud(ip, csrf2, aviVersion):
             "vcenter_url": current_app.config['VC_IP'],
             "username": current_app.config['VC_USER'],
             "password": current_app.config['VC_PASSWORD'],
-            "datacenter": current_app.config['VC_DATACENTER']
+            "datacenter": dc
         },
         "dhcp_enabled": False,
         "mtu": 1500,
@@ -1422,6 +1468,9 @@ def updateNetworkWithIpPools(ip, csrf2, managementNetworkUrl, fileName, aviVersi
 
 
 def getSeNewBody(newCloudUrl, seGroupName, clusterUrl, dataStore):
+    if str(dataStore).__contains__("/"):
+        dataStore = dataStore[dataStore.rindex("/")+1:]
+
     body = {
         "max_vs_per_se": 10,
         "min_scaleout_per_vs": 2,
@@ -2099,14 +2148,18 @@ def generateConfigYaml(ip, datacenter, datastoreName, cluster_name, wpName, wipI
             raise Exception("Wrong os name provided")
     except Exception as e:
         raise Exception("Keyword " + str(e) + "  not found in input file")
-    if size.lower() == "medium":
+    if size.lower() == "small":
+        current_app.logger.debug("Recommended size for Management cluster nodes is: medium/large/extra-large/custom")
+        pass
+    elif size.lower() == "medium":
         pass
     elif size.lower() == "large":
         pass
     elif size.lower() == "extra-large":
         pass
     else:
-        current_app.logger.error("Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large")
+        current_app.logger.error(
+            "Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large")
         d = {
             "responseType": "ERROR",
             "msg": "Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom",
@@ -2144,6 +2197,7 @@ def generateConfigYaml(ip, datacenter, datastoreName, cluster_name, wpName, wipI
             air_gapped_repo = str(
                 request.get_json(force=True)['envSpec']['customRepositorySpec']['tkgCustomImageRepository'])
             air_gapped_repo = air_gapped_repo.replace("https://", "").replace("http://", "")
+            os.putenv("TKG_BOM_IMAGE_TAG", Tkg_version.TAG)
             os.putenv("TKG_CUSTOM_IMAGE_REPOSITORY", air_gapped_repo)
             isSelfsinged = str(request.get_json(force=True)['envSpec']['customRepositorySpec'][
                                    'tkgCustomImageRepositoryPublicCaCert'])
@@ -2204,7 +2258,7 @@ def generateConfigYaml(ip, datacenter, datastoreName, cluster_name, wpName, wipI
         yaml.dump(data1, outfile, Dumper=yaml.RoundTripDumper, indent=2)
 
 
-def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wipIpNetmask, vcenter_ip,
+def templateMgmtDeployYaml(ip, datacenter, avi_version, data_store, cluster_name, wpName, wipIpNetmask, vcenter_ip,
                            vcenter_username,
                            password, env, vsSpec):
     deploy_yaml = FileHelper.read_resource(Paths.TKG_MGMT_SPEC_J2)
@@ -2226,9 +2280,21 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
     size = vsSpec.tkgComponentSpec.tkgMgmtComponents.tkgMgmtSize
     control_plane_vcpu = ""
     control_plane_disk_gb = ""
-    control_plane_mem_gb = ""
     control_plane_mem_mb = ""
-    if size.lower() == "medium":
+    proxyCert = ""
+    try:
+        proxyCert_raw = request.get_json(force=True)['envSpec']['proxySpec']['tkgMgmt']['proxyCert']
+        base64_bytes = base64.b64encode(proxyCert_raw.encode("utf-8"))
+        proxyCert = str(base64_bytes, "utf-8")
+        isProxy = "true"
+    except:
+        isProxy = "false"
+        current_app.logger.info("Proxy certificate for  Management is not provided")
+    ciep = str(request.get_json(force=True)['envSpec']["ceipParticipation"])
+    if size.lower() == "small":
+        current_app.logger.debug("Recommended size for Management cluster nodes is: medium/large/extra-large/custom")
+        pass
+    elif size.lower() == "medium":
         pass
     elif size.lower() == "large":
         pass
@@ -2243,7 +2309,8 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
             'tkgMgmtMemorySize']
         control_plane_mem_mb = str(int(control_plane_mem_gb) * 1024)
     else:
-        current_app.logger.error("Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom")
+        current_app.logger.error(
+            "Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom")
         d = {
             "responseType": "ERROR",
             "msg": "Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom",
@@ -2268,6 +2335,7 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
     if checkAirGappedIsEnabled(env):
         air_gapped_repo = vsSpec.envSpec.customRepositorySpec.tkgCustomImageRepository
         air_gapped_repo = air_gapped_repo.replace("https://", "").replace("http://", "")
+        os.putenv("TKG_BOM_IMAGE_TAG", Tkg_version.TAG)
         os.putenv("TKG_CUSTOM_IMAGE_REPOSITORY", air_gapped_repo)
         os.putenv("TKG_CUSTOM_IMAGE_REPOSITORY_SKIP_TLS_VERIFY", "False")
         getBase64CertWriteToFile(grabHostFromUrl(air_gapped_repo), grabPortFromUrl(air_gapped_repo))
@@ -2281,50 +2349,65 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
                 request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["identityManagementType"])
             if identity_mgmt_type.lower() == "oidc":
                 oidc_provider_client_id = str(
-                    request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["oidcSpec"]["oidcClientId"])
+                    request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["oidcSpec"][
+                        "oidcClientId"])
                 oidc_provider_client_secret = str(
-                    request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["oidcSpec"]["oidcClientSecret"])
+                    request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["oidcSpec"][
+                        "oidcClientSecret"])
                 oidc_provider_groups_claim = str(
-                    request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["oidcSpec"]["oidcGroupsClaim"])
+                    request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["oidcSpec"][
+                        "oidcGroupsClaim"])
                 oidc_provider_issuer_url = str(
-                    request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["oidcSpec"]["oidcIssuerUrl"])
+                    request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["oidcSpec"][
+                        "oidcIssuerUrl"])
                 ## TODO: check if provider name is required -- NOT REQUIRED
                 # oidc_provider_name = str(request.get_json(force=True))
                 oidc_provider_scopes = str(
-                    request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["oidcSpec"]["oidcScopes"])
+                    request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["oidcSpec"][
+                        "oidcScopes"])
                 oidc_provider_username_claim = str(
-                    request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["oidcSpec"]["oidcUsernameClaim"])
+                    request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["oidcSpec"][
+                        "oidcUsernameClaim"])
                 FileHelper.write_to_file(
-                    t.render(config=vsSpec, avi_cert=get_base64_cert(ip), ip=ip, wpName=wpName, wipIpNetmask=wipIpNetmask,
+                    t.render(config=vsSpec, avi_cert=get_base64_cert(ip), ip=ip, wpName=wpName,
+                             wipIpNetmask=wipIpNetmask, ceip=ciep, isProxyCert=isProxy,proxyCert=proxyCert,
                              avi_label_key=AkoType.KEY, avi_label_value=AkoType.VALUE, cluster_name=management_cluster,
                              data_center=datacenter, datastore_path=datastore_path,
-                             vsphere_folder_path=vsphere_folder_path, vcenter_passwd=vcenter_passwd, vsphere_rp=vsphere_rp,
+                             vsphere_folder_path=vsphere_folder_path, vcenter_passwd=vcenter_passwd,
+                             vsphere_rp=vsphere_rp,
                              vcenter_ip=vcenter_ip, ssh_key=ssh_key, vcenter_username=vcenter_username,
                              size_controlplane=size.lower(), size_worker=size.lower(),
                              avi_cluster_vip_network_gateway_cidr=avi_cluster_vip_network_gateway_cidr,
                              air_gapped_repo=air_gapped_repo, repo_certificate=repo_certificate, osName=osName,
                              osVersion=osVersion,
-                             size=size, control_plane_vcpu=control_plane_vcpu, control_plane_disk_gb=control_plane_disk_gb,
+                             avi_version=avi_version,
+                             size=size, control_plane_vcpu=control_plane_vcpu,
+                             control_plane_disk_gb=control_plane_disk_gb,
                              control_plane_mem_mb=control_plane_mem_mb, identity_mgmt_type=identity_mgmt_type,
-                             oidc_provider_client_id=oidc_provider_client_id, oidc_provider_client_secret=oidc_provider_client_secret,
-                             oidc_provider_groups_claim=oidc_provider_groups_claim, oidc_provider_issuer_url=oidc_provider_issuer_url,
-                             oidc_provider_scopes=oidc_provider_scopes, oidc_provider_username_claim=oidc_provider_username_claim),
-                    "management_cluster_vsphere.yaml")
+                             oidc_provider_client_id=oidc_provider_client_id,
+                             oidc_provider_client_secret=oidc_provider_client_secret,
+                             oidc_provider_groups_claim=oidc_provider_groups_claim,
+                             oidc_provider_issuer_url=oidc_provider_issuer_url,
+                             oidc_provider_scopes=oidc_provider_scopes,
+                             oidc_provider_username_claim=oidc_provider_username_claim),
+                    Paths.CLUSTER_PATH + management_cluster + "/management_cluster_vsphere.yaml")
             ## TODO: add ldap code here
             elif identity_mgmt_type.lower() == "ldap":
                 ldap_endpoint_ip = str(request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]
                                        ["ldapSpec"]["ldapEndpointIp"])
                 ldap_endpoint_port = str(request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]
                                          ["ldapSpec"]["ldapEndpointPort"])
-                str_enc = str(request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["ldapSpec"]["ldapBindPWBase64"])
+                str_enc = str(request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["ldapSpec"][
+                                  "ldapBindPWBase64"])
                 base64_bytes = str_enc.encode('ascii')
                 enc_bytes = base64.b64decode(base64_bytes)
                 ldap_endpoint_bind_pw = enc_bytes.decode('ascii').rstrip("\n")
                 ldap_bind_dn = str(
-                    request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["ldapSpec"]["ldapBindDN"])
+                    request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["ldapSpec"][
+                        "ldapBindDN"])
                 ldap_user_search_base_dn = str(
                     request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]
-                                                ["ldapSpec"]["ldapUserSearchBaseDN"])
+                    ["ldapSpec"]["ldapUserSearchBaseDN"])
                 ldap_user_search_filter = str(request.get_json(force=True)["tkgComponentSpec"]
                                               ["identityManagementSpec"]["ldapSpec"]["ldapUserSearchFilter"])
                 ldap_user_search_uname = str(request.get_json(force=True)["tkgComponentSpec"]
@@ -2360,25 +2443,33 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
                 base64_bytes = base64.b64encode(ldap_root_ca_data.encode("utf-8"))
                 ldap_root_ca_data_base64 = str(base64_bytes, "utf-8")
                 FileHelper.write_to_file(
-                    t.render(config=vsSpec, avi_cert=get_base64_cert(ip), ip=ip, wpName=wpName, wipIpNetmask=wipIpNetmask,
+                    t.render(config=vsSpec, avi_cert=get_base64_cert(ip), ip=ip, wpName=wpName,
+                             wipIpNetmask=wipIpNetmask, ceip=ciep,isProxyCert=isProxy, proxyCert=proxyCert,
                              avi_label_key=AkoType.KEY, avi_label_value=AkoType.VALUE, cluster_name=management_cluster,
                              data_center=datacenter, datastore_path=datastore_path,
-                             vsphere_folder_path=vsphere_folder_path, vcenter_passwd=vcenter_passwd, vsphere_rp=vsphere_rp,
+                             vsphere_folder_path=vsphere_folder_path, vcenter_passwd=vcenter_passwd,
+                             vsphere_rp=vsphere_rp,
                              vcenter_ip=vcenter_ip, ssh_key=ssh_key, vcenter_username=vcenter_username,
                              size_controlplane=size.lower(), size_worker=size.lower(),
                              avi_cluster_vip_network_gateway_cidr=avi_cluster_vip_network_gateway_cidr,
                              air_gapped_repo=air_gapped_repo, repo_certificate=repo_certificate, osName=osName,
                              osVersion=osVersion,
-                             size=size, control_plane_vcpu=control_plane_vcpu, control_plane_disk_gb=control_plane_disk_gb,
+                             avi_version=avi_version,
+                             size=size, control_plane_vcpu=control_plane_vcpu,
+                             control_plane_disk_gb=control_plane_disk_gb,
                              control_plane_mem_mb=control_plane_mem_mb, identity_mgmt_type=identity_mgmt_type,
                              ldap_endpoint_ip=ldap_endpoint_ip, ldap_endpoint_port=ldap_endpoint_port,
                              ldap_endpoint_bind_pw=ldap_endpoint_bind_pw,
                              ldap_bind_dn=ldap_bind_dn, ldap_user_search_base_dn=ldap_user_search_base_dn,
-                             ldap_user_search_filter=ldap_user_search_filter, ldap_user_search_uname=ldap_user_search_uname,
-                             ldap_grp_search_base_dn=ldap_grp_search_base_dn, ldap_grp_search_filter=ldap_grp_search_filter,
-                             ldap_grp_search_user_attr=ldap_grp_search_user_attr, ldap_grp_search_grp_attr=ldap_grp_search_grp_attr,
-                             ldap_grp_search_name_attr=ldap_grp_search_name_attr, ldap_root_ca_data_base64=ldap_root_ca_data_base64),
-                    "management_cluster_vsphere.yaml")
+                             ldap_user_search_filter=ldap_user_search_filter,
+                             ldap_user_search_uname=ldap_user_search_uname,
+                             ldap_grp_search_base_dn=ldap_grp_search_base_dn,
+                             ldap_grp_search_filter=ldap_grp_search_filter,
+                             ldap_grp_search_user_attr=ldap_grp_search_user_attr,
+                             ldap_grp_search_grp_attr=ldap_grp_search_grp_attr,
+                             ldap_grp_search_name_attr=ldap_grp_search_name_attr,
+                             ldap_root_ca_data_base64=ldap_root_ca_data_base64),
+                    Paths.CLUSTER_PATH + management_cluster + "/management_cluster_vsphere.yaml")
             #     TODO: Read param
             else:
                 raise Exception("Wrong Identity Management type provided, accepted values are: oidc or ldap")
@@ -2388,24 +2479,27 @@ def templateMgmtDeployYaml(ip, datacenter, data_store, cluster_name, wpName, wip
         FileHelper.write_to_file(
             t.render(config=vsSpec, avi_cert=get_base64_cert(ip), ip=ip, wpName=wpName, wipIpNetmask=wipIpNetmask,
                      avi_label_key=AkoType.KEY, avi_label_value=AkoType.VALUE, cluster_name=management_cluster,
-                     data_center=datacenter, datastore_path=datastore_path,
+                     data_center=datacenter, datastore_path=datastore_path, ceip=ciep,isProxyCert=isProxy, proxyCert=proxyCert,
                      vsphere_folder_path=vsphere_folder_path, vcenter_passwd=vcenter_passwd, vsphere_rp=vsphere_rp,
                      vcenter_ip=vcenter_ip, ssh_key=ssh_key, vcenter_username=vcenter_username,
                      size_controlplane=size.lower(), size_worker=size.lower(),
+                     avi_version=avi_version,
                      avi_cluster_vip_network_gateway_cidr=avi_cluster_vip_network_gateway_cidr,
-                     air_gapped_repo=air_gapped_repo, repo_certificate=repo_certificate, osName=osName, osVersion=osVersion,
+                     air_gapped_repo=air_gapped_repo, repo_certificate=repo_certificate, osName=osName,
+                     osVersion=osVersion,
                      size=size, control_plane_vcpu=control_plane_vcpu, control_plane_disk_gb=control_plane_disk_gb,
                      control_plane_mem_mb=control_plane_mem_mb),
-            "management_cluster_vsphere.yaml")
+            Paths.CLUSTER_PATH + management_cluster + "/management_cluster_vsphere.yaml")
 
 
 def deployManagementCluster(management_cluster, ip, data_center, data_store, cluster_name, wpName, wipIpNetmask,
                             vcenter_ip,
-                            vcenter_username, password, env, vsSpec):
+                            vcenter_username, avi_version, password, env, vsSpec):
     try:
         if not getClusterStatusOnTanzu(management_cluster, "management"):
             os.system("rm -rf kubeconfig.yaml")
-            templateMgmtDeployYaml(ip, data_center, data_store, cluster_name, wpName, wipIpNetmask, vcenter_ip,
+            templateMgmtDeployYaml(ip, data_center, avi_version, data_store, cluster_name, wpName, wipIpNetmask,
+                                   vcenter_ip,
                                    vcenter_username,
                                    password, env, vsSpec)
             # generateConfigYaml(ip, data_center, data_store, cluster_name, wpName, wipIpNetmask, vcenter_ip,
@@ -2413,7 +2507,8 @@ def deployManagementCluster(management_cluster, ip, data_center, data_store, clu
             #                    password, env)
             current_app.logger.info("Deploying management cluster")
             os.putenv("DEPLOY_TKG_ON_VSPHERE7", "true")
-            listOfCmd = ["tanzu", "management-cluster", "create", "-y", "--file", "management_cluster_vsphere.yaml",
+            listOfCmd = ["tanzu", "management-cluster", "create", "-y", "--file",
+                         Paths.CLUSTER_PATH + management_cluster + "/management_cluster_vsphere.yaml",
                          "-v",
                          "6"]
             runProcess(listOfCmd)
@@ -2421,6 +2516,8 @@ def deployManagementCluster(management_cluster, ip, data_center, data_store, clu
                              "--export-file",
                              "kubeconfig.yaml"]
             runProcess(listOfCmdKube)
+            current_app.logger.info("Waiting  for 1 min for status==ready")
+            time.sleep(60)
             return "SUCCESS", 200
         else:
             return "SUCCESS", 200

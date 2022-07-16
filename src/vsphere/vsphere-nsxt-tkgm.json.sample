@@ -19,6 +19,7 @@
       "marketplaceSpec":{
          "refreshToken":"t9TfXXXXJuMCq3"
       },
+      "ceipParticipation":  "true",
       "customRepositorySpec":{
          "tkgCustomImageRepository":"https://harbor-local.xx.xx/tkg151",
          "tkgCustomImageRepositoryPublicCaCert":"false"

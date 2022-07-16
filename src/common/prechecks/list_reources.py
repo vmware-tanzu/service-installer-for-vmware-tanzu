@@ -195,12 +195,21 @@ def listResources():
         library_names = []
         for dc in datacenterss:
             try:
-                clusters.extend(get_cluster(dc, None))
+                datacenter_names.append(dc)
+            except Exception as e:
+                errors.append(e)
+            dc = content.searchIndex.FindByInventoryPath("/" + dc)
+            try:
+                c = get_cluster(si, dc, None)
+                if c is not None:
+                    clusters.extend(c)
             except Exception as e:
                 errors.append(e)
 
             try:
-                datastores.extend(get_ds(dc, None))
+                l = get_ds(si, dc, None)
+                if l is not None:
+                    datastores.extend(l)
             except Exception as e:
                 errors.append(e)
 
@@ -211,16 +220,10 @@ def listResources():
 
             try:
                 rp = get_rp(si, dc, None)
-                if rp:
+                if rp is not None:
                     resource_pools.extend(rp)
             except Exception as e:
                 errors.append(e)
-
-            try:
-                datacenter_names.append(dc.name)
-            except Exception as e:
-                errors.append(e)
-
         try:
             files, names = getLibraryFile(vCenter, vCenter_user, VC_PASSWORD)
             library_files.extend(files)
@@ -544,7 +547,7 @@ def getFilesInContentLibrary():
             return jsonify(d), 500
         else:
             current_app.logger.info("Found below items in Content Library - " + library_name)
-            file_list=[]
+            file_list = []
             for item in response[0]:
                 file_list.append(item[0])
             current_app.logger.info(file_list)
@@ -560,11 +563,11 @@ def getFilesInContentLibrary():
         current_app.logger.error(e)
         d = {
             "responseType": "ERROR",
-            "msg": "Failed to obtain files for given content library: "+library_name,
+            "msg": "Failed to obtain files for given content library: " + library_name,
             "ERROR_CODE": 500,
             "CONTENT_LIBRARY_FILES": None
         }
-        current_app.logger.error("Failed to obtain files for given content library: "+library_name)
+        current_app.logger.error("Failed to obtain files for given content library: " + library_name)
         return jsonify(d), 500
 
 
@@ -581,7 +584,7 @@ def getfiles_content(vCenter, vCenter_user, VC_PASSWORD, library_name):
         current_app.logger.error(get_status[0])
         return None, "Failed to fetch content libraries"
 
-    if "/"+library_name in get_status[0]:
+    if "/" + library_name in get_status[0]:
         fetch_files_command = ["govc", "library.ls", "/" + library_name + "/"]
         files_status = runShellCommandAndReturnOutputAsList(fetch_files_command)
         if files_status[1] != 0:
@@ -756,7 +759,7 @@ def getKubernetesOvaVersions():
         slug = "true"
     _solutionName = getProductSlugId(MarketPlaceUrl.AVI_PRODUCT, headers)
     if _solutionName[0] is None:
-        return None, "Failed to find product on Marketplace "+str(_solutionName[1])
+        return None, "Failed to find product on Marketplace " + str(_solutionName[1])
     solutionName = _solutionName[0]
 
     product = requests.get(
@@ -824,7 +827,7 @@ def getWCPEnabledClusters():
         si = connect.SmartConnectNoSSL(host=vcenter_ip, user=vCenter_user, pwd=VC_PASSWORD)
 
         datacenter = get_dc(si, datacenter_name)
-        cluster_list = get_cluster(datacenter, None)
+        cluster_list = get_cluster(si, datacenter, None)
         if not cluster_list:
             current_app.logger.error("No clusters found under selected datacenter - " + datacenter_name)
             d = {
@@ -945,9 +948,9 @@ def getWorkloadNetworks():
             "Accept": "application/json",
             "Content-Type": "application/json",
             "vmware-api-session-id": vc_session
-            }
+        }
 
-        url = "https://" + vCenter + "/api/vcenter/namespace-management/clusters/"+cluster_id+"/networks"
+        url = "https://" + vCenter + "/api/vcenter/namespace-management/clusters/" + cluster_id + "/networks"
         response_networks = requests.request("GET", url, headers=header, verify=False)
         if response_networks.status_code != 200:
             d = {
@@ -1013,7 +1016,7 @@ def getClusterVersions():
         for version in versions_output[0]:
             value_list = version.split()
             if (value_list[2] and value_list[3]) == "True":
-                cluster_versions.append('v'+value_list[1])
+                cluster_versions.append('v' + value_list[1])
 
         if not cluster_versions:
             current_app.logger.error("Cluster versions list is empty")
@@ -1181,7 +1184,8 @@ def getSupervisorClusters():
 @vcenter_resources.route("/api/tanzu/getSupervisorClusterHealth", methods=['POST'])
 def getSupervisorClusterHealth():
     try:
-        super_cluster = request.get_json(force=True)['envSpec']["saasEndpoints"]['tmcDetails']['tmcSupervisorClusterName']
+        super_cluster = request.get_json(force=True)['envSpec']["saasEndpoints"]['tmcDetails'][
+            'tmcSupervisorClusterName']
         state = checkClusterStateOnTmc(super_cluster, True)
         if state[0] == "SUCCESS":
             current_app.logger.info("Selected supervisor cluster is registered to TMC")
@@ -1258,7 +1262,7 @@ def getClusters():
         si = connect.SmartConnectNoSSL(host=vCenter, user=vCenter_user, pwd=VC_PASSWORD)
 
         datacenter = get_dc(si, datacenter_name)
-        clusters = get_cluster(datacenter, None)
+        clusters = get_cluster(si, datacenter, None)
         if not clusters:
             current_app.logger.error("No clusters found under selected datacenter - " + datacenter_name)
             d = {
@@ -1365,7 +1369,7 @@ def getDatastores():
         si = connect.SmartConnectNoSSL(host=vCenter, user=vCenter_user, pwd=VC_PASSWORD)
 
         datacenter = get_dc(si, datacenter_name)
-        datastores = get_ds(datacenter, None)
+        datastores = get_ds(si, datacenter, None)
         if not datastores:
             current_app.logger.error("No datastores found under selected datacenter - " + datacenter_name)
             d = {
@@ -1518,7 +1522,7 @@ def fetchCredentials():
 
         credentials = []
 
-        #url = tmc_url + "v1alpha1/account/credentials?search_scope.capability=DATA_PROTECTION"
+        # url = tmc_url + "v1alpha1/account/credentials?search_scope.capability=DATA_PROTECTION"
         url = VeleroAPI.LIST_CREDENTIALS.format(tmc_url=tmc_header[1])
 
         response = requests.request("GET", url, headers=tmc_header[0], verify=False)
@@ -1589,7 +1593,7 @@ def fetchTargetLocations():
 
         target_locations = []
 
-        #url = tmc_url + "v1alpha1/dataprotection/providers/tmc/backuplocations"
+        # url = tmc_url + "v1alpha1/dataprotection/providers/tmc/backuplocations"
         url = VeleroAPI.LIST_BACKUP_LOCATIONS.format(tmc_url=tmc_header[1])
 
         response = requests.request("GET", url, headers=tmc_header[0], verify=False)
@@ -1719,7 +1723,3 @@ def validateTargetLocations():
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
-
-
-
-

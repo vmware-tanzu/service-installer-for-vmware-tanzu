@@ -15,6 +15,7 @@
       "marketplaceSpec":{
          "refreshToken":"t9TfXXXXJuMCq3"
       },
+      "ceipParticipation":  "true",
       "customRepositorySpec":{
          "tkgCustomImageRepository":"https://harbor-local.xx.xx/tkg151",
          "tkgCustomImageRepositoryPublicCaCert":"false"
@@ -61,7 +62,7 @@
             "httpsProxy":"https://<fqdn/ip>:<port>",
             "noProxy":"vcenter.xx.xx,172.x.x.x"
          }
-      }
+      }f
    },
    "tkgComponentSpec":{
       "aviMgmtNetwork":{

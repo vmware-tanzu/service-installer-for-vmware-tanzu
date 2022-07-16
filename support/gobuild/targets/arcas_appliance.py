@@ -25,7 +25,7 @@ class DemoVA(helpers.target.Target, helpers.make.MakeHelper):
         self.productname = 'Service installer for VMware Tanzu'
         self.longprodname = 'Builds arcas'
         self.shortname = 'arcas'
-        self.prodversion = '1.2.0'
+        self.prodversion = '1.3-1.5.4'
         self.sourcerootname = 'arcas'
         self.sourceroot = '%(buildroot)/' + self.sourcerootname
 

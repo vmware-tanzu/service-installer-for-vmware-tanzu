@@ -9,7 +9,7 @@ from common.operation.constants import AviSize, MarketPlaceUrl, ResourcePoolAndF
     CIDR, PLAN, \
     TmcUser, \
     CertName, \
-    Vcenter, VrfType, Repo, AppName, Type, VCF, ControllerLocation, KubernetesOva, EnvType
+    Vcenter, VrfType, Repo, AppName, Type, VCF, ControllerLocation, KubernetesOva, EnvType, ServiceName, TKG_Package_Details
 import os
 import re
 import socket
@@ -22,12 +22,11 @@ import ruamel
 import yaml
 from pyVim import connect
 
-
 from common.certificate_base64 import getBase64CertWriteToFile, repoAdd
 from common.operation.ShellHelper import runShellCommandAndReturnOutput, runShellCommandWithPolling, \
     grabKubectlCommand, \
     runShellCommandAndReturnOutputAsList, runProcess, verifyPodsAreRunning, grabPipeOutputChagedDir, \
-    runShellCommandAndReturnOutputAsListWithChangedDir, grabPipeOutput
+    runShellCommandAndReturnOutputAsListWithChangedDir, grabPipeOutput, runProcessTmcMgmt
 from common.operation.constants import Env, Avi_Version, Extentions, RegexPattern, Tkg_version, SAS
 from common.operation.constants import Versions, CIDR, TmcUser, \
     CertName, \
@@ -269,9 +268,10 @@ def deployAndConfigureAvi(govc_client: GovcClient, vm_name, controller_ova_locat
             elif size == "large":
                 cpu = AviSize.LARGE["cpu"]
                 memory = AviSize.LARGE["memory"]
-            change_VM_config = ["govc", "vm.change", "-dc=" + data_center.replace("#remove_me#"," "), "-vm=" + vm_name, "-c=" + cpu,
+            change_VM_config = ["govc", "vm.change", "-dc=" + data_center.replace("#remove_me#", " "), "-vm=" + vm_name,
+                                "-c=" + cpu,
                                 "-m=" + memory]
-            power_on = ["govc", "vm.power", "-dc=" + data_center.replace("#remove_me#"," "), "-on=true", vm_name]
+            power_on = ["govc", "vm.power", "-dc=" + data_center.replace("#remove_me#", " "), "-on=true", vm_name]
             runProcess(change_VM_config)
             runProcess(power_on)
             ip = govc_client.get_vm_ip(vm_name, datacenter_name=data_center, wait_time='30m')
@@ -1156,10 +1156,10 @@ Environment="NO_PROXY=localhost,127.0.0.1{noProxy}"
             runShellCommandAndReturnOutputAsList(docker_restart)
             return 200
         elif enable_arcas_proxy.lower() == "false":
-            current_app.logger.info("Arcas vm proxy setting is disabled")
+            current_app.logger.info("SIVT VM proxy setting is disabled")
             return 200
         else:
-            current_app.logger.info("Wrong value of arcas vm proxy enable is provided " + enable_arcas_proxy)
+            current_app.logger.info("Wrong value of SIVT VM proxy enable is provided " + enable_arcas_proxy)
             return 500
     except Exception as e:
         if str(e).__contains__("proxySpec"):
@@ -1168,18 +1168,18 @@ Environment="NO_PROXY=localhost,127.0.0.1{noProxy}"
             return 500
 
 
-def validate_proxy_starts_wit_http(env):
+def validate_proxy_starts_wit_http(env, isShared, isWorkload):
     if checkMgmtProxyEnabled(env):
         httpMgmtProxy = str(request.get_json(force=True)['envSpec']['proxySpec']['tkgMgmt']['httpProxy'])
         httpsMgmtProxy = str(request.get_json(force=True)['envSpec']['proxySpec']['tkgMgmt']['httpsProxy'])
         if not httpMgmtProxy.startswith("http://") or not httpsMgmtProxy.startswith("http://"):
             return "management"
-    if checkSharedServiceProxyEnabled(env):
+    if checkSharedServiceProxyEnabled(env) and isShared:
         httpProxy = str(request.get_json(force=True)['envSpec']['proxySpec']['tkgSharedservice']['httpProxy'])
         httpsProxy = str(request.get_json(force=True)['envSpec']['proxySpec']['tkgSharedservice']['httpsProxy'])
         if not httpProxy.startswith("http://") or not httpsProxy.startswith("http://"):
             return "shared"
-    if checkWorkloadProxyEnabled(env):
+    if checkWorkloadProxyEnabled(env) and isWorkload:
         httpProxy = str(request.get_json(force=True)['envSpec']['proxySpec']['tkgWorkload']['httpProxy'])
         httpsProxy = str(request.get_json(force=True)['envSpec']['proxySpec']['tkgWorkload']['httpsProxy'])
         if not httpProxy.startswith("http://") or not httpsProxy.startswith("http://"):
@@ -1370,11 +1370,11 @@ def manage_avi_certificates(ip, avi_version, env, avi_fqdn, cert_name):
         current_app.logger.info("Converting pem to one line")
         comand_exe = ["chmod", "+x", "./common/pem_to_one_line_converter.sh"]
         runShellCommandAndReturnOutputAsList(comand_exe)
-        commmand_one_line_cert = ["sh","./common/pem_to_one_line_converter.sh", avi_cert, cert_file_name]
+        commmand_one_line_cert = ["sh", "./common/pem_to_one_line_converter.sh", avi_cert, cert_file_name]
         runShellCommandAndReturnOutputAsList(commmand_one_line_cert)
         cer = Path(cert_file_name).read_text().strip("\n")
         avi_controller_cert = cer
-        commmand_one_line_key = ["sh","./common/pem_to_one_line_converter.sh", avi_key, key_name]
+        commmand_one_line_key = ["sh", "./common/pem_to_one_line_converter.sh", avi_key, key_name]
         runShellCommandAndReturnOutputAsList(commmand_one_line_key)
         key = Path(key_name).read_text().strip("\n")
         avi_controller_cert_key = key
@@ -1511,16 +1511,24 @@ def registerWithTmc(management_cluster, env, isProxy, type, clusterGroup):
 
         if str(isProxy).lower() == "true":
             current_app.logger.info("Registering to tmc with proxy")
-            listOfCommandRegister = ["tmc", "managementcluster", "register", management_cluster, "-c", clusterGroup, "-p",
+            listOfCommandRegister = ["tmc", "managementcluster", "register", management_cluster, "-c", clusterGroup,
+                                     "-p",
                                      "TKG", "--proxy-name", proxy_name,
                                      "-k", "kubeconfig.yaml"]
         else:
             current_app.logger.info("Registering to tmc")
-            listOfCommandRegister = ["tmc", "managementcluster", "register", management_cluster, "-c", clusterGroup, "-p",
+            listOfCommandRegister = ["tmc", "managementcluster", "register", management_cluster, "-c", clusterGroup,
+                                     "-p",
                                      "TKG",
                                      "-k", "kubeconfig.yaml"]
 
-        runProcess(listOfCommandRegister)
+        register_output = runProcessTmcMgmt(listOfCommandRegister)
+        if register_output == "FAIL":
+            current_app.logger.error("Failed to register Management Cluster with TMC")
+            current_app.logger.info("Continuing registration to apply the Tanzu Mission Control resource manifest to complete registration")
+            listOfCommandRegister.append("--continue-bootstrap")
+            runProcess(listOfCommandRegister)
+
         current_app.logger.info("Registered to tmc")
         current_app.logger.info("Waiting for 2 min for health status = ready…")
         for i in tqdm(range(120), desc="Waiting for health status…", ascii=False, ncols=75):
@@ -1817,13 +1825,15 @@ def checkAirGappedIsEnabled(env):
     else:
         return True
 
+
 def checkEnableIdentityManagement(env):
     try:
         if not isEnvTkgs_ns(env) and not isEnvTkgs_wcp(env):
             if env == Env.VMC:
                 idm = request.get_json(force=True)["componentSpec"]["identityManagementSpec"]["identityManagementType"]
             elif env == Env.VSPHERE or env == Env.VCF:
-                idm = request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"]["identityManagementType"]
+                idm = request.get_json(force=True)["tkgComponentSpec"]["identityManagementSpec"][
+                    "identityManagementType"]
             if (idm.lower() == "oidc") or (idm.lower() == "ldap"):
                 return True
             else:
@@ -1832,6 +1842,7 @@ def checkEnableIdentityManagement(env):
             return False
     except Exception:
         return False
+
 
 def argapPrecheck(env):
     if checkTmcEnabled(env) and checkAirGappedIsEnabled(env):
@@ -1881,6 +1892,7 @@ def dockerLoginAndConnectivityCheck(env):
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
+        os.putenv("TKG_BOM_IMAGE_TAG", Tkg_version.TAG)
         os.putenv("TKG_CUSTOM_IMAGE_REPOSITORY", air_gapped_repo)
         headers = {
             'Accept': 'application/json',
@@ -2307,7 +2319,7 @@ def installCertManagerAndContour(env, cluster_name, repo_address, service_name):
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
-        install = installExtentionFor14(service_name, env)
+        install = installExtentionFor14(service_name, cluster_name, env)
         if install[1] != 200:
             return install[0], install[1]
     current_app.logger.info("Configured cert-manager and contour successfully")
@@ -2738,12 +2750,56 @@ def checkRepositoryAdded(env):
             }
             return jsonify(d), 500
     else:
-        d = {
-            "responseType": "SUCCESS",
-            "msg": "Airgapped is disabled, not adding the repository",
-            "ERROR_CODE": 200
-        }
-        return jsonify(d), 200
+        try:
+            validate_command = ["tanzu", "package", "repository", "list", "-n", TKG_Package_Details.NAMESPACE]
+            status = runShellCommandAndReturnOutputAsList(validate_command)
+            if status[1] != 0:
+                current_app.logger.error("Failed to run validate repository added command " + str(status[0]))
+                d = {
+                    "responseType": "ERROR",
+                    "msg": "Failed to run validate repository added command " + str(str[0]),
+                    "ERROR_CODE": 500
+                }
+                return jsonify(d), 500
+            if not str(status[0]).__contains__(TKG_Package_Details.STANDARD_PACKAGE_URL):
+                list_command = ["tanzu", "package", "repository", "add", TKG_Package_Details.REPO_NAME, "--url",
+                                TKG_Package_Details.REPOSITORY_URL, "-n",
+                                TKG_Package_Details.NAMESPACE]
+                status = runShellCommandAndReturnOutputAsList(list_command)
+                if status[1] != 0:
+                    current_app.logger.error("Failed to run command to add repository " + str(status[0]))
+                    d = {
+                        "responseType": "ERROR",
+                        "msg": "Failed to run command to add repository " + str(str[0]),
+                        "ERROR_CODE": 500
+                    }
+                    return jsonify(d), 500
+                status = runShellCommandAndReturnOutputAsList(validate_command)
+                if status[1] != 0:
+                    current_app.logger.error("Failed to run validate repository added command " + str(status[0]))
+                    d = {
+                        "responseType": "ERROR",
+                        "msg": "Failed to run validate repository added command " + str(str[0]),
+                        "ERROR_CODE": 500
+                    }
+                    return jsonify(d), 500
+            else:
+                current_app.logger.info(TKG_Package_Details.REPOSITORY_URL + " is already added")
+            current_app.logger.info("Successfully  added repository " + TKG_Package_Details.REPOSITORY_URL)
+            d = {
+                "responseType": "SUCCESS",
+                "msg": "Successfully validated repository " + TKG_Package_Details.REPOSITORY_URL,
+                "ERROR_CODE": 200
+            }
+            return jsonify(d), 200
+        except Exception as e:
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to validate tanzu standard repository status" + str(e),
+                "ERROR_CODE": 500
+            }
+            return jsonify(d), 500
+
 
 def checkPinnipedInstalled():
     main_command = ["tanzu", "package", "installed", "list", "-A"]
@@ -2763,7 +2819,8 @@ def checkPinnipedInstalled():
             time.sleep(30)
             current_app.logger.info("Waited for  " + str(count_pinniped * 30) + "s, retrying.")
         if not found:
-            current_app.logger.error("Pinniped is not in RECONCILE SUCCEEDED state on waiting " + str(count_pinniped * 30))
+            current_app.logger.error(
+                "Pinniped is not in RECONCILE SUCCEEDED state on waiting " + str(count_pinniped * 30))
             d = {
                 "responseType": "ERROR",
                 "msg": "Pinniped is not in RECONCILE SUCCEEDED state on waiting " + str(count_pinniped * 30),
@@ -2778,6 +2835,7 @@ def checkPinnipedInstalled():
     }
     return jsonify(d), 200
 
+
 def checkPinnipedServiceStatus():
     try:
         listOfCmd = ["kubectl", "get", "svc", "-n", "pinniped-supervisor"]
@@ -2787,9 +2845,10 @@ def checkPinnipedServiceStatus():
         if str(line1[3]) == 'EXTERNAL-IP':
             try:
                 ip = ipaddress.ip_address(str(line2[3]))
-                current_app.logger.info("Successfully retrieved Load Balancers' External IP: "+str(line2[3]))
-                current_app.logger.info("Update the callback URI with the Load Balancers' External IP: "+str(line2[3]))
-                return "Load Balancers' External IP: "+str(line2[3]), 200
+                current_app.logger.info("Successfully retrieved Load Balancers' External IP: " + str(line2[3]))
+                current_app.logger.info(
+                    "Update the callback URI with the Load Balancers' External IP: " + str(line2[3]))
+                return "Load Balancers' External IP: " + str(line2[3]), 200
             except Exception as e:
                 current_app.logger.error("Failed to retrieve Load Balancers' External IP")
                 current_app.logger.error(str(e))
@@ -2808,8 +2867,8 @@ def checkPinnipedDexServiceStatus():
         if str(line1[3]) == 'EXTERNAL-IP':
             try:
                 ip = ipaddress.ip_address(str(line2[3]))
-                current_app.logger.info("Successfully retrieved dexsvc Load Balancers' External IP: "+str(line2[3]))
-                return "dexsvc Load Balancers' External IP: "+str(line2[3]), 200
+                current_app.logger.info("Successfully retrieved dexsvc Load Balancers' External IP: " + str(line2[3]))
+                return "dexsvc Load Balancers' External IP: " + str(line2[3]), 200
             except Exception as e:
                 current_app.logger.error(str(e))
                 current_app.logger.error("Failed to retrieve dexsvc Load Balancers' External IP")
@@ -2822,6 +2881,7 @@ def checkPinnipedDexServiceStatus():
         return "Failed to retrieve dexsvc Load Balancers' External IP", 500
     except:
         return "Failed to retrieve dexsvc Load Balancers' External IP", 500
+
 
 def createRbacUsers(clusterName, isMgmt, env, cluster_admin_users, admin_users, edit_users, view_users):
     try:
@@ -2856,7 +2916,8 @@ def createRbacUsers(clusterName, isMgmt, env, cluster_admin_users, admin_users, 
 
         output = runShellCommandAndReturnOutputAsList(exportCmd)
         if output[1] == 0:
-            current_app.logger.info("Exported kubeconfig at  " + Paths.CLUSTER_PATH + clusterName + "/" + "crb-kubeconfig")
+            current_app.logger.info(
+                "Exported kubeconfig at  " + Paths.CLUSTER_PATH + clusterName + "/" + "crb-kubeconfig")
         else:
             current_app.logger.error(
                 "Failed to export config file to " + Paths.CLUSTER_PATH + clusterName + "/" + "crb-kubeconfig")
@@ -2881,14 +2942,14 @@ def createRbacUsers(clusterName, isMgmt, env, cluster_admin_users, admin_users, 
                 for username in users_list:
                     current_app.logger.info("Checking if Cluster Role binding exists for the user: " + username)
                     main_command = ["kubectl", "get", "clusterrolebindings"]
-                    sub_command = ["grep", username+"-crb"]
+                    sub_command = ["grep", username + "-crb"]
                     output = grabPipeOutput(main_command, sub_command)
                     if output[1] == 0:
                         if output[0].__contains__(key):
                             current_app.logger.info(key + " role binding for user: " + username + " already exists!")
                             continue
                     current_app.logger.info("Creating Cluster Role binding for user: " + username)
-                    listOfCmd = ["kubectl", "create", "clusterrolebinding", username+"-crb",
+                    listOfCmd = ["kubectl", "create", "clusterrolebinding", username + "-crb",
                                  "--clusterrole", key, "--user", username]
                     output = runShellCommandAndReturnOutputAsList(listOfCmd)
                     if output[1] == 0:
@@ -2896,11 +2957,11 @@ def createRbacUsers(clusterName, isMgmt, env, cluster_admin_users, admin_users, 
                         current_app.logger.info("Kubeconfig file has been generated and stored at " +
                                                 Paths.CLUSTER_PATH + clusterName + "/" + "crb-kubeconfig")
                     else:
-                        current_app.logger.error("Failed to created Cluster Role Binding for user: "+ username)
+                        current_app.logger.error("Failed to created Cluster Role Binding for user: " + username)
                         current_app.logger.error(output[0])
                         d = {
                             "responseType": "ERROR",
-                            "msg": "Failed to created Cluster Role Binding for user: "+ username,
+                            "msg": "Failed to created Cluster Role Binding for user: " + username,
                             "ERROR_CODE": 500
                         }
                         return jsonify(d), 500
@@ -2922,7 +2983,7 @@ def createRbacUsers(clusterName, isMgmt, env, cluster_admin_users, admin_users, 
         return jsonify(d), 500
 
 
-def installExtentionFor14(service_name, env):
+def installExtentionFor14(service_name, cluster, env):
     main_command = ["tanzu", "package", "installed", "list", "-A"]
     service = service_name
     if service == "certmanager" or service == "all":
@@ -2951,7 +3012,7 @@ def installExtentionFor14(service_name, env):
             if certManagerStatus[1] == 500:
                 d = {
                     "responseType": "ERROR",
-                    "msg": "Failed to bring certmanager " + str(certManagerStatus[0].json['msg']),
+                    "msg": "Failed to bring cert-manager " + str(certManagerStatus[0].json['msg']),
                     "ERROR_CODE": 500
                 }
                 return jsonify(d), 500
@@ -2987,7 +3048,7 @@ def installExtentionFor14(service_name, env):
         sub_command = ["grep", AppName.CONTOUR]
         command_cert = grabPipeOutput(main_command, sub_command)
         if not verifyPodsAreRunning(AppName.CONTOUR, command_cert[0], RegexPattern.RECONCILE_SUCCEEDED):
-            createContourDataValues()
+            createContourDataValues(cluster)
             state = getVersionOfPackage("contour.tanzu.vmware.com")
             if state is None:
                 d = {
@@ -2999,7 +3060,8 @@ def installExtentionFor14(service_name, env):
             current_app.logger.info("Installing contour - " + state)
             install_command = ["tanzu", "package", "install", AppName.CONTOUR, "--package-name",
                                "contour.tanzu.vmware.com", "--version", state, "--values-file",
-                               "./contour-data-values.yaml", "--namespace", "package-tanzu-system-contour",
+                               Paths.CLUSTER_PATH + cluster + "/contour-data-values.yaml", "--namespace",
+                               "package-tanzu-system-contour",
                                "--create-namespace"]
             states = runShellCommandAndReturnOutputAsList(install_command)
             if states[1] != 0:
@@ -3068,7 +3130,7 @@ def getVersionOfPackage(packageName):
     return version
 
 
-def createContourDataValues():
+def createContourDataValues(clusterName):
     data = dict(
         infrastructure_provider='vsphere',
         namespace='tanzu-system-ingress',
@@ -3094,7 +3156,7 @@ def createContourDataValues():
         ),
         certificates=dict(duration='8760h', renewBefore='360h')
     )
-    with open('./contour-data-values.yaml', 'w') as outfile:
+    with open(Paths.CLUSTER_PATH + clusterName + '/contour-data-values.yaml', 'w') as outfile:
         outfile.write("---\n")
         yaml1 = ruamel.yaml.YAML()
         yaml1.indent(mapping=2, sequence=4, offset=3)
@@ -3146,10 +3208,10 @@ def extentionDeploy13(service_name, repo_address):
             list1 = ["kubectl", "get", "pods", "-A"]
             list2 = ["grep", "cert-manager"]
             if waitForGrepProcess(list1, list2, "cert-manager", Extentions.TKG_EXTENTION_LOCATION)[1] == 500:
-                current_app.logger.error("Failed to apply certmanager " + state[0])
+                current_app.logger.error("Failed to apply cert-manager " + state[0])
                 d = {
                     "responseType": "ERROR",
-                    "msg": "Failed to apply certmanager " + str(state[0]),
+                    "msg": "Failed to apply cert-manager " + str(state[0]),
                     "ERROR_CODE": 500
                 }
                 return jsonify(d), 500
@@ -3246,10 +3308,10 @@ def extentionDeploy13(service_name, repo_address):
             state_contour_copy = runShellCommandAndReturnOutputAsListWithChangedDir(command_contour_copy,
                                                                                     Extentions.CONTOUR_LOCATION)
             if state_contour_copy[1] != 0:
-                current_app.logger.error("Failed to apply countour copy " + str(state_contour_copy[0]))
+                current_app.logger.error("Failed to apply contour copy " + str(state_contour_copy[0]))
                 d = {
                     "responseType": "ERROR",
-                    "msg": "Failed to apply countour copy " + str(state_contour_copy[0]),
+                    "msg": "Failed to apply contour copy " + str(state_contour_copy[0]),
                     "ERROR_CODE": 500
                 }
                 return jsonify(d), 500
@@ -3261,10 +3323,10 @@ def extentionDeploy13(service_name, repo_address):
             state_contour_secret = runShellCommandAndReturnOutputAsListWithChangedDir(command_contour_secret,
                                                                                       Extentions.CONTOUR_LOCATION)
             if state_contour_copy[1] != 0:
-                current_app.logger.error("Failed to apply countour secret " + str(state_contour_secret[0]))
+                current_app.logger.error("Failed to apply contour secret " + str(state_contour_secret[0]))
                 d = {
                     "responseType": "ERROR",
-                    "msg": "Failed to apply countour secret " + str(state_contour_secret[0]),
+                    "msg": "Failed to apply contour secret " + str(state_contour_secret[0]),
                     "ERROR_CODE": 500
                 }
                 return jsonify(d), 500
@@ -3286,10 +3348,10 @@ def extentionDeploy13(service_name, repo_address):
             command_contour_out = runShellCommandAndReturnOutputAsListWithChangedDir(command_contour,
                                                                                      Extentions.CONTOUR_LOCATION)
             if command_contour_out[1] != 0:
-                current_app.logger.error("Failed to apply countour" + str(command_contour_out[0]))
+                current_app.logger.error("Failed to apply contour" + str(command_contour_out[0]))
                 d = {
                     "responseType": "ERROR",
-                    "msg": "Failed to apply countour" + str(command_contour_out[0]),
+                    "msg": "Failed to apply contour" + str(command_contour_out[0]),
                     "ERROR_CODE": 500
                 }
                 return jsonify(d), 500
@@ -3300,7 +3362,7 @@ def extentionDeploy13(service_name, repo_address):
                 current_app.logger.error("Failed bring up contour " + str(contourStatus[0]))
                 d = {
                     "responseType": "ERROR",
-                    "msg": "Failed to apply countour secret " + str(contourStatus[0]),
+                    "msg": "Failed to apply contour secret " + str(contourStatus[0]),
                     "ERROR_CODE": 500
                 }
                 return jsonify(d), 500
@@ -3331,14 +3393,15 @@ def extentionDeploy13(service_name, repo_address):
     return jsonify(d), 200
 
 
-def createOverlayYaml(repository):
+def createOverlayYaml(repository, clusterName):
     if not repository.endswith("/"):
         repository = repository + "/"
-    os.system("rm -rf harbor-overlay.yaml")
+    os.system("rm -rf " + Paths.CLUSTER_PATH + "/harbor-overlay.yaml")
     os.system("chmod +x ./common/injectValue.sh")
     repository = repository + "harbor/notary-signer-photon@sha256:4dfbf3777c26c615acfb466b98033c0406766692e9c32f3bb08873a0295e24d1"
-    os.system("cp ./common/harbor-overlay.yaml harbor-overlay.yaml")
-    os.system("./common/injectValue.sh harbor-overlay.yaml overlay " + repository)
+    os.system("cp ./common/harbor-overlay.yaml" + Paths.CLUSTER_PATH + "/harbor-overlay.yaml")
+    os.system(
+        "./common/injectValue.sh " + Paths.CLUSTER_PATH + "/harbor-overlay.yaml overlay " + repository)
 
 
 def deployCluster(sharedClusterName, clusterPlan, datacenter, dataStorePath,
@@ -3353,15 +3416,17 @@ def deployCluster(sharedClusterName, clusterPlan, datacenter, dataStorePath,
             current_app.logger.info("Deploying " + sharedClusterName + "cluster")
             os.putenv("DEPLOY_TKG_ON_VSPHERE7", "true")
             if Tkg_version.TKG_VERSION == "1.5":
-                if checkAirGappedIsEnabled(env):
-                    full_name = getKubeVersionFullNameNoCompatibilityCheck(kubeVersion)
-                    if full_name[1] != 200:
-                        current_app.logger.error("Failed to fetch full name for tkr version: " + kubeVersion)
-                        return None, "Failed to fetch full name for tkr version: " + kubeVersion
-                    else:
-                        current_app.logger.info("Successfully fetched complete name for tkr version: " + kubeVersion)
-                        kubeVersion = full_name[0]
-                listOfCmd = ["tanzu", "cluster", "create", "-f", sharedClusterName + ".yaml", "--tkr", kubeVersion,
+                #if checkAirGappedIsEnabled(env):
+                    #full_name = getKubeVersionFullNameNoCompatibilityCheck(kubeVersion)
+                    #if full_name[1] != 200:
+                        #current_app.logger.error("Failed to fetch full name for tkr version: " + kubeVersion)
+                        #return None, "Failed to fetch full name for tkr version: " + kubeVersion
+                    #else:
+                        #current_app.logger.info("Successfully fetched complete name for tkr version: " + kubeVersion)
+                        #kubeVersion = full_name[0]
+                listOfCmd = ["tanzu", "cluster", "create", "-f",
+                             Paths.CLUSTER_PATH + sharedClusterName + "/" + sharedClusterName + ".yaml", "--tkr",
+                             kubeVersion,
                              "-v", "6"]
             else:
                 listOfCmd = ["tanzu", "cluster", "create", "-f", sharedClusterName + ".yaml", "-v", "6"]
@@ -3546,6 +3611,7 @@ def cluster14Yaml(sharedClusterName, clusterPlan, datacenter, dataStorePath,
             air_gapped_repo = str(
                 request.get_json(force=True)['envSpec']['customRepositorySpec']['tkgCustomImageRepository'])
             air_gapped_repo = air_gapped_repo.replace("https://", "").replace("http://", "")
+            os.putenv("TKG_BOM_IMAGE_TAG", Tkg_version.TAG)
             os.putenv("TKG_CUSTOM_IMAGE_REPOSITORY", air_gapped_repo)
             os.putenv("TKG_CUSTOM_IMAGE_REPOSITORY_SKIP_TLS_VERIFY", "False")
             isSelfsinged = str(request.get_json(force=True)['envSpec']['customRepositorySpec'][
@@ -3602,14 +3668,37 @@ def template14deployYaml(sharedClusterName, clusterPlan, datacenter, dataStorePa
                          sshKey, vsphereUseName, machineCount, size, env, type, vsSpec):
     if env == Env.VMC:
         deploy_yaml = FileHelper.read_resource(Paths.TKG_VMC_CLUSTER_14_SPEC_J2)
+        ciep = str(request.get_json(force=True)["ceipParticipation"])
     else:
         deploy_yaml = FileHelper.read_resource(Paths.TKG_CLUSTER_14_SPEC_J2)
+        ciep = str(request.get_json(force=True)['envSpec']["ceipParticipation"])
     t = Template(deploy_yaml)
     datacenter = "/" + datacenter
     control_plane_vcpu = ""
     control_plane_disk_gb = ""
     control_plane_mem_gb = ""
     control_plane_mem_mb = ""
+
+    proxyCert = ""
+    if env == Env.VSPHERE or Env.VCF:
+        if type == Type.SHARED:
+            try:
+                proxyCert_raw = request.get_json(force=True)['envSpec']['proxySpec']['tkgSharedservice']['proxyCert']
+                base64_bytes = base64.b64encode(proxyCert_raw.encode("utf-8"))
+                proxyCert = str(base64_bytes, "utf-8")
+                isProxyCert = "true"
+            except:
+                isProxyCert = "false"
+                current_app.logger.info("Proxy certificare for  shared is not provided")
+        elif type == Type.WORKLOAD:
+            try:
+                proxyCert_raw = request.get_json(force=True)['envSpec']['proxySpec']['tkgWorkload']['proxyCert']
+                base64_bytes = base64.b64encode(proxyCert_raw.encode("utf-8"))
+                proxyCert = str(base64_bytes, "utf-8")
+                isProxyCert = "true"
+            except:
+                isProxyCert = "false"
+                current_app.logger.info("Proxy certificare for  workload is not provided")
     if env == Env.VSPHERE:
         if type == Type.SHARED:
             clustercidr = vsSpec.tkgComponentSpec.tkgMgmtComponents.tkgSharedserviceClusterCidr
@@ -3754,6 +3843,7 @@ def template14deployYaml(sharedClusterName, clusterPlan, datacenter, dataStorePa
     if checkAirGappedIsEnabled(env):
         air_gapped_repo = vsSpec.envSpec.customRepositorySpec.tkgCustomImageRepository
         air_gapped_repo = air_gapped_repo.replace("https://", "").replace("http://", "")
+        os.putenv("TKG_BOM_IMAGE_TAG", Tkg_version.TAG)
         os.putenv("TKG_CUSTOM_IMAGE_REPOSITORY", air_gapped_repo)
         os.putenv("TKG_CUSTOM_IMAGE_REPOSITORY_SKIP_TLS_VERIFY", "False")
         url = air_gapped_repo[:air_gapped_repo.find("/")]
@@ -3765,7 +3855,7 @@ def template14deployYaml(sharedClusterName, clusterPlan, datacenter, dataStorePa
     FileHelper.write_to_file(
         t.render(config=vsSpec, clustercidr=clustercidr, sharedClusterName=sharedClusterName, clusterPlan=clusterPlan,
                  servicecidr=servicecidr, datacenter=datacenter, dataStorePath=dataStorePath,
-                 folderPath=folderPath,
+                 folderPath=folderPath, ceip=ciep, isProxyCert=isProxyCert, proxyCert=proxyCert,
                  mgmt_network=mgmt_network, vspherePassword=vspherePassword,
                  sharedClusterResourcePool=sharedClusterResourcePool,
                  vsphereServer=vsphereServer, sshKey=sshKey, vsphereUseName=vsphereUseName, controlPlaneSize=size,
@@ -3774,7 +3864,7 @@ def template14deployYaml(sharedClusterName, clusterPlan, datacenter, dataStorePa
                  osVersion=osVersion, size=size_selection, control_plane_vcpu=control_plane_vcpu,
                  control_plane_disk_gb=control_plane_disk_gb, control_plane_mem_mb=control_plane_mem_mb,
                  identity_mgmt_type=identity_mgmt_type),
-        sharedClusterName + ".yaml")
+        Paths.CLUSTER_PATH + sharedClusterName + "/" + sharedClusterName + ".yaml")
     return kubeVersion
 
 
@@ -3853,6 +3943,7 @@ def cluster13Yaml(sharedClusterName, clusterPlan, datacenter, dataStorePath,
             air_gapped_repo = str(
                 request.get_json(force=True)['envSpec']['customRepositorySpec']['tkgCustomImageRepository'])
             air_gapped_repo = air_gapped_repo.replace("https://", "").replace("http://", "")
+            os.putenv("TKG_BOM_IMAGE_TAG", Tkg_version.TAG)
             os.putenv("TKG_CUSTOM_IMAGE_REPOSITORY", air_gapped_repo)
             os.putenv("TKG_CUSTOM_IMAGE_REPOSITORY_SKIP_TLS_VERIFY", "False")
             isSelfsinged = str(request.get_json(force=True)['envSpec']['customRepositorySpec'][
@@ -3917,6 +4008,7 @@ def template13deployYaml(sharedClusterName, clusterPlan, datacenter, dataStorePa
     if checkAirGappedIsEnabled(env):
         air_gapped_repo = vsSpec.envSpec.customRepositorySpec.tkgCustomImageRepository
         air_gapped_repo = air_gapped_repo.replace("https://", "").replace("http://", "")
+        os.putenv("TKG_BOM_IMAGE_TAG", Tkg_version.TAG)
         os.putenv("TKG_CUSTOM_IMAGE_REPOSITORY", air_gapped_repo)
         os.putenv("TKG_CUSTOM_IMAGE_REPOSITORY_SKIP_TLS_VERIFY", "False")
         url = air_gapped_repo[:air_gapped_repo.find("/")]
@@ -3974,18 +4066,19 @@ def registerTanzuObservability(cluster_name, env, size):
                     return jsonify(d), 500
             else:
                 if size.lower() == "medium" or size.lower() == "small":
-                    d = {
-                        "responseType": "ERROR",
-                        "msg": "Tanzu Observability integration is not supported on cluster size small or medium",
-                        "ERROR_CODE": 500
-                    }
-                    return jsonify(d), 500
+                    # d = {
+                    #     "responseType": "ERROR",
+                    #     "msg": "Tanzu Observability integration is not supported on cluster size small or medium",
+                    #     "ERROR_CODE": 500
+                    # }
+                    # return jsonify(d), 500
+                    current_app.logger.debug("Recommended to use large/extra-large for Tanzu Observability integration")
             st = inegrateSas(cluster_name, env, SAS.TO)
             return st[0].json, st[1]
         else:
             d = {
                 "responseType": "SUCCESS",
-                "msg": "Taznu observability is disabled",
+                "msg": "Tanzu observability is disabled",
                 "ERROR_CODE": 200
             }
             return jsonify(d), 200
@@ -4012,12 +4105,13 @@ def registerTSM(cluster_name, env, size):
                     return jsonify(d), 500
             else:
                 if size.lower() == "medium" or size.lower() == "small":
-                    d = {
-                        "responseType": "ERROR",
-                        "msg": "Tanzu service mesh integration is not supported on cluster size small or medium",
-                        "ERROR_CODE": 500
-                    }
-                    return jsonify(d), 500
+                    # d = {
+                    #     "responseType": "ERROR",
+                    #     "msg": "Tanzu service mesh integration is not supported on cluster size small or medium",
+                    #     "ERROR_CODE": 500
+                    # }
+                    # return jsonify(d), 500
+                    current_app.logger.debug("Recommended to use large/extra-large for Tanzu service mesh integration")
             st = inegrateSas(cluster_name, env, SAS.TSM)
             return st[0], st[1]
         else:
@@ -4214,21 +4308,19 @@ def generateTSMJsonFile(management_cluster, provisioner_name, cluster_name, exac
             "name": "tanzu-service-mesh"
         },
         "spec": {
-            "configurations": {
-                "enableNamespaceExclusions": True,
-                "namespaceExclusions": [
-                    {
-                        "match": exact,
-                        "type": "EXACT"
-                    },
-                    {
-                        "match": partial,
-                        "type": "START_WITH"
-                    }
-                ]
-            }
+            "configurations": ""
         }
     }
+    if not (exact and partial):
+        configurations = {"enableNamespaceExclusions": False}
+    else:
+        configurations = {"enableNamespaceExclusions": True}
+        configurations.update({"namespaceExclusions": []})
+        if exact:
+            configurations["namespaceExclusions"].append({"match": exact, "type": "EXACT"})
+        if partial:
+            configurations["namespaceExclusions"].append({"match": partial, "type": "START_WITH"})
+    tsmJson['spec'].update({"configurations": configurations})
     os.system("rm -rf " + fileName)
     with open(fileName, 'w') as f:
         json.dump(tsmJson, f)
@@ -4293,13 +4385,14 @@ def checkToEnabled(env):
 
 
 def checkClusterSizeForTo(env):
+    current_app.logger.info("Recommend to use Tanzu Observability and Tanzu Service Mesh integration with cluster size large or extra-large")
     isTo = checkToEnabled(env)
     isTsm = checTSMEnabled(env)
     if isTo or isTsm:
         if not checkTmcEnabled(env):
             d = {
                 "responseType": "ERROR",
-                "msg": "TMC is not enabled, for sas integration TMC must be enabled",
+                "msg": "TMC is not enabled, for SaaS integration TMC must be enabled",
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
@@ -4312,9 +4405,9 @@ def checkClusterSizeForTo(env):
             size = str(request.get_json(force=True)['tkgWorkloadComponents']['tkgWorkloadSize'])
         if size.lower() == "medium" or size.lower() == "small":
             if isTo:
-                msg_text = "Tanzu Observability integration is not supported on cluster size small or medium"
+                msg_text = "Recommend to use Tanzu Observability integration with cluster size large or extra-large"
             elif isTsm:
-                msg_text = "Tanzu Sevice Mesh integration is not supported on cluster size small or medium"
+                msg_text = "Recommend to use Tanzu Observability integration with cluster size large or extra-large"
             d = {
                 "responseType": "ERROR",
                 "msg": msg_text,
@@ -4398,56 +4491,68 @@ def checkMachineCountForTsm(env):
         }
         return jsonify(d), 200
 
-def checkMachineCountForProdType(env):
+
+def checkMachineCountForProdType(env, isShared, isWorkload):
     try:
         if env == Env.VMC:
-            shared_deployment_type = request.get_json(force=True)['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceDeploymentType']
-            shared_worker_count = request.get_json(force=True)['componentSpec']['tkgSharedServiceSpec'][
-                'tkgSharedserviceWorkerMachineCount']
-            workload_deployment_type = request.get_json(force=True)['componentSpec']['tkgWorkloadSpec'][
-                'tkgWorkloadDeploymentType']
-            workload_worker_count = request.get_json(force=True)['componentSpec']['tkgWorkloadSpec'][
-                'tkgWorkloadWorkerMachineCount']
+            if isShared:
+                shared_deployment_type = request.get_json(force=True)['componentSpec']['tkgSharedServiceSpec'][
+                    'tkgSharedserviceDeploymentType']
+                shared_worker_count = request.get_json(force=True)['componentSpec']['tkgSharedServiceSpec'][
+                    'tkgSharedserviceWorkerMachineCount']
+            if isWorkload:
+                workload_deployment_type = request.get_json(force=True)['componentSpec']['tkgWorkloadSpec'][
+                    'tkgWorkloadDeploymentType']
+                workload_worker_count = request.get_json(force=True)['componentSpec']['tkgWorkloadSpec'][
+                    'tkgWorkloadWorkerMachineCount']
         elif env == Env.VSPHERE:
-            shared_deployment_type = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents'][
-                'tkgSharedserviceDeploymentType']
-            shared_worker_count = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents'][
-                'tkgSharedserviceWorkerMachineCount']
-            workload_deployment_type = request.get_json(force=True)['tkgWorkloadComponents'][
-                'tkgWorkloadDeploymentType']
-            workload_worker_count = request.get_json(force=True)['tkgWorkloadComponents'][
-                'tkgWorkloadWorkerMachineCount']
+            if isShared:
+                shared_deployment_type = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents'][
+                    'tkgSharedserviceDeploymentType']
+                shared_worker_count = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents'][
+                    'tkgSharedserviceWorkerMachineCount']
+            if isWorkload:
+                workload_deployment_type = request.get_json(force=True)['tkgWorkloadComponents'][
+                    'tkgWorkloadDeploymentType']
+                workload_worker_count = request.get_json(force=True)['tkgWorkloadComponents'][
+                    'tkgWorkloadWorkerMachineCount']
         elif env == Env.VCF:
-            shared_deployment_type = request.get_json(force=True)['tkgComponentSpec']['tkgSharedserviceSpec'][
-                'tkgSharedserviceDeploymentType']
-            shared_worker_count = request.get_json(force=True)['tkgComponentSpec']['tkgSharedserviceSpec'][
-                'tkgSharedserviceWorkerMachineCount']
-            workload_deployment_type = request.get_json(force=True)['tkgWorkloadComponents'][
-                'tkgWorkloadDeploymentType']
-            workload_worker_count = request.get_json(force=True)['tkgWorkloadComponents'][
-                'tkgWorkloadWorkerMachineCount']
-        if shared_deployment_type.lower() == PLAN.PROD_PLAN:
-            current_app.logger.info("Verifying worker machine count for shared services cluster")
-            if int(shared_worker_count) < 3:
-                current_app.logger.error("Min worker machine count for a prod deployment plan on shared services cluster is 3!")
-                d = {
-                    "responseType": "ERROR",
-                    "msg": "Min worker machine count for a prod deployment plan on shared services cluster is 3!",
-                    "ERROR_CODE": 500
-                }
-                return jsonify(d), 500
-            current_app.logger.info("Successfully validated worker machine count for shared services cluster")
-        if workload_deployment_type.lower() == PLAN.PROD_PLAN:
-            current_app.logger.info("Verifying worker machine count for workload cluster")
-            if int(workload_worker_count) < 3:
-                current_app.logger.error("Min worker machine count for a prod on workload cluster deployment plan is 3!")
-                d = {
-                    "responseType": "ERROR",
-                    "msg": "Min worker machine count for a prod deployment plan on workload cluster is 3!",
-                    "ERROR_CODE": 500
-                }
-                return jsonify(d), 500
-            current_app.logger.info("Successfully validated worker machine count for workload cluster")
+            if isShared:
+                shared_deployment_type = request.get_json(force=True)['tkgComponentSpec']['tkgSharedserviceSpec'][
+                    'tkgSharedserviceDeploymentType']
+                shared_worker_count = request.get_json(force=True)['tkgComponentSpec']['tkgSharedserviceSpec'][
+                    'tkgSharedserviceWorkerMachineCount']
+            if isWorkload:
+                workload_deployment_type = request.get_json(force=True)['tkgWorkloadComponents'][
+                    'tkgWorkloadDeploymentType']
+                workload_worker_count = request.get_json(force=True)['tkgWorkloadComponents'][
+                    'tkgWorkloadWorkerMachineCount']
+        if isShared:
+            if shared_deployment_type.lower() == PLAN.PROD_PLAN:
+                current_app.logger.info("Verifying worker machine count for shared services cluster")
+                if int(shared_worker_count) < 3:
+                    current_app.logger.error(
+                        "Min worker machine count for a prod deployment plan on shared services cluster is 3!")
+                    d = {
+                        "responseType": "ERROR",
+                        "msg": "Min worker machine count for a prod deployment plan on shared services cluster is 3!",
+                        "ERROR_CODE": 500
+                    }
+                    return jsonify(d), 500
+                current_app.logger.info("Successfully validated worker machine count for shared services cluster")
+        if isWorkload:
+            if workload_deployment_type.lower() == PLAN.PROD_PLAN:
+                current_app.logger.info("Verifying worker machine count for workload cluster")
+                if int(workload_worker_count) < 3:
+                    current_app.logger.error(
+                        "Min worker machine count for a prod on workload cluster deployment plan is 3!")
+                    d = {
+                        "responseType": "ERROR",
+                        "msg": "Min worker machine count for a prod deployment plan on workload cluster is 3!",
+                        "ERROR_CODE": 500
+                    }
+                    return jsonify(d), 500
+                current_app.logger.info("Successfully validated worker machine count for workload cluster")
         d = {
             "responseType": "SUCCESS",
             "msg": "Successfully validated worker machine count",
@@ -4462,6 +4567,7 @@ def checkMachineCountForProdType(env):
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
+
 
 def generateTmcProxyYaml(name_of_proxy, httpProxy_, httpsProxy_, noProxyList_, httpUserName_, httpPassword_,
                          httpsUserName_,
@@ -5413,9 +5519,9 @@ def verifyVCVersion(vcVersion):
         vcVersionArr = vcVersion.split('.')
         i = 0
         for str in vcVersionArr:
-            if (int(str) > int(baseVersionArr[i])):
+            if int(str) > int(baseVersionArr[i]):
                 return "SUCCESS", 200
-            elif (int(str) == int(baseVersionArr[i])):
+            elif int(str) == int(baseVersionArr[i]):
                 i = i + 1
             else:
                 return None, "vCenter Version must be greater than or equal to " + Versions.vcenter
@@ -6669,14 +6775,16 @@ def registerTMCTKGs(vCenter, vCenter_user, VC_PASSWORD):
         if checkTmcRegister(supervisor_cluster, True):
             current_app.logger.info(supervisor_cluster + " is already registered")
         else:
-            clusterGroup = request.get_json(force=True)['envSpec']["saasEndpoints"]['tmcDetails']['tmcSupervisorClusterGroupName']
+            clusterGroup = request.get_json(force=True)['envSpec']["saasEndpoints"]['tmcDetails'][
+                'tmcSupervisorClusterGroupName']
             if not clusterGroup:
                 clusterGroup = "default"
             os.putenv("TMC_API_TOKEN",
                       request.get_json(force=True)['envSpec']["saasEndpoints"]['tmcDetails']['tmcRefreshToken'])
             listOfCmdTmcLogin = ["tmc", "login", "--no-configure", "-name", "tkgvsphere-automation"]
             runProcess(listOfCmdTmcLogin)
-            listOfCommandRegister = ["tmc", "managementcluster", "register", supervisor_cluster, "-c", clusterGroup, "-p",
+            listOfCommandRegister = ["tmc", "managementcluster", "register", supervisor_cluster, "-c", clusterGroup,
+                                     "-p",
                                      "TKGS"]
             generateYaml = runShellCommandAndReturnOutput(listOfCommandRegister)
             if generateYaml[1] != 0:
@@ -6800,7 +6908,10 @@ def getClusterID(vCenter, vCenter_user, VC_PASSWORD, cluster):
             session_id = sess.json()['value']
 
         vcenter_datacenter = request.get_json(force=True)['envSpec']['vcenterDetails']['vcenterDatacenter']
-
+        if str(vcenter_datacenter).__contains__("/"):
+            vcenter_datacenter = vcenter_datacenter[vcenter_datacenter.rindex("/") + 1:]
+        if str(cluster).__contains__("/"):
+            cluster = cluster[cluster.rindex("/") + 1:]
         datcenter_resp = requests.get(url + "api/vcenter/datacenter?names=" + vcenter_datacenter, verify=False,
                                       headers={"vmware-api-session-id": session_id})
         if datcenter_resp.status_code != 200:
@@ -6814,7 +6925,7 @@ def getClusterID(vCenter, vCenter_user, VC_PASSWORD, cluster):
 
         datacenter_id = datcenter_resp.json()[0]['datacenter']
 
-        clusterID_resp = requests.get(url + "api/vcenter/cluster?names=" + cluster + "&datacenters="+datacenter_id,
+        clusterID_resp = requests.get(url + "api/vcenter/cluster?names=" + cluster + "&datacenters=" + datacenter_id,
                                       verify=False, headers={"vmware-api-session-id": session_id})
         if clusterID_resp.status_code != 200:
             current_app.logger.error(clusterID_resp.json())
@@ -6916,19 +7027,26 @@ def isAviHaEnabled(env):
         return False
 
 
-def checkOSFlavorForTMC(env):
+def checkOSFlavorForTMC(env, isShared, isWorkload):
     if env == Env.VMC:
         mgmt_os = request.get_json(force=True)['componentSpec']['tkgMgmtSpec']['tkgMgmtBaseOs']
-        shared_os = request.get_json(force=True)['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceBaseOs']
-        wrkl_os = request.get_json(force=True)['componentSpec']['tkgWorkloadSpec']['tkgWorkloadBaseOs']
+        if isShared:
+            shared_os = request.get_json(force=True)['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceBaseOs']
+        if isWorkload:
+            wrkl_os = request.get_json(force=True)['componentSpec']['tkgWorkloadSpec']['tkgWorkloadBaseOs']
     elif env == Env.VSPHERE:
         mgmt_os = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtBaseOs']
-        shared_os = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceBaseOs']
-        wrkl_os = request.get_json(force=True)['tkgWorkloadComponents']['tkgWorkloadBaseOs']
+        if isShared:
+            shared_os = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceBaseOs']
+        if isWorkload:
+            wrkl_os = request.get_json(force=True)['tkgWorkloadComponents']['tkgWorkloadBaseOs']
     elif env == Env.VCF:
         mgmt_os = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtBaseOs']
-        shared_os = request.get_json(force=True)['tkgComponentSpec']['tkgSharedserviceSpec']['tkgSharedserviceBaseOs']
-        wrkl_os = request.get_json(force=True)['tkgWorkloadComponents']['tkgWorkloadBaseOs']
+        if isShared:
+            shared_os = request.get_json(force=True)['tkgComponentSpec']['tkgSharedserviceSpec'][
+                'tkgSharedserviceBaseOs']
+        if isWorkload:
+            wrkl_os = request.get_json(force=True)['tkgWorkloadComponents']['tkgWorkloadBaseOs']
     else:
         d = {
             "responseType": "ERROR",
@@ -6937,7 +7055,8 @@ def checkOSFlavorForTMC(env):
         }
         return jsonify(d), 500
 
-    if (mgmt_os.lower() == 'photon') and (shared_os.lower() == 'photon') and (wrkl_os.lower() == 'photon'):
+    if (mgmt_os.lower() == 'photon') and (not isShared or shared_os.lower() == 'photon') and (
+            not isWorkload or wrkl_os.lower() == 'photon'):
         d = {
             "responseType": "SUCCESS",
             "msg": "Successfully validated Kubernetes OVA images are photon",
@@ -7010,6 +7129,7 @@ def getKubeVersionFullNameNoCompatibilityCheck(kube_version):
         return None, 500
     except:
         return None, 500
+
 
 def connect_to_workload(vCenter, vcenter_username, password, cluster, workload_name):
     try:
@@ -7204,7 +7324,7 @@ def getAviIpFqdnDnsMapping(avi_controller_fqdn_ip_dict, dns_server):
                 current_app.logger.info(fqdn_ip_map)
                 for ip in fqdn_ip_map[0]:
                     if not ip and not str(ip).__contains__(avi_ip):
-                        return "DNS Entry not found for : " + avi_fqdn , 500
+                        return "DNS Entry not found for : " + avi_fqdn, 500
                     else:
                         current_app.logger.info("Found DNS entry for " + avi_fqdn + " : " + ip)
                         # avi_controller_fqdn_ip_dict.pop(avi_fqdn)
@@ -7371,7 +7491,7 @@ def deploy_fluent_bit(end_point, cluster):
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
-        copy_template_command = ["cp", Paths.VSPHERE_FLUENT_BIT_YAML, Paths.CLUSTER_PATH + cluster + "/"]
+        copy_template_command = ["cp", Paths.VSPHERE_FLUENT_BIT_YAML, Paths.CLUSTER_PATH + cluster]
         copy_output = runShellCommandAndReturnOutputAsList(copy_template_command)
         if copy_output[1] != 0:
             current_app.logger.error("Failed to copy template file to : " + Paths.CLUSTER_PATH + cluster)
@@ -7400,7 +7520,7 @@ def deploy_fluent_bit(end_point, cluster):
                 "ERROR_CODE": 500
             }
             return jsonify(d), 500
-        deploy_fluent_bit_command = ["tanzu", "package", "install", Tkg_Extention_names.FLUENT_BIT.lower() ,
+        deploy_fluent_bit_command = ["tanzu", "package", "install", Tkg_Extention_names.FLUENT_BIT.lower(),
                                      "--package-name", Tkg_Extention_names.FLUENT_BIT.lower() + ".tanzu.vmware.com",
                                      "--version", version, "--values-file", yamlFile, "--namespace", namespace,
                                      "--create-namespace"]
@@ -7414,12 +7534,14 @@ def deploy_fluent_bit(end_point, cluster):
         found = False
         count = 0
         command_ext_bit = runShellCommandAndReturnOutputAsList(extention_validate_command)
-        if verifyPodsAreRunning(Tkg_Extention_names.FLUENT_BIT.lower(), command_ext_bit[0], RegexPattern.RECONCILE_SUCCEEDED):
+        if verifyPodsAreRunning(Tkg_Extention_names.FLUENT_BIT.lower(), command_ext_bit[0],
+                                RegexPattern.RECONCILE_SUCCEEDED):
             found = True
 
         while not found and count < 20:
             command_ext_bit = runShellCommandAndReturnOutputAsList(extention_validate_command)
-            if verifyPodsAreRunning(Tkg_Extention_names.FLUENT_BIT.lower(), command_ext_bit[0], RegexPattern.RECONCILE_SUCCEEDED):
+            if verifyPodsAreRunning(Tkg_Extention_names.FLUENT_BIT.lower(), command_ext_bit[0],
+                                    RegexPattern.RECONCILE_SUCCEEDED):
                 found = True
                 break
             count = count + 1
@@ -7434,7 +7556,7 @@ def deploy_fluent_bit(end_point, cluster):
             }
             return jsonify(d), 200
         else:
-            current_app.logger.error("Fluent-bit deployment is not completed even after " + str(count*30) + "s wait")
+            current_app.logger.error("Fluent-bit deployment is not completed even after " + str(count * 30) + "s wait")
             d = {
                 "responseType": "ERROR",
                 "msg": "Fluent-bit installation failed",
@@ -7472,7 +7594,8 @@ def updateDataFile(fluent_endpoint, dataFile):
             host = request.get_json(force=True)['tanzuExtensions']['logging']['httpEndpoint']['httpEndpointAddress']
             port = request.get_json(force=True)['tanzuExtensions']['logging']['httpEndpoint']['httpEndpointPort']
             uri = request.get_json(force=True)['tanzuExtensions']['logging']['httpEndpoint']['httpEndpointUri']
-            header = request.get_json(force=True)['tanzuExtensions']['logging']['httpEndpoint']['httpEndpointHeaderKeyValue']
+            header = request.get_json(force=True)['tanzuExtensions']['logging']['httpEndpoint'][
+                'httpEndpointHeaderKeyValue']
             output_str = """
     [OUTPUT]
     Name            http
@@ -7489,7 +7612,8 @@ def updateDataFile(fluent_endpoint, dataFile):
             host = request.get_json(force=True)['tanzuExtensions']['logging']['syslogEndpoint']['syslogEndpointAddress']
             port = request.get_json(force=True)['tanzuExtensions']['logging']['syslogEndpoint']['syslogEndpointPort']
             mode = request.get_json(force=True)['tanzuExtensions']['logging']['syslogEndpoint']['syslogEndpointMode']
-            format = request.get_json(force=True)['tanzuExtensions']['logging']['syslogEndpoint']['syslogEndpointFormat']
+            format = request.get_json(force=True)['tanzuExtensions']['logging']['syslogEndpoint'][
+                'syslogEndpointFormat']
             output_str = """
     [OUTPUT]
     Name            syslog
@@ -7508,7 +7632,8 @@ def updateDataFile(fluent_endpoint, dataFile):
     Syslog_SD_key        tkg
             """ % (host, port, mode, format)
         elif fluent_endpoint == Tkg_Extention_names.FLUENT_BIT_KAFKA:
-            broker = request.get_json(force=True)['tanzuExtensions']['logging']['kafkaEndpoint']['kafkaBrokerServiceName']
+            broker = request.get_json(force=True)['tanzuExtensions']['logging']['kafkaEndpoint'][
+                'kafkaBrokerServiceName']
             topic = request.get_json(force=True)['tanzuExtensions']['logging']['kafkaEndpoint']['kafkaTopicName']
             output_str = """
     [OUTPUT]
@@ -7542,7 +7667,7 @@ def updateDataFile(fluent_endpoint, dataFile):
 
 def createClusterFolder(clusterName):
     try:
-        command = ["mkdir",  "-p", Paths.CLUSTER_PATH + clusterName + "/"]
+        command = ["mkdir", "-p", Paths.CLUSTER_PATH + clusterName + "/"]
         create_output = runShellCommandAndReturnOutputAsList(command)
         if create_output[1] != 0:
             return False
@@ -7551,6 +7676,7 @@ def createClusterFolder(clusterName):
     except Exception as e:
         current_app.logger.error("Exception occurred while creating directory - " + Paths.CLUSTER_PATH + clusterName)
         return False
+
 
 def validate_backup_location(env, clusterType):
     try:
@@ -7589,7 +7715,8 @@ def validate_backup_location(env, clusterType):
                     cluster_group = request.get_json(force=True)['tkgsComponentSpec']["tkgsVsphereNamespaceSpec"][
                         "tkgsVsphereWorkloadClusterSpec"]["tkgsWorkloadClusterGroupName"]
                 else:
-                    backup_location = request.get_json(force=True)['tkgWorkloadComponents']['tkgWorkloadClusterBackupLocation']
+                    backup_location = request.get_json(force=True)['tkgWorkloadComponents'][
+                        'tkgWorkloadClusterBackupLocation']
                     cluster_group = request.get_json(force=True)['tkgWorkloadComponents']['tkgWorkloadClusterGroupName']
             else:
                 return False, "Invalid cluster type provided"
@@ -7626,7 +7753,8 @@ def validate_backup_location(env, clusterType):
         if response.json()["backupLocation"]["status"]["phase"] == "READY":
             current_app.logger.info(backup_location + " backup location is valid")
         else:
-            return False, backup_location + " backup location status is " + response.json()["backupLocation"]["status"]["phase"]
+            return False, backup_location + " backup location status is " + response.json()["backupLocation"]["status"][
+                "phase"]
 
         current_app.logger.info("Proceeding to check if backup location is associated with provided cluster group")
         assigned_groups = response.json()["backupLocation"]["spec"]["assignedGroups"]
@@ -7681,7 +7809,8 @@ def validate_cluster_credential(env, clusterType):
                 else:
                     credential_name = request.get_json(force=True)['tkgWorkloadComponents'][
                         'tkgWorkloadClusterCredential']
-                    backup_location = request.get_json(force=True)['tkgWorkloadComponents']['tkgWorkloadClusterBackupLocation']
+                    backup_location = request.get_json(force=True)['tkgWorkloadComponents'][
+                        'tkgWorkloadClusterBackupLocation']
             else:
                 return False, "Invalid cluster type provided"
 
@@ -7707,7 +7836,8 @@ def validate_cluster_credential(env, clusterType):
         if response.json()["credential"]["status"]["phase"] == "CREATED":
             current_app.logger.info(credential_name + " credential is valid")
         else:
-            return False, credential_name + " cluster credential status is " + response.json()["credential"]["status"]["phase"]
+            return False, credential_name + " cluster credential status is " + response.json()["credential"]["status"][
+                "phase"]
 
         current_app.logger.info("Proceeding to check if credential " + credential_name +
                                 "is associated with selected backup location " + backup_location)
@@ -7755,11 +7885,14 @@ def list_cluster_groups(env):
 def checkDataProtectionEnabled(env, type):
     if type == "shared":
         if env == Env.VMC:
-            is_enabled = request.get_json(force=True)['componentSpec']['tkgSharedServiceSpec']['tkgSharedserviceEnableDataProtection']
+            is_enabled = request.get_json(force=True)['componentSpec']['tkgSharedServiceSpec'][
+                'tkgSharedserviceEnableDataProtection']
         elif env == Env.VCF:
-            is_enabled = request.get_json(force=True)['tkgComponentSpec']['tkgSharedserviceSpec']['tkgSharedserviceEnableDataProtection']
+            is_enabled = request.get_json(force=True)['tkgComponentSpec']['tkgSharedserviceSpec'][
+                'tkgSharedserviceEnableDataProtection']
         elif env == Env.VSPHERE:
-            is_enabled = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceEnableDataProtection']
+            is_enabled = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents'][
+                'tkgSharedserviceEnableDataProtection']
     elif type == "workload":
         if isEnvTkgs_ns(env):
             is_enabled = request.get_json(force=True)["tkgsComponentSpec"]["tkgsVsphereNamespaceSpec"][
@@ -7767,7 +7900,8 @@ def checkDataProtectionEnabled(env, type):
         elif env == Env.VCF or env == Env.VSPHERE:
             is_enabled = request.get_json(force=True)['tkgWorkloadComponents']['tkgWorkloadEnableDataProtection']
         elif env == Env.VMC:
-            is_enabled = request.get_json(force=True)['componentSpec']['tkgWorkloadSpec']['tkgWorkloadEnableDataProtection']
+            is_enabled = request.get_json(force=True)['componentSpec']['tkgWorkloadSpec'][
+                'tkgWorkloadEnableDataProtection']
     if is_enabled.lower() == "true":
         return True
     else:
@@ -7775,7 +7909,6 @@ def checkDataProtectionEnabled(env, type):
 
 
 def isDataprotectionEnabled(tmc_url, headers, payload, cluster):
-
     url = VeleroAPI.ENABLE_DP.format(tmc_url=tmc_url, cluster=cluster)
     status = requests.request("GET", url, headers=headers, data=payload, verify=False)
     try:
@@ -7784,6 +7917,7 @@ def isDataprotectionEnabled(tmc_url, headers, payload, cluster):
                 return True
             elif status.json()["dataProtections"][0]["status"]["phase"] == "ERROR":
                 current_app.logger.error("Data protection is enabled but its status is ERROR")
+                current_app.logger.error(status.json()["dataProtections"][0]["status"]["phaseInfo"])
                 return True
         else:
             return False
@@ -7863,17 +7997,18 @@ def enable_data_protection(env, cluster, mgmt_cluster):
                     break
                 elif status.json()["dataProtections"][0]["status"]["phase"] == "ERROR":
                     current_app.logger.error("Data protection is enabled but its status is ERROR")
+                    current_app.logger.error(status.json()["dataProtections"][0]["status"]["phaseInfo"])
                     enabled = True
                     break
                 else:
                     current_app.logger.info("Data protection status "
                                             + status.json()["dataProtections"][0]["status"]["phase"])
-                    current_app.logger.info("Waited for " + str(count*10) + "s, retrying...")
+                    current_app.logger.info("Waited for " + str(count * 10) + "s, retrying...")
                     time.sleep(10)
                     count = count + 1
 
             if not enabled:
-                current_app.logger.error("Data protection not enabled even after " + str(count*10) + "s wait")
+                current_app.logger.error("Data protection not enabled even after " + str(count * 10) + "s wait")
                 return False, "Timed out waiting for data protection to be enabled"
             else:
                 return True, "Data protection on cluster " + cluster + " enabled successfully"
@@ -7914,6 +8049,101 @@ def fetchTMCHeaders(env):
     }
 
     return headers, tmc_url
+
+
+def checkAVIPassword(env):
+    try:
+        if env == Env.VSPHERE or env == Env.VCF:
+            if isEnvTkgs_wcp(env):
+                avi_pass = request.get_json(force=True)['tkgsComponentSpec']['aviComponents']['aviPasswordBase64']
+                avi_backup_pass = request.get_json(force=True)['tkgsComponentSpec']['aviComponents'][
+                    'aviBackupPassphraseBase64']
+            else:
+                avi_pass = request.get_json(force=True)['tkgComponentSpec']['aviComponents']['aviPasswordBase64']
+                avi_backup_pass = request.get_json(force=True)['tkgComponentSpec']['aviComponents'][
+                    'aviBackupPassphraseBase64']
+        elif env == Env.VMC:
+            avi_pass = request.get_json(force=True)['componentSpec']['aviComponentSpec']['aviPasswordBase64']
+            avi_backup_pass = request.get_json(force=True)['componentSpec']['aviComponentSpec'][
+                'aviBackupPassPhraseBase64']
+        # avi_pass conversion from b64
+        base64_bytes_avi = avi_pass.encode('ascii')
+        enc_bytes_avi = base64.b64decode(base64_bytes_avi)
+        avi_pass = enc_bytes_avi.decode('ascii').rstrip("\n")
+        # avi_backup_pass conversion from b64
+        base64_bytes_avi = avi_backup_pass.encode('ascii')
+        enc_bytes_avi = base64.b64decode(base64_bytes_avi)
+        avi_backup_pass = enc_bytes_avi.decode('ascii').rstrip("\n")
+
+        # Check min length is 8
+        if len(avi_pass) < 8 or len(avi_backup_pass) < 8:
+            current_app.logger.error("The minimum length for AVI password and AVI Backup passphrase is 8!")
+            return False, "The minimum length for AVI password and AVI Backup passphrase is 8!"
+
+        # Check if password contains uppercase character
+        match_count = 0
+        pat_upper = re.compile('[A-Z]+')
+        upper_match = re.search(pat_upper, avi_pass)
+        if upper_match:
+            match_count = match_count + 1
+        pat_lower = re.compile('[a-z]+')
+        lower_match = re.search(pat_lower, avi_pass)
+        if lower_match:
+            match_count = match_count + 1
+        pat_digit = re.compile('[0-9]+')
+        digit_match = re.search(pat_digit, avi_pass)
+        if digit_match:
+            match_count = match_count + 1
+        pat_special = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
+        special_match = re.search(pat_special, avi_pass)
+        if special_match:
+            match_count = match_count + 1
+        if match_count <= 3:
+            current_app.logger.error(
+                "NSX ALB Password must contain a combination of 3: Uppercase character, Lowercase character, Numeric or Special Character.")
+            return False, "AVI Password must contain a combination of 3: Uppercase character, Lowercase character, Numeric or Special Character."
+        else:
+            current_app.logger.info("NSX ALB Password passed the complexity check")
+        match_count = 0
+        upper_match = re.search(pat_upper, avi_backup_pass)
+        if upper_match:
+            match_count = match_count + 1
+        lower_match = re.search(pat_lower, avi_backup_pass)
+        if lower_match:
+            match_count = match_count + 1
+        digit_match = re.search(pat_digit, avi_backup_pass)
+        if digit_match:
+            match_count = match_count + 1
+        special_match = re.search(pat_special, avi_backup_pass)
+        if special_match:
+            match_count = match_count + 1
+        if match_count <= 3:
+            current_app.logger.error(
+                "NSX ALB Backup Passphrase must contain a combination of 3: Uppercase character, Lowercase character, Numeric or Special Character.")
+            return False, "NSX ALB Backup Passphrase must contain a combination of 3: Uppercase character, Lowercase character, Numeric or Special Character."
+        else:
+            current_app.logger.info("NSX ALB Backup Password passed the complexity check")
+        return True, "Successfully validated password complexity checks for NSX ALB"
+    except Exception as e:
+        current_app.logger.error("NSX ALB Password and Backup passphrase is not matching the complexity")
+        current_app.logger.error(
+            "NSX ALB Password must contain a combination of 3: Uppercase character, Lowercase character, Numeric or Special Character.")
+        return False, str(e)
+
+
+def checkClusterNameDNSCompliant(cluster_name, env):
+    try:
+        dns_pat = re.compile('^[a-z0-9][a-z0-9-.]{0,40}[a-z0-9]$')
+        compliant_match = re.search(dns_pat, cluster_name)
+        if compliant_match:
+            return True, "Successfully validated cluster name: " + cluster_name + " is DNS Compliant"
+        else:
+            current_app.logger.error(
+                "Cluster name must start and end with a letter or number, and can contain only lowercase letters, numbers, and hyphens.")
+            return False, "cluster name: " + cluster_name + " is not DNS Compliant"
+    except Exception as e:
+        current_app.logger.error("Failed to verify cluster name : " + cluster_name + " is DNS Compliant")
+        return False, str(e)
 
 
 # def ldap_operation(ldap_obj, operation_type, env, isbinded=False):
@@ -8176,3 +8406,258 @@ def fetchTMCHeaders(env):
 #     except Exception as e:
 #         current_app.logger.error("Exception while unbinding to the LDAP Server")
 #         return False, str(e)
+
+
+def getNetworkDetailsVip(ip, csrf2, vipNetworkUrl, startIp, endIp, prefixIp, netmask, aviVersion):
+    url = vipNetworkUrl
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Cookie": csrf2[1],
+        "referer": "https://" + ip + "/login",
+        "x-avi-version": aviVersion,
+        "x-csrftoken": csrf2[0]
+    }
+    payload = {}
+    response_csrf = requests.request("GET", url, headers=headers, data=payload, verify=False)
+    details = {}
+    if response_csrf.status_code != 200:
+        details["error"] = response_csrf.text
+        return None, "Failed", details
+    try:
+        add = response_csrf.json()["configured_subnets"][0]["prefix"]["ip_addr"]["addr"]
+        details["subnet_ip"] = add
+        details["vim_ref"] = response_csrf.json()["vimgrnw_ref"]
+        details["subnet_mask"] = response_csrf.json()["configured_subnets"][0]["prefix"]["mask"]
+        return "AlreadyConfigured", 200, details
+    except Exception as e:
+        current_app.logger.info("Ip pools are not configured configuring it")
+
+    os.system("rm -rf vipNetworkDetails.json")
+    with open("./vipNetworkDetails.json", "w") as outfile:
+        json.dump(response_csrf.json(), outfile)
+    generateVsphereConfiguredSubnets("vipNetworkDetails.json", startIp, endIp, prefixIp,
+                                     int(netmask))
+    return "SUCCESS", 200, details
+
+
+def create_virtual_service(ip, csrf2, avi_cloud_uuid, se_name, vip_network_url, se_count, avi_version):
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Cookie": csrf2[1],
+        "referer": "https://" + ip + "/login",
+        "x-avi-version": avi_version,
+        "x-csrftoken": csrf2[0]
+    }
+    body = {}
+    url = AlbEndpoint.AVI_SERVICE_ENGINE.format(ip=ip, se_name=se_name, avi_cloud_uuid=avi_cloud_uuid)
+    response_csrf = requests.request("GET", url, headers=headers, data=body, verify=False)
+    if response_csrf.status_code != 200:
+        return None, response_csrf.text
+    else:
+        json_out = response_csrf.json()["results"][0]
+
+        cloud_ref = json_out["cloud_ref"]
+        service_engine_group_url = json_out["url"]
+        se_uuid = json_out["uuid"]
+        type = VrfType.GLOBAL
+        cloud_ref_ = cloud_ref[cloud_ref.rindex("/") + 1:]
+        se_group_url = AlbEndpoint.AVI_SE_GROUP.format(ip=ip, cloud_ref=cloud_ref_, service_engine_uuid=se_uuid)
+        response = requests.request("GET", se_group_url, headers=headers, data=body, verify=False)
+        if response.status_code != 200:
+            return None, response.text
+        createVs = False
+        try:
+            service_engines = response.json()["results"][0]["serviceengines"]
+            if len(service_engines) > (se_count - 1):
+                current_app.logger.info("Required service engines are already creeated")
+            else:
+                createVs = True
+        except:
+            createVs = True
+        if createVs:
+            current_app.logger.info("Creating  virtual service")
+            vrf_get_url = "https://" + ip + "/api/vrfcontext/?name.in=" + type + "&cloud_ref.uuid=" + avi_cloud_uuid
+            response_csrf = requests.request("GET", vrf_get_url, headers=headers, data=body, verify=False)
+            if response_csrf.status_code != 200:
+                return None, response_csrf.text
+            vrf_url = ""
+            for re in response_csrf.json()['results']:
+                if re['name'] == type:
+                    vrf_url = re["url"]
+                    break
+            if not vrf_url:
+                return None, "VRF_URL_NOT_FOUND"
+            startIp = request.get_json(force=True)["tkgComponentSpec"]['tkgClusterVipNetwork'][
+                "tkgClusterVipIpStartRange"]
+            endIp = request.get_json(force=True)["tkgComponentSpec"]['tkgClusterVipNetwork'][
+                "tkgClusterVipIpEndRange"]
+            prefixIpNetmask = seperateNetmaskAndIp(
+                request.get_json(force=True)["tkgComponentSpec"]['tkgClusterVipNetwork'][
+                    "tkgClusterVipNetworkGatewayCidr"])
+            getVIPNetworkDetails = getNetworkDetailsVip(ip, csrf2, vip_network_url, startIp, endIp, prefixIpNetmask[0],
+                                                        prefixIpNetmask[1], avi_version)
+            if getVIPNetworkDetails[0] is None:
+                return None, "Failed to get vip network details " + str(getVIPNetworkDetails[2])
+            if getVIPNetworkDetails[0] == "AlreadyConfigured":
+                current_app.logger.info("Vip Ip pools are already configured.")
+                ip_pre = getVIPNetworkDetails[2]["subnet_ip"]
+                mask = getVIPNetworkDetails[2]["subnet_mask"]
+            else:
+                return None, "Vip Ip pools are not configured."
+            virtual_service_vip_url = AlbEndpoint.AVI_VIRTUAL_SERVICE_VIP.format(ip=ip)
+            response = requests.request("GET", virtual_service_vip_url, headers=headers, data=body, verify=False)
+            if response.status_code != 200:
+                return None, response.text
+            isVipCreated = False
+            vip_url = ""
+            try:
+                for r in response.json()["results"]:
+                    if r["name"] == ServiceName.SIVT_SERVICE_VIP:
+                        isVipCreated = True
+                        vip_url = r["url"]
+                        break
+            except:
+                current_app.logger.info("No virtual service vip created")
+            if not isVipCreated:
+                body = AlbPayload.VIRTUAL_SERVICE_VIP.format(cloud_ref=cloud_ref,
+                                                             virtual_service_name_vip=ServiceName.SIVT_SERVICE_VIP,
+                                                             vrf_context_ref=vrf_url
+                                                             , network_ref=vip_network_url, addr=ip_pre, mask=mask)
+                response = requests.request("POST", virtual_service_vip_url, headers=headers, data=body, verify=False)
+                if response.status_code != 201:
+                    return None, response.text
+                vip_url = response.json()["url"]
+            if not vip_url:
+                return None, "virtual service vip url not found"
+            virtual_service_url = AlbEndpoint.AVI_VIRTUAL_SERVICE.format(ip=ip)
+            response = requests.request("GET", virtual_service_url, headers=headers, data=body, verify=False)
+            if response.status_code != 200:
+                return None, response.text
+            isVsCreated = False
+            try:
+                for r in response.json()["results"]:
+                    if r["name"] == ServiceName.SIVT_SERVICE:
+                        isVsCreated = True
+                        break
+            except:
+                current_app.logger.info("No virtual service created")
+            if not isVsCreated:
+                body = AlbPayload.VIRTUAL_SERVICE.format(cloud_ref=cloud_ref,
+                                                         se_group_ref=service_engine_group_url
+                                                         , vsvip_ref=vip_url)
+                response = requests.request("POST", virtual_service_url, headers=headers, data=body, verify=False)
+                if response.status_code != 201:
+                    return None, response.text
+            body = {}
+            counter = 0
+            counter_se = 0
+            initialized = False
+            try:
+                if se_count == 2:
+                    for i in range(1):
+                        while counter_se < 60:
+                            response = requests.request("GET", se_group_url, headers=headers, data=body, verify=False)
+                            if response.status_code != 200:
+                                return None, response.text
+                            config = response.json()["results"][0]
+                            try:
+                                seurl = config["serviceengines"][i]
+                                initialized = True
+                                break
+                            except:
+                                current_app.logger.info(
+                                    "Waited " + str(counter_se * 10) + "s for service engines to be "
+                                                                       "initialized")
+                            counter_se = counter_se + 1
+                            time.sleep(30)
+                        if not initialized:
+                            return None, "Service engines not initialized  in 30m"
+                        current_app.logger.info("Checking status of service engine " + str(seurl))
+                        response = requests.request("GET", seurl, headers=headers, data=body, verify=False)
+                        if response.status_code != 200:
+                            return None, response.text
+                        isConnected = False
+                        try:
+                            status = response.json()["se_connected"]
+                            while not status and counter < 60:
+                                response = requests.request("GET", seurl, headers=headers, data=body, verify=False)
+                                if response.status_code != 200:
+                                    return None, response.text
+                                status = response.json()["se_connected"]
+                                if status:
+                                    isConnected = True
+                                    break
+                                counter = counter + 1
+                                time.sleep(30)
+                                current_app.logger.info(
+                                    "Waited " + str(counter * 30) + "s,to check se  connected status retrying")
+                            if not isConnected:
+                                return None, "Waited " + str(
+                                    counter * 30) + "s,to check se  connected and is not in connected state"
+                            else:
+                                current_app.logger.info(str(seurl) + " is  now in connected state")
+                            counter = 0
+                        except Exception as e:
+                            return None, str(e)
+
+                if se_count == 4:
+                    for i in range(2, 3):
+                        seurl = config["serviceengines"][i]
+                        current_app.logger.info("Checking status of service engine " + str(seurl))
+                        response = requests.request("GET", seurl, headers=headers, data=body, verify=False)
+                        if response.status_code != 200:
+                            return None, response.text
+                        current_app.logger.info(response.json())
+                        isConnected = False
+                        try:
+                            status = response.json()["se_connected"]
+                            while not status and counter < 60:
+                                response = requests.request("GET", seurl, headers=headers, data=body, verify=False)
+                                if response.status_code != 200:
+                                    return None, response.text
+                                if status:
+                                    isConnected = True
+                                    break
+                                counter = counter + 1
+                                time.sleep(10)
+                                current_app.logger.info(
+                                    "Waited " + str(counter * 10) + "s,to check se  connected status retrying")
+                            if not isConnected:
+                                return None, "Waited " + str(
+                                    counter * 10) + "s,to check se  connected and is not in connected state"
+                        except Exception as e:
+                            return None, str(e)
+            except Exception as e:
+                return None, str(e)
+            try:
+                current_app.logger.info("Deleting Virtual service")
+                response = requests.request("GET", virtual_service_vip_url, headers=headers, data=body, verify=False)
+                if response.status_code != 200:
+                    return None, response.text
+                vip_url = ""
+                try:
+                    for r in response.json()["results"]:
+                        if r["name"] == ServiceName.SIVT_SERVICE_VIP:
+                            vip_url = r["url"]
+                            break
+                except:
+                    current_app.logger.info("No virtual service vip created")
+                vs_url = ""
+                virtual_service_url = AlbEndpoint.AVI_VIRTUAL_SERVICE.format(ip=ip)
+                response = requests.request("GET", virtual_service_url, headers=headers, data=body, verify=False)
+                try:
+                    for r in response.json()["results"]:
+                        if r["name"] == ServiceName.SIVT_SERVICE:
+                            vs_url = r["url"]
+                            break
+                except:
+                    current_app.logger.info("No virtual service created")
+                requests.request("DELETE", vs_url, headers=headers, data=body, verify=False)
+                requests.request("DELETE", vip_url, headers=headers, data=body, verify=False)
+            except Exception as e:
+                pass
+            return "SUCCESS", "Required Service engines sucessfully  created"
+        else:
+            return "SUCCESS", "Required Service engines are already present"

@@ -36,7 +36,7 @@ Before you install Service Installer for VMware Tanzu, ensure the following:
   - If Marketplace is not available in your environment or if you are working in an air-gapped environment:
 
       1. Download and import required Photon/Ubuntu Kubernetes base OVAs to vCenter.
-            To download the images, go to [VMware Tanzu Kubernetes Grid Download Product](https://customerconnect.vmware.com/downloads/details?downloadGroup=TKG-151&productId=988&rPId=84961).
+            To download the images, go to [VMware Tanzu Kubernetes Grid Download Product](https://customerconnect.vmware.com/downloads/details?downloadGroup=TKG-154&productId=988&rPId=84961).
       1. After importing the images, convert the images to a template.
       1. Upload the NSX Advanced Load Balancer Controller in Content Library:
 
@@ -139,6 +139,56 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
 - Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
 - If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
 - If Tanzu Mission Control is enabled only Photon is supported.
+
+## Update a Running Extension Deployment
+
+To make changes to the configuration of a running package after deployment, update your deployed package:
+
+1. Obtain the installed package version and namespace details using the following command. 
+   ```
+   tanzu package available list -A
+   ```
+
+2. Update the package configuration `<package-name>-data-values.yaml` file. Yaml files for the extensions deployed using SIVT are available under `/opt/vmware/arcas/tanzu-clusters/<cluster-name>` in the SIVT VM.
+
+3. Update the installed package using the following command.
+
+   ``` 
+   tanzu package installed update <package-name> --version <installed-package-version> --values-file <path-to-yaml-file-in-SIVT> --namespace <package-namespace>
+   ```
+
+**Refer to the following example for Grafana update:**
+
+**Step 1:** List the installed package version and namespace details.
+   ```
+   # tanzu package available list -A
+   / Retrieving installed packages...
+   NAME            PACKAGE-NAME                     PACKAGE-VERSION          STATUS               NAMESPACE
+   cert-manager    cert-manager.tanzu.vmware.com    1.1.0+vmware.1-tkg.2     Reconcile succeeded  my-packages
+   contour         contour.tanzu.vmware.com         1.17.1+vmware.1-tkg.1    Reconcile succeeded  my-packages
+   grafana         grafana.tanzu.vmware.com         7.5.7+vmware.1-tkg.1     Reconcile succeeded  tkg-system
+   prometheus      prometheus.tanzu.vmware.com      2.27.0+vmware.1-tkg.1    Reconcile succeeded  tkg-system
+   antrea          antrea.tanzu.vmware.com                                   Reconcile succeeded  tkg-system
+   [...]
+   ```
+
+**Step 2:** Update the Grafana configuration in the `grafana-data-values.yaml` file available under `/opt/vmware/arcas/tanzu-clusters/<cluster-name>/grafana-data-values.yaml`. 
+
+**Step 3:** Update the installed package.
+   ```
+   tanzu package installed update grafana --version 7.5.7+vmware.1-tkg.1 --values-file /opt/vmware/arcas/tanzu-clusters/testCluster/grafana-data-values.yaml --namespace my-packages
+   ```
+   Expected Output:
+   ```
+   | Updating package 'grafana'
+   - Getting package install for 'grafana'
+   | Updating secret 'grafana-my-packages-values'
+   | Updating package install for 'grafana'
+
+   Updated package install 'grafana' in namespace 'my-packages'
+   ```
+
+For information about updating, see [Update a Package](https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.5/vmware-tanzu-kubernetes-grid-15/GUID-packages-cli-reference-packages.html#update-a-package-13).
 
 ## <a id="sample-input-file"> </a> Sample Input File
 Service Installer generates the JSON file based on your inputs and saves it to **/opt/vmware/arcas/src/** in the installer VM. Files are named based on the environment you are using.

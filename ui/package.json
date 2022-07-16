@@ -46,7 +46,7 @@
     "json-schema": "^0.4.0",
     "lit-html": "^2.0.2",
     "lodash": "^4.17.21",
-    "minimist": "^0.2.1",
+    "minimist": "^1.2.6",
     "netmask": "^2.0.2",
     "ng-multiselect-dropdown": "^0.3.7",
     "ngx-json-viewer": "^3.0.2",

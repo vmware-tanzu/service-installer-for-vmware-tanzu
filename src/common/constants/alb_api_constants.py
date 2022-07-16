@@ -11,6 +11,11 @@ class AlbEndpoint:
     LICENSE_URL = "https://{ip}/api/licensing"
     AVI_HA = "https://{ip}/api/cluster"
     AVI_HA_RUNTIME = "https://{ip}/api/cluster/runtime"
+    AVI_SERVICE_ENGINE = "https://{ip}/api/serviceenginegroup?name={se_name}&cloud_ref.uuid={avi_cloud_uuid}"
+    AVI_VIRTUAL_SERVICE_VIP = "https://{ip}/api/vsvip?include_name"
+    AVI_VIRTUAL_SERVICE = "https://{ip}/api/virtualservice"
+    AVI_SE_GROUP = "https://{ip}/api/serviceenginegroup-inventory/?cloud_ref.uuid={cloud_ref}&include_name=true&uuid={service_engine_uuid}"
+
 
 class AlbPayload:
     CREATE_NONE_CLOUD = """
@@ -33,6 +38,55 @@ class AlbPayload:
         "certificate_base64":false,
         "key":"{cert_key}",
         "key_base64":false
+    }}
+    """
+    VIRTUAL_SERVICE_VIP = """
+    {{
+        "cloud_ref":"{cloud_ref}",
+        "name":"{virtual_service_name_vip}",
+        "vrf_context_ref":"{vrf_context_ref}",
+        "vip":[
+            {{
+                "enabled":true,
+                "auto_allocate_ip":true,
+                "auto_allocate_floating_ip":false,
+                "avi_allocated_vip":false,
+                "avi_allocated_fip":false,
+                "auto_allocate_ip_type":"V4_ONLY",
+                "prefix_length":32,
+                "ipam_network_subnet":{{
+                "network_ref":"{network_ref}",
+                "subnet":{{
+                    "ip_addr":{{
+                    "addr":"{addr}",
+                    "type":"V4"
+                }},
+                "mask": {mask}
+            }}
+            }}
+        }}
+        ]
+    }}
+    """
+    VIRTUAL_SERVICE = """
+        {{
+            "cloud_ref": "{cloud_ref}",
+            "se_group_ref": "{se_group_ref}",
+            "vsvip_ref": "{vsvip_ref}",
+            "cloud_type": "CLOUD_VCENTER",
+            "name": "sivt-virtual-service",
+            "services": [
+                {{
+                    "enable_http2": false,
+                    "enable_ssl": false,
+                    "horizon_internal_ports": false,
+                    "port": 80,
+                    "port_range_end": 80
+                }}
+            ],
+            "traffic_enabled": true,
+            "type": "VS_TYPE_NORMAL",
+            "weight": 1
     }}
     """
     CREATE_SE_GROUP = """

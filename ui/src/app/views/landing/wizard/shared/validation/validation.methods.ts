@@ -265,7 +265,7 @@ export const isValidAviPassword = (arg: string) => {
 }
 
 /**
- * @method isValidVcenterPassword decide if AVI Password is valid
+ * @method isValidVcenterPassword decide if vcenter Password is valid
  * @return boolean
  */
 export const isValidVcenterPassword = (arg: string) => {

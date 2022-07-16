@@ -15,7 +15,7 @@ import { VSphereWizardFormService } from 'src/app/shared/service/vsphere-wizard-
  * App imports
  */
 import { PROVIDERS, Providers } from '../../../../shared/constants/app.constants';
-import { NodeType, sharedServiceNodeTypes } from 'src/app/views/landing/wizard/shared/constants/wizard.constants';
+import { NodeType, vSphereNodeTypes } from 'src/app/views/landing/wizard/shared/constants/wizard.constants';
 import { StepFormDirective } from '../../wizard/shared/step-form/step-form';
 import { ValidationService } from '../../wizard/shared/validation/validation.service';
 // import { KUBE_VIP, NSX_ADVANCED_LOAD_BALANCER } from '../../wizard/shared/components/steps/load-balancer/load-balancer-step.component';
@@ -40,7 +40,7 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
 
     nodeTypes: Array<NodeType> = [];
     PROVIDERS: Providers = PROVIDERS;
-    sharedServiceNodeTypes: Array<NodeType> = sharedServiceNodeTypes;
+    sharedServiceNodeTypes: Array<NodeType> = vSphereNodeTypes;
     nodeType: string;
     additionalNoProxyInfo: string;
     fullNoProxy: string;
@@ -59,6 +59,7 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
     private httpsProxyUsername;
     private httpsProxyPassword;
     private noProxy;
+    private proxyCert;
     private enableProxy;
 
     private controlPlaneSetting;
@@ -117,12 +118,12 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
                 private  dataService: VsphereNsxtDataService) {
 
         super();
-        this.nodeTypes = [...sharedServiceNodeTypes];
+        this.nodeTypes = [...vSphereNodeTypes];
     }
 
     ngOnInit() {
         super.ngOnInit();
-//         this.buildForm();
+        this.formGroup.addControl('sharedServicesClusterSettings', new FormControl(false));
         this.formGroup.addControl(
             'controlPlaneSetting',
             new FormControl('', [
@@ -190,9 +191,9 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
         this.formGroup.addControl('sharedCpu',
             new FormControl('', [Validators.min(2)]));
         this.formGroup.addControl('sharedMemory',
-            new FormControl('', [Validators.min(8)]));
+            new FormControl('', [Validators.min(4)]));
         this.formGroup.addControl('sharedStorage',
-            new FormControl('', [Validators.min(40)]));
+            new FormControl('', [Validators.min(20)]));
         this.formGroup.addControl('clusterGroupName', 
             new FormControl('', []));
         this.formGroup.addControl('enableDataProtection',
@@ -208,7 +209,8 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
             ['httpsProxyUrl', ''],
             ['httpsProxyUsername', ''],
             ['httpsProxyPassword', ''],
-            ['noProxy', '']
+            ['noProxy', ''],
+            ['proxyCert', ''],
         ];
         fieldsMapping.forEach(field => {
             this.formGroup.addControl(field[0], new FormControl(field[1], []));
@@ -256,27 +258,35 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
                 });
         });
         this.formGroup['canMoveToNext'] = () => {
-            this.setMinWorker();
-            this.onSharedServiceValidateClick();
-            if (this.apiClient.sharedDataProtectonEnabled){
+            this.toggleSharedServicesClusterSettings();
+            if(!this.apiClient.sharedServicesClusterSettings) {
                 // console.log(this.formGroup.valid);
-                // console.log(this.apiClient.SharedNwValidated);
-                // console.log(this.validatedDataProtection);
-                if(this.uploadStatus){
+                // this.findInvalidControls();
+                return this.formGroup.valid;
+            }
+            else {
+                this.setMinWorker();
+                this.onSharedServiceValidateClick();
+                if (this.apiClient.sharedDataProtectonEnabled){
+                    // console.log(this.formGroup.valid);
+                    // console.log(this.apiClient.SharedNwValidated);
+                    // console.log(this.validatedDataProtection);
+                    if(this.uploadStatus){
+                        return (this.formGroup.valid && this.apiClient.SharedNwValidated &&
+                            !this.rbacErrorClusterAdmin && !this.rbacErrorAdmin &&
+                            !this.rbacErrorEdit && !this.rbacErrorView &&
+                            this.validatedDataProtection);
+                    }
                     return (this.formGroup.valid && this.apiClient.SharedNwValidated &&
                         !this.rbacErrorClusterAdmin && !this.rbacErrorAdmin &&
                         !this.rbacErrorEdit && !this.rbacErrorView &&
+                        this.fetchCredential && this.fetchBackupLocation &&
                         this.validatedDataProtection);
+                } else {
+                    return (this.formGroup.valid && this.apiClient.SharedNwValidated &&
+                        !this.rbacErrorClusterAdmin && !this.rbacErrorAdmin &&
+                        !this.rbacErrorEdit && !this.rbacErrorView);
                 }
-                return (this.formGroup.valid && this.apiClient.SharedNwValidated &&
-                    !this.rbacErrorClusterAdmin && !this.rbacErrorAdmin &&
-                    !this.rbacErrorEdit && !this.rbacErrorView &&
-                    this.fetchCredential && this.fetchBackupLocation &&
-                    this.validatedDataProtection);
-            } else {
-                return (this.formGroup.valid && this.apiClient.SharedNwValidated &&
-                    !this.rbacErrorClusterAdmin && !this.rbacErrorAdmin &&
-                    !this.rbacErrorEdit && !this.rbacErrorView);
             }
         };
         setTimeout(_ => {
@@ -300,12 +310,14 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
                 this.formGroup.controls['prodInstanceType'].updateValueAndValidity();
             });
             this.formGroup.get('workerNodeCount').valueChanges.subscribe(data => {
-                if(this.apiClient.tmcEnabled){
-                    this.formGroup.get('workerNodeCount').setValidators([
-                        Validators.required, Validators.min(3)]);
-                } else{
-                    this.formGroup.get('workerNodeCount').setValidators([
-                        Validators.required, Validators.min(1)]);
+                if (this.apiClient.sharedServicesClusterSettings){
+                    if(this.apiClient.tmcEnabled && this.nodeType === 'prod'){
+                        this.formGroup.get('workerNodeCount').setValidators([
+                            Validators.required, Validators.min(3)]);
+                    } else{
+                        this.formGroup.get('workerNodeCount').setValidators([
+                            Validators.required, Validators.min(1)]);
+                    }
                 }
             });
             if (this.edition !== AppEdition.TKG) {
@@ -368,7 +380,9 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
                 this.subscription = this.dataService.currentArcasNoProxy.subscribe(
                     (noProxy) => this.noProxy = noProxy);
                 this.formGroup.get('noProxy').setValue(this.noProxy);
-
+                this.subscription = this.dataService.currentArcasProxyCertificate.subscribe(
+                    (proxyCert) => this.proxyCert = proxyCert);
+                this.formGroup.get('proxyCert').setValue(this.proxyCert);
                 this.subscription = this.dataService.currentArcasHttpsProxyUrl.subscribe(
                     (httpsProxyUrl) => this.httpsProxyUrl = httpsProxyUrl);
                 this.formGroup.get('httpsProxyUrl').setValue(this.httpsProxyUrl);
@@ -489,6 +503,9 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
                 this.subscription = this.dataService.currentSharedNoProxy.subscribe(
                     (noProxy) => this.noProxy = noProxy);
                 this.formGroup.get('noProxy').setValue(this.noProxy);
+                this.subscription = this.dataService.currentSharedProxyCert.subscribe(
+                    (proxyCert) => this.proxyCert = proxyCert);
+                this.formGroup.get('proxyCert').setValue(this.proxyCert);
 
                 this.subscription = this.dataService.currentSharedHttpsProxyUrl.subscribe(
                     (httpsProxyUrl) => this.httpsProxyUrl = httpsProxyUrl);
@@ -557,6 +574,7 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
                 this.formGroup.get('httpsProxyUsername').setValue(this.httpsProxyUsername);
                 this.formGroup.get('httpsProxyPassword').setValue(this.httpsProxyPassword);
                 this.formGroup.get('noProxy').setValue(this.noProxy);
+                this.formGroup.get('proxyCert').setValue(this.proxyCert);
                 this.formGroup.get('harborPassword').setValue('');
             } else {
                 this.formGroup.get('httpProxyPassword').setValue('');
@@ -575,7 +593,7 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
     }
 
     setMinWorker() {
-        if (this.formGroup.controls['controlPlaneSetting'].value === 'prod') {
+        if (this.formGroup.controls['controlPlaneSetting'].value === 'prod' && this.apiClient.tmcEnabled) {
             this.formGroup.get('workerNodeCount').setValidators([Validators.min(3), Validators.required]);
         } else {
             this.formGroup.get('workerNodeCount').setValidators([Validators.min(1), Validators.required]);
@@ -628,7 +646,8 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
             'httpsProxyUrl',
             'httpsProxyUsername',
             'httpsProxyPassword',
-            'noProxy'
+            'noProxy',
+            'proxyCert',
         ];
         if (this.formGroup.value['proxySettings']) {
             this.resurrectField('httpProxyUrl', [
@@ -642,6 +661,8 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
             this.resurrectField('noProxy', [
                 this.validationService.noWhitespaceOnEnds()
             ], this.formGroup.value['noProxy']);
+            this.resurrectField('proxyCert', [
+            ], this.formGroup.value['proxyCert']);
             if (!this.formGroup.value['isSameAsHttp']) {
                 this.resurrectField('httpsProxyUsername', [
                     this.validationService.noWhitespaceOnEnds()
@@ -705,27 +726,31 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
     }
 
      onSharedServiceValidateClick() {
-        if(this.formGroup.get('gatewayAddress').valid &&
-            this.formGroup.get('DhcpStartRange').valid &&
-            this.formGroup.get('DhcpEndRange').valid) {
+        if(this.apiClient.sharedServicesClusterSettings){
+            if(this.formGroup.get('gatewayAddress').valid &&
+                this.formGroup.get('DhcpStartRange').valid &&
+                this.formGroup.get('DhcpEndRange').valid) {
 
-            const gatewayIp = this.formGroup.get('gatewayAddress').value;
-            const dhcpStart = this.formGroup.get('DhcpStartRange').value;
-            const dhcpEnd = this.formGroup.get('DhcpEndRange').value;
-            const block = new Netmask(gatewayIp);
-            if (block.contains(dhcpStart) && block.contains(dhcpEnd)) {
-                this.apiClient.SharedNwValidated = true;
-                this.errorNotification = '';
-            } else if (!block.contains(dhcpStart) && !block.contains(dhcpEnd)) {
-                this.errorNotification = 'DHCP Start and End IP are out of the provided subnet';
-                this.apiClient.SharedNwValidated = false;
-            } else if (!block.contains(dhcpStart)) {
-                this.errorNotification = 'DHCP Start IP is out of the provided subnet.';
-                this.apiClient.SharedNwValidated = false;
-            } else if (!block.contains(dhcpEnd)) {
-                this.errorNotification = 'DHCP End IP is out of the provided subnet';
-                this.apiClient.SharedNwValidated = false;
+                const gatewayIp = this.formGroup.get('gatewayAddress').value;
+                const dhcpStart = this.formGroup.get('DhcpStartRange').value;
+                const dhcpEnd = this.formGroup.get('DhcpEndRange').value;
+                const block = new Netmask(gatewayIp);
+                if (block.contains(dhcpStart) && block.contains(dhcpEnd)) {
+                    this.apiClient.SharedNwValidated = true;
+                    this.errorNotification = '';
+                } else if (!block.contains(dhcpStart) && !block.contains(dhcpEnd)) {
+                    this.errorNotification = 'DHCP Start and End IP are out of the provided subnet';
+                    this.apiClient.SharedNwValidated = false;
+                } else if (!block.contains(dhcpStart)) {
+                    this.errorNotification = 'DHCP Start IP is out of the provided subnet.';
+                    this.apiClient.SharedNwValidated = false;
+                } else if (!block.contains(dhcpEnd)) {
+                    this.errorNotification = 'DHCP End IP is out of the provided subnet';
+                    this.apiClient.SharedNwValidated = false;
+                }
             }
+        } else {
+            this.apiClient.SharedNwValidated = true;
         }
     }
     checkCustom() {
@@ -744,11 +769,11 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
                     this.formGroup.value['sharedCpu']);
                 this.resurrectField('sharedMemory', [
                     Validators.required,
-                    Validators.min(8)],
+                    Validators.min(4)],
                     this.formGroup.value['sharedMemory']);
                 this.resurrectField('sharedStorage', [
                     Validators.required,
-                    Validators.min(40)],
+                    Validators.min(20)],
                     this.formGroup.value['sharedStorage']);
             } else {
                 storageFields.forEach((field) => {
@@ -760,7 +785,9 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
 
 
     onClusterAdminFieldChange() {
-        if (this.formGroup.get('clusterAdminUsers').valid && this.formGroup.get('clusterAdminUsers').value !== "") {
+        if (this.formGroup.get('clusterAdminUsers').valid &&
+            this.formGroup.get('clusterAdminUsers').value !== "" &&
+            this.formGroup.get('clusterAdminUsers').value !== null) {
             let clusterAdminUsers = this.formGroup.get('clusterAdminUsers').value.split(',');
             this.clusterAdminUserSet.clear();
             for (let item of clusterAdminUsers) {
@@ -792,7 +819,9 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
 
 
     onAdminFieldChange() {
-        if (this.formGroup.get('adminUsers').valid && this.formGroup.get('adminUsers').value !== "") {
+        if (this.formGroup.get('adminUsers').valid &&
+            this.formGroup.get('adminUsers').value !== "" &&
+            this.formGroup.get('adminUsers').value !== null) {
             let adminUsers = this.formGroup.get('adminUsers').value.split(',');
             this.adminUserSet.clear();
             for (let item of adminUsers) {
@@ -824,7 +853,9 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
 
 
     onEditFieldChange() {
-        if (this.formGroup.get('editUsers').valid && this.formGroup.get('editUsers').value !== "") {
+        if (this.formGroup.get('editUsers').valid &&
+            this.formGroup.get('editUsers').value !== "" &&
+            this.formGroup.get('editUsers').value !== null) {
             let editUsers = this.formGroup.get('editUsers').value.split(',');
             this.editUserSet.clear();
             for (let item of editUsers) {
@@ -856,7 +887,10 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
 
 
     onViewFieldChange() {
-        if (this.formGroup.get('viewUsers').valid && this.formGroup.get('viewUsers').value !== "") {
+        if (this.formGroup.get('viewUsers').valid &&
+            this.formGroup.get('viewUsers').value !== "" &&
+            this.formGroup.get('viewUsers').value !== null
+        ) {
             let viewUsers = this.formGroup.get('viewUsers').value.split(',');
             this.viewUserSet.clear();
             for (let item of viewUsers) {
@@ -1108,6 +1142,90 @@ export class SharedNodeSettingComponent extends StepFormDirective implements OnI
 
     getDisabled(): boolean {
         return !(this.formGroup.get('veleroCredential').valid && this.formGroup.get('veleroTargetLocation').valid);
+    }
+
+    toggleSharedServicesClusterSettings() {
+        const mandatorySharedServicesFields = [
+            'controlPlaneSetting',
+            'devInstanceType',
+            'prodInstanceType',
+            'clusterName',
+            'segmentName',
+            'gatewayAddress',
+            'DhcpStartRange',
+            'DhcpEndRange',
+            'clusterCidr',
+            'serviceCidr',
+            'baseImage',
+            'baseImageVersion',
+            'sharedCpu',
+            'sharedMemory',
+            'sharedStorage',
+            'workerNodeCount',
+            'harborFqdn',
+            'harborPassword',
+            'harborCertPath',
+            'harborCertKeyPath',
+            'clusterAdminUsers',
+            'adminUsers',
+            'editUsers',
+            'viewUsers',
+            'enableDataProtection',
+            'veleroCredential',
+            'veleroTargetLocation',
+            'proxySettings',
+            'httpProxyUrl',
+            'httpProxyUsername',
+            'httpProxyPassword',
+            'isSameAsHttp',
+            'httpsProxyUrl',
+            'httpsProxyUsername',
+            'httpsProxyPassword',
+            'noProxy',
+            'proxyCert',
+        ];
+
+        if (this.formGroup.value['sharedServicesClusterSettings']) {
+            this.apiClient.sharedServicesClusterSettings = true;
+            this.resurrectField('controlPlaneSetting', [Validators.required], this.formGroup.value['controlPlaneSetting']);
+            this.resurrectField('devInstanceType', [], this.formGroup.value['devInstanceType']);
+            this.resurrectField('prodInstanceType', [], this.formGroup.value['prodInstanceType']);
+            this.resurrectField('clusterName', [Validators.required, this.validationService.isValidClusterName(), this.validationService.noWhitespaceOnEnds()], this.formGroup.value['clusterName']);
+            this.resurrectField('segmentName', [Validators.required, this.validationService.noWhitespaceOnEnds()], this.formGroup.value['segmentName']);
+            this.resurrectField('gatewayAddress', [Validators.required, this.validationService.isValidIpNetworkSegment(), this.validationService.noWhitespaceOnEnds()], this.formGroup.value['gatewayAddress']);
+            this.resurrectField('DhcpStartRange', [Validators.required, this.validationService.isValidIp(), this.validationService.noWhitespaceOnEnds()], this.formGroup.value['DhcpStartRange']);
+            this.resurrectField('DhcpEndRange', [Validators.required, this.validationService.isValidIp(), this.validationService.noWhitespaceOnEnds()], this.formGroup.value['DhcpEndRange']);
+            this.resurrectField('clusterCidr', [Validators.required, this.validationService.noWhitespaceOnEnds(), this.validationService.isValidIpNetworkSegment()], this.formGroup.value['clusterCidr']);
+            this.resurrectField('serviceCidr', [Validators.required, this.validationService.isValidIpNetworkSegment(), this.validationService.noWhitespaceOnEnds()], this.formGroup.value['serviceCidr']);
+            this.resurrectField('baseImage', [Validators.required], this.formGroup.value['baseImage']);
+            this.resurrectField('baseImageVersion', [Validators.required], this.formGroup.value['baseImageVersion']);
+            this.resurrectField('sharedCpu', [Validators.min(2)], this.formGroup.value['sharedCpu']);
+            this.resurrectField('sharedMemory', [Validators.min(4)], this.formGroup.value['sharedMemory']);
+            this.resurrectField('sharedStorage', [Validators.min(20)], this.formGroup.value['sharedStorage']);
+            this.resurrectField('workerNodeCount', [Validators.required], this.formGroup.value['workerNodeCount']);
+            this.resurrectField('harborFqdn', [Validators.required, this.validationService.noWhitespaceOnEnds()], this.formGroup.value['harborFqdn']);
+            this.resurrectField('harborPassword', [Validators.required], this.formGroup.value['harborPassword']);
+            this.resurrectField('harborCertPath', [this.validationService.noWhitespaceOnEnds()], this.formGroup.value['harborCertPath']);
+            this.resurrectField('harborCertKeyPath', [this.validationService.noWhitespaceOnEnds()], this.formGroup.value['harborCertKeyPath']);
+            this.resurrectField('clusterAdminUsers', [this.validationService.noWhitespaceOnEnds()], this.formGroup.value['clusterAdminUsers']);
+            this.resurrectField('adminUsers', [this.validationService.noWhitespaceOnEnds()], this.formGroup.value['adminUsers']);
+            this.resurrectField('editUsers', [this.validationService.noWhitespaceOnEnds()], this.formGroup.value['editUsers']);
+            this.resurrectField('viewUsers', [this.validationService.noWhitespaceOnEnds()], this.formGroup.value['viewUsers']);
+        } else {
+            this.apiClient.sharedServicesClusterSettings = false;
+            mandatorySharedServicesFields.forEach((field) => {
+                this.disarmField(field, true);
+            });
+        }
+    }
+
+    public findInvalidControls() {
+        const controls = this.formGroup.controls;
+        for (const name in controls) {
+            if (controls[name].invalid) {
+                console.log(name);
+            }
+        }
     }
 
 }

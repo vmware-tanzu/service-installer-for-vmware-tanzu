@@ -292,11 +292,14 @@ export class TanzuSaasStepComponent extends StepFormDirective implements OnInit 
         let arcasEnableProxy;
         this.dataService.currentArcasEnableProxy.subscribe((enableProxy) => arcasEnableProxy = enableProxy);
         this.dataService.currentArcasNoProxy.subscribe((noProxy) => this.arcasNoProxy = noProxy);
+        let proxyCert;
+        this.dataService.currentArcasProxyCertificate.subscribe((cert) => proxyCert = cert);
+
         if (!(this.apiClient.proxyConfiguredVsphere) && arcasEnableProxy) {
             let httpProxy = this.getArcasHttpProxyParam();
             let httpsProxy = this.getArcasHttpsProxy();
             let noProxy = this.arcasNoProxy;
-            this.apiClient.enableArcasProxy(httpProxy, httpsProxy, noProxy, 'vsphere').subscribe((data: any) => {
+            this.apiClient.enableArcasProxy(httpProxy, httpsProxy, noProxy, proxyCert, 'vsphere').subscribe((data: any) => {
                 if (data && data !== null) {
                     if (data.responseType === 'SUCCESS') {
                         this.apiClient.proxyConfiguredVsphere = true;

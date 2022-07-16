@@ -101,7 +101,7 @@ def deploy_alb():
                                          ResourcePoolAndFolderName.AVI_Components_FOLDER, parent_resourcepool)
     data_center = data_center.replace(' ', "#remove_me#")
     data_store = data_store.replace(' ', "#remove_me#")
-    if parent_resourcepool is not None:
+    if parent_resourcepool:
         rp_pool = data_center + "/host/" + cluster_name + "/Resources/" + parent_resourcepool + "/" + ResourcePoolAndFolderName.AVI_RP
     else:
         rp_pool = data_center + "/host/" + cluster_name + "/Resources/" + ResourcePoolAndFolderName.AVI_RP

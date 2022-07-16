@@ -1,0 +1,183 @@
+- name: "file-perms: get skel files wih bad permissions"
+  command: find  /etc/skel/ -type f -perm /137
+  register: skel_files
+
+- name: "file-perms: set skel file permissions"
+  file:
+    path: "{{ item }}"
+    mode: 0640
+  with_items: "{{ skel_files.stdout_lines }}"
+
+- name: "file-perms: get files with bad user, group, or permissions"
+  command: |
+    find \
+    /bin /sbin /usr/bin /usr/sbin /usr/local/bin /usr/local/sbin /lib /usr/lib /lib64 \
+    -type f \
+    ! -type l \
+    -a \( ! -group root -o ! -user root -o -perm /022 \)
+  register: sys_lib_files
+  
+- name: "file-perms: set correct user, group and permission for files"
+  file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: 0755
+    state: file
+  with_items: "{{ sys_lib_files.stdout_lines }}"
+
+- name: "file-perms: get directories with incorrect user, group, or permissions"
+  command: |
+    find \
+    /bin /sbin /usr/bin /usr/sbin /usr/local/bin /usr/local/sbin /lib /usr/lib /lib64 \
+    -type d \
+    ! -type l \
+    -a \( ! -group root -o ! -user root -o -perm /022 \)
+  register: sys_lib_directories
+  
+- name: "file-perms: set correct user, group and permission for directories."
+  file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+  with_items: "{{ sys_lib_directories.stdout_lines }}"
+ 
+- name: "file-perms: Copy cloud-init-log-permissions"
+  copy:
+    src: files/cloud-init-log-permissions.service
+    dest: /etc/systemd/system/cloud-init-log-permissions.service
+    group: root
+    owner: root
+    mode: 0644
+
+- name: "file-perms: Enable cloud-init-log-permissions"
+  service:
+    name: "cloud-init-log-permissions"
+    enabled: yes
+
+- name: "file-perms: Copy klog-log-permissions.service"
+  copy:
+    src: files/klog-log-permissions.service
+    dest: /etc/systemd/system/klog-log-permissions.service
+    group: root
+    owner: root
+    mode: 0644
+
+- name: "file-perms: Enable klog-log-permissions.service"
+  service:
+    name: "klog-log-permissions.service"
+    enabled: yes
+
+- name: "file-perms: Copy klog-log-permissions.path"
+  copy:
+    src: files/klog-log-permissions.path
+    dest: /etc/systemd/system/klog-log-permissions.path
+    group: root
+    owner: root
+    mode: 0644
+
+- name: "file-perms: Enable klog-log-permissions.path"
+  systemd:
+    name: "klog-log-permissions.path"
+    enabled: yes
+    daemon_reload: yes
+
+- name: "file-perms: get  audit configuration files"
+  command: find /etc/audit/audit.rules /etc/audit/auditd.conf /etc/audit/rules.d/ -type f
+  register: audit_conf_files
+
+
+- name: "file-perms: set audit configuration file permissions"
+  file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: 0640
+  with_items: "{{ audit_conf_files.stdout_lines }}"
+
+- name: "[V-219189] The Ubuntu operating system must configure the /var/log directory to be group-owned by root.(rsyslog.conf)"
+  lineinfile:
+    path: '/usr/lib/tmpfiles.d/00rsyslog.conf'
+    regexp: '(^z \/var\/log)\s+(\d+)\s+(.*$)'
+    line: '\1 0750 root syslog -'
+    backrefs: yes
+
+- name: "[V-219189] The Ubuntu operating system must configure the /var/log directory to be group-owned by root.(var.conf fallback)"
+  lineinfile:
+    path: '/usr/lib/tmpfiles.d/var.conf'
+    regexp: '(^d \/var\/log)\s+(\d+)\s+(.*$)'
+    line: 'd /var/log 0750 root syslog -'
+    backrefs: yes
+
+- name: "file-perms: get sticky-bit files"
+  command: find  /var/log/ -type f -perm /137
+  register: log_files
+
+- name: "file-perms: set sticky-bit file perms"
+  file:
+    path: "{{ item }}"
+    mode: 0640
+  with_items: "{{ log_files.stdout_lines }}"
+    
+- name: "file-perms: wtmp, btmp, lastlog"
+  lineinfile:
+    path: '/usr/lib/tmpfiles.d/var.conf'
+    regexp: '(^f {{ item }})\s+(\d+)\s+(.*$)'
+    line: '\1 0640 \3'
+    backrefs: yes
+  with_items:
+    - /var/log/wtmp
+    - /var/log/btmp
+    - /var/log/lastlog
+
+- name: "file-perms: /var/log/syslog"
+  file: 
+    path: /var/log/syslog
+    owner: syslog
+    group: adm
+    mode: 0640
+
+- name: "file-perms: audit tools"
+  file: 
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: 0755
+  with_items: "{{ audit_tools }}"
+
+- name: "file-perms: get log files"
+  command: find /var/log/audit/ -type f
+  register: log_files
+
+- name: "file-perms: set log files perms"
+  file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: 0600
+  with_items: "{{ log_files.stdout_lines }}"
+
+- name: "file-perms: get log dirs"
+  command: find /var/log/audit/ -type d
+  register: log_dirs
+
+- name: "file-perms: set log dirs perms"
+  file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: 0750
+  with_items: "{{ log_dirs.stdout_lines }}"
+
+
+- name: "file-perms: get local interactive user home dir"
+  command: "awk -F: '($3>=1000)&&($7 !~ /nologin/){print $6}' /etc/passwd"
+  register: local_interactive_user_home
+  
+- name: "file-perms: set local interactive user home dir"
+  file:
+    path: "{{ item }}"
+    mode: 0750
+  with_items: "{{ local_interactive_user_home.stdout_lines }}"

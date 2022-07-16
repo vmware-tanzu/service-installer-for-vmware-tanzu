@@ -8,10 +8,12 @@ spec:
   params:
     - name: imagename
       description: the operand image
-
+    - name: imagepullpolicy
+      description: imagepullpolicy for operand image("Always", "IfNotPresent", "Never")
   steps:
     - image: $(params.imagename)
       name: step-mgmt-setup
+      imagePullPolicy: $(params.imagepullpolicy)
       env:
       # Connect to the sidecar over TCP, with TLS.
       - name: DOCKER_HOST
@@ -50,6 +52,7 @@ spec:
   sidecars:
     - image: docker:dind
       name: mgmtserver
+      imagePullPolicy: $(params.imagepullpolicy)      
       args:
         - --storage-driver=vfs
         - --userland-proxy=false

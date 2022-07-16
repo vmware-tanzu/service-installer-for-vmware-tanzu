@@ -128,11 +128,35 @@ function inject_output_fluent() {
   echo "Successfully injected Fluent-bit output values to  $file"
 }
 
+function inject_cni() {
+  yq eval '.spec.defaultCNI = '\""$url\"" -i "$file"
+  echo "Successfully cni values to  $file"
+}
+function delete_proxy_setting() {
+    yq eval 'del(.spec.proxy)' -i "$file"
+}
+
+function inject_proxy() {
+  yq eval '.spec.proxy.httpProxy = '\""$url\"" -i "$file"
+  yq eval '.spec.proxy.httpsProxy = '\""$key_v\"" -i "$file"
+  yq eval '.spec.proxy.noProxy += ' -i "$file"
+  echo "Successfully injected proxy values to  $file"
+}
+
+function inject_trust() {
+  yq eval '.spec.trust.additionalTrustedCAs += '\""$url\"" -i "$file"
+  echo "Successfully injected trust certificate  $file"
+}
+function delete_trust() {
+    yq eval 'del(.spec.trust)' -i "$file"
+}
+
 
 install_yq
 url=$3
 file=$1
 key_v=$4
+noProxy=$5
 
 case "$2" in
         cert)
@@ -191,6 +215,21 @@ case "$2" in
                 ;;
         inject_sc_harbor)
                 inject_sc_harbor
+                ;;
+        change_cni)
+                inject_cni
+                ;;
+        change_proxy)
+                inject_proxy
+                ;;
+        delete_proxy)
+                delete_proxy_setting
+                ;;
+        change_trust)
+                inject_trust
+                ;;
+        delete_trust)
+                delete_trust
                 ;;
         inject_output_fluent)
                 inject_output_fluent

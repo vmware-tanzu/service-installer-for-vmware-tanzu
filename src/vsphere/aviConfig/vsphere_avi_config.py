@@ -754,7 +754,7 @@ def aviDeployment_vsphere():
         controller_location = "/" + current_app.config['VC_CONTENT_LIBRARY_NAME'] + "/" + current_app.config[
             'VC_AVI_OVA_NAME']
         controller_location = controller_location.replace(' ', "#remove_me#")
-        data_center = data_center.replace(' ', "#remove_me#")
+        data_center = "/"+data_center.replace(' ', "#remove_me#")
         data_store = data_store.replace(' ', "#remove_me#")
         if parent_resourcepool is not None:
             rp_pool = data_center + "/host/" + cluster_name + "/Resources/" + parent_resourcepool + "/" + ResourcePoolAndFolderName.AVI_RP_VSPHERE

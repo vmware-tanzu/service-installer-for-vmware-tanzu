@@ -120,7 +120,7 @@ export class NodeSettingStepComponent extends StepFormDirective implements OnIni
         });
         this.networks = this.apiClient.networks;
         this.formGroup['canMoveToNext'] = () => {
-            return (this.formGroup.valid && this.apiClient.TkgMgmtNwValidated);
+            return (this.formGroup.valid && this.apiClient.TkgMgmtNwValidated && this.pingTest);
         };
         setTimeout(_ => {
 

@@ -786,7 +786,8 @@ def configTkgMgmt():
         clusterWip = ""
     management_cluster = request.get_json(force=True)['componentSpec']['tkgMgmtSpec']['tkgMgmtClusterName']
     current_app.logger.info("Deploying Management Cluster " + management_cluster)
-    deploy_status = deployManagementCluster(management_cluster, ip, data_center, data_store, cluster_name, get_wip[0],
+    deploy_status = deployManagementCluster(management_cluster, aviVersion, ip, data_center, data_store, cluster_name,
+                                            get_wip[0],
                                             clusterWip, vcenter_ip, vcenter_username, password, vmcSpec)
     if deploy_status[0] is None:
         current_app.logger.error("Failed to deploy management cluster " + deploy_status[1])
@@ -855,10 +856,14 @@ def configTkgMgmt():
                     return jsonify(d), 500
                 current_app.logger.info("External IP for Pinniped is set as: " + check_pinniped_svc[0])
 
-            cluster_admin_users = request.get_json(force=True)['componentSpec']['tkgMgmtSpec']['tkgMgmtRbacUserRoleSpec']['clusterAdminUsers']
-            admin_users = request.get_json(force=True)['componentSpec']['tkgMgmtSpec']['tkgMgmtRbacUserRoleSpec']['adminUsers']
-            edit_users = request.get_json(force=True)['componentSpec']['tkgMgmtSpec']['tkgMgmtRbacUserRoleSpec']['editUsers']
-            view_users = request.get_json(force=True)['componentSpec']['tkgMgmtSpec']['tkgMgmtRbacUserRoleSpec']['viewUsers']
+            cluster_admin_users = \
+            request.get_json(force=True)['componentSpec']['tkgMgmtSpec']['tkgMgmtRbacUserRoleSpec']['clusterAdminUsers']
+            admin_users = request.get_json(force=True)['componentSpec']['tkgMgmtSpec']['tkgMgmtRbacUserRoleSpec'][
+                'adminUsers']
+            edit_users = request.get_json(force=True)['componentSpec']['tkgMgmtSpec']['tkgMgmtRbacUserRoleSpec'][
+                'editUsers']
+            view_users = request.get_json(force=True)['componentSpec']['tkgMgmtSpec']['tkgMgmtRbacUserRoleSpec'][
+                'viewUsers']
             rbac_user_status = createRbacUsers(management_cluster, isMgmt=True, env=env, edit_users=edit_users,
                                                cluster_admin_users=cluster_admin_users, admin_users=admin_users,
                                                view_users=view_users)
@@ -2090,11 +2095,12 @@ def changeMacAddressAndSeGroupInFileWorkload(vcenter_ip, vcenter_username, passw
     replaceSeGroup(file_name, "se_group_ref", "false", segroupUrl)
 
 
-def generateConfigYaml(ip, datacenter, datastoreName, cluster_name, wipIpNetmask, clusterWip, _vcenter_ip,
+def generateConfigYaml(ip, datacenter, avi_version, datastoreName, cluster_name, wipIpNetmask, clusterWip, _vcenter_ip,
                        _vcenter_username,
                        _password, vmcSpec):
     if Tkg_version.TKG_VERSION == "1.5":
-        template14MgmtDeployYaml(ip, datacenter, datastoreName, cluster_name, wipIpNetmask, clusterWip, _vcenter_ip,
+        template14MgmtDeployYaml(ip, datacenter, avi_version, datastoreName, cluster_name, wipIpNetmask, clusterWip,
+                                 _vcenter_ip,
                                  _vcenter_username,
                                  _password, vmcSpec)
         # managementClusterYaml14(ip, datacenter, datastoreName, cluster_name, wipIpNetmask, clusterWip, _vcenter_ip,
@@ -2194,17 +2200,20 @@ def managementClusterYaml14(ip, datacenter, datastoreName, cluster_name, wipIpNe
     size = str(request.get_json(force=True)['componentSpec']['tkgMgmtSpec']['tkgMgmtSize'])
     clustercidr = request.get_json(force=True)['componentSpec']['tkgMgmtSpec']['tkgMgmtClusterCidr']
     servicecidr = request.get_json(force=True)['componentSpec']['tkgMgmtSpec']['tkgMgmtServiceCidr']
-    if size.lower() == "medium":
+    if size.lower() == "small":
+        current_app.logger.debug("Recommended size for Management cluster nodes is: medium/large/extra-large/custom")
+        pass
+    elif size.lower() == "medium":
         pass
     elif size.lower() == "large":
         pass
     elif size.lower() == "extra-large":
         pass
     else:
-        current_app.logger.error("Un supported cluster size please specify medium/large/extra-large " + size)
+        current_app.logger.error("Un supported cluster size please specify small/medium/large/extra-large/custom " + size)
         d = {
             "responseType": "ERROR",
-            "msg": "Un supported cluster size please specify medium/large/extra-large " + size,
+            "msg": "Un supported cluster size please specify small/medium/large/extra-large/custom " + size,
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
@@ -2224,7 +2233,8 @@ def managementClusterYaml14(ip, datacenter, datastoreName, cluster_name, wipIpNe
         yaml.dump(data1, outfile, Dumper=yaml.RoundTripDumper, indent=2)
 
 
-def template14MgmtDeployYaml(ip, datacenter, datastoreName, cluster_name, wipIpNetmask, clusterWip, vcenter_ip,
+def template14MgmtDeployYaml(ip, datacenter, avi_version, datastoreName, cluster_name, wipIpNetmask, clusterWip,
+                             vcenter_ip,
                              vcenter_username,
                              _password, vmcSpec):
     deploy_yaml = FileHelper.read_resource(Paths.TKG_MGMT_VMC_14_SPEC_J2)
@@ -2257,7 +2267,10 @@ def template14MgmtDeployYaml(ip, datacenter, datastoreName, cluster_name, wipIpN
     control_plane_disk_gb = ""
     control_plane_mem_gb = ""
     control_plane_mem_mb = ""
-    if size.lower() == "medium":
+    if size.lower() == "small":
+        current_app.logger.debug("Recommended size for Management cluster nodes is: medium/large/extra-large/custom")
+        pass
+    elif size.lower() == "medium":
         pass
     elif size.lower() == "large":
         pass
@@ -2270,13 +2283,14 @@ def template14MgmtDeployYaml(ip, datacenter, datastoreName, cluster_name, wipIpN
             'tkgMgmtStorageSize']
         control_plane_mem_gb = request.get_json(force=True)['componentSpec']['tkgMgmtSpec'][
             'tkgMgmtMemorySize']
-        control_plane_mem_mb = str(int(control_plane_mem_gb)*1024)
+        control_plane_mem_mb = str(int(control_plane_mem_gb) * 1024)
     else:
         current_app.logger.error("Provided cluster size: " + size + "is not supported, please provide one of: "
-                                                                    "medium/large/extra-large/custom")
+                                                                    "small/medium/large/extra-large/custom")
         d = {
             "responseType": "ERROR",
-            "msg": "Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom",
+            "msg": "Provided cluster size: " + size + "is not supported, please provide one of: "
+                                                      "small/medium/large/extra-large/custom",
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
@@ -2292,6 +2306,7 @@ def template14MgmtDeployYaml(ip, datacenter, datastoreName, cluster_name, wipIpN
         raise Exception("Keyword " + str(e) + "  not found in input file")
     env = envCheck()
     env = env[0]
+    ciep = str(request.get_json(force=True)["ceipParticipation"])
     if checkEnableIdentityManagement(env):
         try:
             identity_mgmt_type = str(
@@ -2300,20 +2315,24 @@ def template14MgmtDeployYaml(ip, datacenter, datastoreName, cluster_name, wipIpN
                 oidc_provider_client_id = str(
                     request.get_json(force=True)["componentSpec"]["identityManagementSpec"]["oidcSpec"]["oidcClientId"])
                 oidc_provider_client_secret = str(
-                    request.get_json(force=True)["componentSpec"]["identityManagementSpec"]["oidcSpec"]["oidcClientSecret"])
+                    request.get_json(force=True)["componentSpec"]["identityManagementSpec"]["oidcSpec"][
+                        "oidcClientSecret"])
                 oidc_provider_groups_claim = str(
-                    request.get_json(force=True)["componentSpec"]["identityManagementSpec"]["oidcSpec"]["oidcGroupsClaim"])
+                    request.get_json(force=True)["componentSpec"]["identityManagementSpec"]["oidcSpec"][
+                        "oidcGroupsClaim"])
                 oidc_provider_issuer_url = str(
-                    request.get_json(force=True)["componentSpec"]["identityManagementSpec"]["oidcSpec"]["oidcIssuerUrl"])
+                    request.get_json(force=True)["componentSpec"]["identityManagementSpec"]["oidcSpec"][
+                        "oidcIssuerUrl"])
                 ## TODO: check if provider name is required -- NOT REQUIRED
                 # oidc_provider_name = str(request.get_json(force=True))
                 oidc_provider_scopes = str(
                     request.get_json(force=True)["componentSpec"]["identityManagementSpec"]["oidcSpec"]["oidcScopes"])
                 oidc_provider_username_claim = str(
-                    request.get_json(force=True)["componentSpec"]["identityManagementSpec"]["oidcSpec"]["oidcUsernameClaim"])
+                    request.get_json(force=True)["componentSpec"]["identityManagementSpec"]["oidcSpec"][
+                        "oidcUsernameClaim"])
                 FileHelper.write_to_file(
                     t.render(config=vmcSpec, cert=cert, ip=ip, wipIpNetmask=wipIpNetmask, avi_label_key=AkoType.KEY,
-                             avi_label_value=AkoType.VALUE,
+                             avi_label_value=AkoType.VALUE,ceip=ciep,
                              str_enc_avi=str_enc_avi, datacenter=datacenter, datastore_path=datastore_path,
                              vsphere_folder_path=vsphere_folder_path,
                              vcenter_passwd=vcenter_passwd, vsphere_rp=vsphere_rp, vcenter_ip=vcenter_ip,
@@ -2322,6 +2341,7 @@ def template14MgmtDeployYaml(ip, datacenter, datastoreName, cluster_name, wipIpN
                              control_plane_size=size.lower(), worker_size=size.lower(),
                              avi_cluster_vip_network_gateway_cidr=clusterWip, os_name=osName, os_version=osVersion,
                              size=size, control_plane_vcpu=control_plane_vcpu,
+                             avi_version=avi_version,
                              control_plane_disk_gb=control_plane_disk_gb, control_plane_mem_mb=control_plane_mem_mb,
                              identity_mgmt_type=identity_mgmt_type, oidc_provider_client_id=oidc_provider_client_id,
                              oidc_provider_client_secret=oidc_provider_client_secret,
@@ -2335,7 +2355,8 @@ def template14MgmtDeployYaml(ip, datacenter, datastoreName, cluster_name, wipIpN
                                        ["ldapSpec"]["ldapEndpointIp"])
                 ldap_endpoint_port = str(request.get_json(force=True)["componentSpec"]["identityManagementSpec"]
                                          ["ldapSpec"]["ldapEndpointPort"])
-                str_enc = str(request.get_json(force=True)["componentSpec"]["identityManagementSpec"]["ldapSpec"]["ldapBindPWBase64"])
+                str_enc = str(request.get_json(force=True)["componentSpec"]["identityManagementSpec"]["ldapSpec"][
+                                  "ldapBindPWBase64"])
                 base64_bytes = str_enc.encode('ascii')
                 enc_bytes = base64.b64decode(base64_bytes)
                 ldap_endpoint_bind_pw = enc_bytes.decode('ascii').rstrip("\n")
@@ -2343,7 +2364,7 @@ def template14MgmtDeployYaml(ip, datacenter, datastoreName, cluster_name, wipIpN
                     request.get_json(force=True)["componentSpec"]["identityManagementSpec"]["ldapSpec"]["ldapBindDN"])
                 ldap_user_search_base_dn = str(
                     request.get_json(force=True)["componentSpec"]["identityManagementSpec"]
-                                                ["ldapSpec"]["ldapUserSearchBaseDN"])
+                    ["ldapSpec"]["ldapUserSearchBaseDN"])
                 ldap_user_search_filter = str(request.get_json(force=True)["componentSpec"]
                                               ["identityManagementSpec"]["ldapSpec"]["ldapUserSearchFilter"])
                 ldap_user_search_uname = str(request.get_json(force=True)["componentSpec"]
@@ -2380,21 +2401,27 @@ def template14MgmtDeployYaml(ip, datacenter, datastoreName, cluster_name, wipIpN
                 ldap_root_ca_data_base64 = str(base64_bytes, "utf-8")
                 FileHelper.write_to_file(
                     t.render(config=vmcSpec, cert=cert, ip=ip, wipIpNetmask=wipIpNetmask, avi_label_key=AkoType.KEY,
-                             avi_label_value=AkoType.VALUE,
+                             avi_label_value=AkoType.VALUE,ceip=ciep,
                              str_enc_avi=str_enc_avi, datacenter=datacenter, datastore_path=datastore_path,
                              vsphere_folder_path=vsphere_folder_path,
-                             vcenter_passwd=vcenter_passwd, vsphere_rp=vsphere_rp, vcenter_ip=vcenter_ip, ssh_key=ssh_key,
+                             vcenter_passwd=vcenter_passwd, vsphere_rp=vsphere_rp, vcenter_ip=vcenter_ip,
+                             ssh_key=ssh_key,
                              vcenter_username=vcenter_username,
                              control_plane_size=size.lower(), worker_size=size.lower(),
                              avi_cluster_vip_network_gateway_cidr=clusterWip, os_name=osName, os_version=osVersion,
-                             size=size, control_plane_vcpu=control_plane_vcpu, control_plane_disk_gb=control_plane_disk_gb,
+                             size=size, control_plane_vcpu=control_plane_vcpu,
+                             control_plane_disk_gb=control_plane_disk_gb,
                              control_plane_mem_mb=control_plane_mem_mb, identity_mgmt_type=identity_mgmt_type,
                              ldap_endpoint_ip=ldap_endpoint_ip, ldap_endpoint_port=ldap_endpoint_port,
                              ldap_endpoint_bind_pw=ldap_endpoint_bind_pw, ldap_bind_dn=ldap_bind_dn,
-                             ldap_user_search_base_dn=ldap_user_search_base_dn, ldap_user_search_filter=ldap_user_search_filter,
-                             ldap_user_search_uname=ldap_user_search_uname, ldap_grp_search_base_dn=ldap_grp_search_base_dn,
-                             ldap_grp_search_filter=ldap_grp_search_filter, ldap_grp_search_user_attr=ldap_grp_search_user_attr,
-                             ldap_grp_search_grp_attr=ldap_grp_search_grp_attr, ldap_grp_search_name_attr=ldap_grp_search_name_attr,
+                             ldap_user_search_base_dn=ldap_user_search_base_dn,
+                             ldap_user_search_filter=ldap_user_search_filter,
+                             ldap_user_search_uname=ldap_user_search_uname,
+                             ldap_grp_search_base_dn=ldap_grp_search_base_dn,
+                             ldap_grp_search_filter=ldap_grp_search_filter,
+                             ldap_grp_search_user_attr=ldap_grp_search_user_attr,
+                             ldap_grp_search_grp_attr=ldap_grp_search_grp_attr,
+                             ldap_grp_search_name_attr=ldap_grp_search_name_attr,
                              ldap_root_ca_data_base64=ldap_root_ca_data_base64),
                     "management_cluster_vmc.yaml")
             else:
@@ -2404,14 +2431,14 @@ def template14MgmtDeployYaml(ip, datacenter, datastoreName, cluster_name, wipIpN
     else:
         FileHelper.write_to_file(
             t.render(config=vmcSpec, cert=cert, ip=ip, wipIpNetmask=wipIpNetmask, avi_label_key=AkoType.KEY,
-                     avi_label_value=AkoType.VALUE,
+                     avi_label_value=AkoType.VALUE,ceip=ciep,
                      str_enc_avi=str_enc_avi, datacenter=datacenter, datastore_path=datastore_path,
                      vsphere_folder_path=vsphere_folder_path,
                      vcenter_passwd=vcenter_passwd, vsphere_rp=vsphere_rp, vcenter_ip=vcenter_ip, ssh_key=ssh_key,
                      vcenter_username=vcenter_username,
                      control_plane_size=size.lower(), worker_size=size.lower(),
                      avi_cluster_vip_network_gateway_cidr=clusterWip, os_name=osName, os_version=osVersion,
-                     size=size,control_plane_vcpu=control_plane_vcpu,control_plane_disk_gb=control_plane_disk_gb,
+                     size=size, control_plane_vcpu=control_plane_vcpu, control_plane_disk_gb=control_plane_disk_gb,
                      control_plane_mem_mb=control_plane_mem_mb),
             "management_cluster_vmc.yaml")
 
@@ -2531,13 +2558,15 @@ def template13MgmtDeployYaml(ip, datacenter, datastoreName, cluster_name, wipIpN
         cluster_name + ".yaml")
 
 
-def deployManagementCluster(management_cluster, ip, data_center, data_store, cluster_name, wipIpNetmask, clusterWip,
+def deployManagementCluster(management_cluster, avi_version, ip, data_center, data_store, cluster_name, wipIpNetmask,
+                            clusterWip,
                             vcenter_ip,
                             vcenter_username, password, vmcSpec):
     try:
         if not getClusterStatusOnTanzu(management_cluster, "management"):
             os.system("rm -rf kubeconfig.yaml")
-            generateConfigYaml(ip, data_center, data_store, cluster_name, wipIpNetmask, clusterWip, vcenter_ip,
+            generateConfigYaml(ip, data_center, avi_version, data_store, cluster_name, wipIpNetmask, clusterWip,
+                               vcenter_ip,
                                vcenter_username,
                                password, vmcSpec)
             current_app.logger.info("Deploying management cluster on vmc")

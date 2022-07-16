@@ -15,6 +15,7 @@ import { APP_ROUTES, Routes } from '../../../shared/constants/routes.constants';
 import { AppDataService } from '../../../shared/service/app-data.service';
 import { BrandingObj } from '../../../shared/service/branding.service';
 import { APIClient } from '../../../swagger/api-client.service';
+import { id } from '@cds/core/internal';
 
 @Component({
     selector: 'app-upload',
@@ -92,6 +93,53 @@ export class UploadWizardComponent implements OnInit {
         }
         // Give an Error here
         return;
+    }
+
+    public processTkgsProxyParam(input) {
+        const http_proxy = input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['httpProxy'];
+        const https_proxy = input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['httpsProxy'];
+        if (http_proxy === https_proxy) {
+            const stripUser = http_proxy.substr(7);
+            if (stripUser.includes('@')) {
+                const username = stripUser.substring(0, stripUser.indexOf(':'));
+                const password = stripUser.substring(stripUser.indexOf(':') + 1, stripUser.indexOf('@'));
+                const url = 'http://' + stripUser.substr(stripUser.indexOf('@') + 1);
+                this.vsphereTkgsDataService.changeTkgsHttpProxyUrl(url);
+                this.vsphereTkgsDataService.changeTkgsHttpsProxyUrl(url);
+                this.vsphereTkgsDataService.changeTkgsHttpProxyUsername(username);
+                this.vsphereTkgsDataService.changeTkgsHttpsProxyUsername(username);
+                this.vsphereTkgsDataService.changeTkgsHttpProxyPassword(password);
+                this.vsphereTkgsDataService.changeTkgsHttpsProxyPassword(password);
+            } else {
+                this.vsphereTkgsDataService.changeTkgsHttpProxyUrl(http_proxy);
+                this.vsphereTkgsDataService.changeTkgsHttpProxyUrl(https_proxy);
+            }
+            this.vsphereTkgsDataService.changeTkgsIsSameAsHttp(true);
+        } else {
+            const httpStripUser = http_proxy.substr(7);
+            this.vsphereTkgsDataService.changeTkgsIsSameAsHttp(false);
+            if (httpStripUser.includes('@')) {
+                const username = httpStripUser.substring(0, httpStripUser.indexOf(':'));
+                this.vsphereTkgsDataService.changeTkgsHttpProxyUsername(username);
+                const password = httpStripUser.substring(httpStripUser.indexOf(':') + 1, httpStripUser.indexOf('@'));
+                this.vsphereTkgsDataService.changeTkgsHttpProxyPassword(password);
+                const url = http_proxy.substring(0, http_proxy.indexOf(':')) + '://' + httpStripUser.substr(httpStripUser.indexOf('@') + 1);
+                this.vsphereTkgsDataService.changeTkgsHttpProxyUrl(url);
+            } else {
+                this.vsphereTkgsDataService.changeTkgsHttpProxyUrl(http_proxy);
+            }
+            const httpsStripUser = https_proxy.substr(8);
+            if (httpsStripUser.includes('@')) {
+                const username = httpsStripUser.substring(0, httpsStripUser.indexOf(':'));
+                this.vsphereTkgsDataService.changeTkgsHttpsProxyUsername(username);
+                const password = httpsStripUser.substring(httpsStripUser.indexOf(':') + 1, httpsStripUser.indexOf('@'));
+                this.vsphereTkgsDataService.changeTkgsHttpsProxyPassword(password);
+                const url = https_proxy.substring(0, https_proxy.indexOf(':')) + '://' + httpsStripUser.substr(httpsStripUser.indexOf('@') + 1);
+                this.vsphereTkgsDataService.changeTkgsHttpsProxyUrl(url);
+            } else {
+                this.vsphereTkgsDataService.changeTkgsHttpsProxyUrl(https_proxy);
+            }
+        }
     }
 
     public processArcasProxyParam(input) {
@@ -577,6 +625,10 @@ export class UploadWizardComponent implements OnInit {
                                     this.dataService.changeArcasNoProxy(
                                         input['envSpec']['proxySpec']['arcasVm']['noProxy']);
                                 }
+                                if(input['envSpec']['proxySpec']['arcasVm'].hasOwnProperty('proxyCert')) {
+                                    this.dataService.changeArcasProxyCert(
+                                        input['envSpec']['proxySpec']['arcasVm']['proxyCert']);
+                                }
                             } else {
                                 this.dataService.changeArcasEnableProxy(false);
                             }
@@ -593,6 +645,10 @@ export class UploadWizardComponent implements OnInit {
                                 if (input['envSpec']['proxySpec']['tkgMgmt'].hasOwnProperty('noProxy')) {
                                     this.dataService.changeMgmtNoProxy(
                                         input['envSpec']['proxySpec']['tkgMgmt']['noProxy']);
+                                }
+                                if(input['envSpec']['proxySpec']['tkgMgmt'].hasOwnProperty('proxyCert')) {
+                                    this.dataService.changeMgmtProxyCert(
+                                        input['envSpec']['proxySpec']['tkgMgmt']['proxyCert']);
                                 }
                             } else {
                                 this.dataService.changeMgmtEnableProxy(false);
@@ -611,6 +667,10 @@ export class UploadWizardComponent implements OnInit {
                                     this.dataService.changeSharedNoProxy(
                                         input['envSpec']['proxySpec']['tkgSharedservice']['noProxy']);
                                 }
+                                if(input['envSpec']['proxySpec']['tkgSharedservice'].hasOwnProperty('proxyCert')) {
+                                    this.dataService.changeSharedProxyCert(
+                                        input['envSpec']['proxySpec']['tkgSharedservice']['proxyCert']);
+                                }
                             } else {
                                 this.dataService.changeSharedEnableProxy(false);
                             }
@@ -627,6 +687,10 @@ export class UploadWizardComponent implements OnInit {
                                 if (input['envSpec']['proxySpec']['tkgWorkload'].hasOwnProperty('noProxy')) {
                                     this.dataService.changeWrkNoProxy(
                                         input['envSpec']['proxySpec']['tkgWorkload']['noProxy']);
+                                }
+                                if(input['envSpec']['proxySpec']['tkgWorkload'].hasOwnProperty('proxyCert')) {
+                                    this.dataService.changeWrkProxyCert(
+                                        input['envSpec']['proxySpec']['tkgWorkload']['proxyCert']);
                                 }
                             } else {
                                 this.dataService.changeWrkEnableProxy(false);
@@ -713,6 +777,15 @@ export class UploadWizardComponent implements OnInit {
                         this.dataService.changeMarketplaceRefreshToken(
                             input['envSpec']['marketplaceSpec']['refreshToken']);
                     }
+                }
+                if(input['envSpec'].hasOwnProperty('ceipParticiaption')) {
+                    if(input['envSpec']['ceipParticiaption'] === 'true') {
+                        this.dataService.changeCeipParticipation(true);
+                    } else {
+                        this.dataService.changeCeipParticipation(false);
+                    }
+                } else {
+                    this.dataService.changeCeipParticipation(false);
                 }
                 if (input['envSpec'].hasOwnProperty('saasEndpoints')) {
                     if (input['envSpec']['saasEndpoints'].hasOwnProperty('tmcDetails')) {
@@ -1075,30 +1148,51 @@ export class UploadWizardComponent implements OnInit {
                         this.dataService.changeMgmtClusterGroupName(input['tkgComponentSpec']['tkgMgmtComponents']['tkgMgmtClusterGroupName']);
                     }
                     if (input['tkgComponentSpec']['tkgMgmtComponents'].hasOwnProperty('tkgSharedserviceSize')) {
+                        if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceSize'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.dataService.changeSharedDeploymentSize(
                             input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceSize']);
                     }
                     if (input['tkgComponentSpec']['tkgMgmtComponents'].hasOwnProperty('tkgSharedserviceDeploymentType')) {
+                        if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceDeploymentType'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.dataService.changeSharedDeploymentType(
                             input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceDeploymentType']);
                     }
                     if(input['tkgComponentSpec']['tkgMgmtComponents'].hasOwnProperty('tkgSharedserviceCpuSize')) {
+                        if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceCpuSize'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.dataService.changeSharedCpu(
                             input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceCpuSize']);
                     }
                     if(input['tkgComponentSpec']['tkgMgmtComponents'].hasOwnProperty('tkgSharedserviceMemorySize')) {
+                        if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceMemorySize'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.dataService.changeSharedMemory(
                             input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceMemorySize']);
                     }
                     if(input['tkgComponentSpec']['tkgMgmtComponents'].hasOwnProperty('tkgSharedserviceStorageSize')) {
+                        if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceStorageSize'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.dataService.changeSharedStorage(
                             input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceStorageSize']);
                     }
                     if (input['tkgComponentSpec']['tkgMgmtComponents'].hasOwnProperty('tkgSharedserviceClusterName')) {
+                        if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceClusterName'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.dataService.changeSharedClusterName(
                             input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceClusterName']);
                     }
                     if (input['tkgComponentSpec']['tkgMgmtComponents'].hasOwnProperty('tkgSharedserviceWorkerMachineCount')) {
+                        if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceWorkerMachineCount'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.dataService.changeSharedWorkerNodeCount(
                             input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceWorkerMachineCount']);
                     }
@@ -1115,34 +1209,55 @@ export class UploadWizardComponent implements OnInit {
                         }
                     }
                     if (input['tkgComponentSpec']['tkgMgmtComponents'].hasOwnProperty('tkgSharedserviceBaseOs')) {
+                        if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceBaseOs'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.dataService.changeSharedBaseImage(
                             input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceBaseOs']);
                     }
                     if (input['tkgComponentSpec']['tkgMgmtComponents'].hasOwnProperty('tkgSharedserviceKubeVersion')) {
+                        if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceKubeVersion'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.dataService.changeSharedBaseImageVersion(
                             input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceKubeVersion']);
                     }
                     if (this.apiClient.enableIdentityManagement) {
                         if (input['tkgComponentSpec']['tkgMgmtComponents'].hasOwnProperty('tkgSharedserviceRbacUserRoleSpec')) {
                             if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceRbacUserRoleSpec'].hasOwnProperty('clusterAdminUsers')) {
+                                if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceRbacUserRoleSpec']['clusterAdminUsers'] !== ""){
+                                    this.apiClient.sharedServicesClusterSettings = true;
+                                }
                                 this.dataService.changeSharedClusterAdminUsers(
                                     input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceRbacUserRoleSpec']['clusterAdminUsers']);
                             }
                             if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceRbacUserRoleSpec'].hasOwnProperty('adminUsers')) {
+                                if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceRbacUserRoleSpec']['adminUsers'] !== ""){
+                                    this.apiClient.sharedServicesClusterSettings = true;
+                                }
                                 this.dataService.changeSharedAdminUsers(
                                     input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceRbacUserRoleSpec']['adminUsers']);
                             }
                             if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceRbacUserRoleSpec'].hasOwnProperty('editUsers')) {
+                                if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceRbacUserRoleSpec']['editUsers'] !== ""){
+                                    this.apiClient.sharedServicesClusterSettings = true;
+                                }
                                 this.dataService.changeSharedEditUsers(
                                     input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceRbacUserRoleSpec']['editUsers']);
                             }
                             if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceRbacUserRoleSpec'].hasOwnProperty('viewUsers')) {
+                                if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceRbacUserRoleSpec']['viewUsers'] !== ""){
+                                    this.apiClient.sharedServicesClusterSettings = true;
+                                }
                                 this.dataService.changeSharedViewUsers(
                                     input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceRbacUserRoleSpec']['viewUsers']);
                             }
                         }
                     }
                     if (input['tkgComponentSpec']['tkgMgmtComponents'].hasOwnProperty('tkgSharedserviceClusterGroupName')) {
+                        if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceClusterGroupName'] !== ""){
+                            this.apiClient.sharedServicesClusterSettings = true;
+                        }
                         this.dataService.changeSharedClusterGroupName(input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceClusterGroupName']);
                     }
                     if (input['tkgComponentSpec']['tkgMgmtComponents'].hasOwnProperty('tkgSharedserviceEnableDataProtection')) {
@@ -1150,10 +1265,16 @@ export class UploadWizardComponent implements OnInit {
                             this.dataService.changeSharedEnableDataProtection(true);
                             this.apiClient.sharedDataProtectonEnabled = true;
                             if (input['tkgComponentSpec']['tkgMgmtComponents'].hasOwnProperty('tkgSharedClusterCredential')) {
+                                if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedClusterCredential'] !== ""){
+                                    this.apiClient.sharedServicesClusterSettings = true;
+                                }
                                 this.dataService.changeSharedDataProtectionCreds(
                                     input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedClusterCredential']);
                             }
                             if (input['tkgComponentSpec']['tkgMgmtComponents'].hasOwnProperty('tkgSharedClusterBackupLocation')) {
+                                if (input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedClusterBackupLocation'] !== ""){
+                                    this.apiClient.sharedServicesClusterSettings = true;
+                                }
                                 this.dataService.changeSharedDataProtectionTargetLocation(
                                     input['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedClusterBackupLocation']);
                             }
@@ -1187,53 +1308,92 @@ export class UploadWizardComponent implements OnInit {
             }
             if (input.hasOwnProperty('tkgWorkloadDataNetwork')) {
                 if (input['tkgWorkloadDataNetwork'].hasOwnProperty('tkgWorkloadDataNetworkName')) {
+                    if (input['tkgWorkloadDataNetwork']['tkgWorkloadDataNetworkName'] !== ""){
+                        this.apiClient.workloadDataSettings = true;
+                    }
                     this.dataService.changeTkgWrkDataSegment(
                         input['tkgWorkloadDataNetwork']['tkgWorkloadDataNetworkName']);
                 }
                 if (input['tkgWorkloadDataNetwork'].hasOwnProperty('tkgWorkloadDataNetworkGatewayCidr')) {
+                    if (input['tkgWorkloadDataNetwork']['tkgWorkloadDataNetworkGatewayCidr'] !== ""){
+                        this.apiClient.workloadDataSettings = true;
+                    }
                     this.dataService.changeTkgWrkDataGateway(
                         input['tkgWorkloadDataNetwork']['tkgWorkloadDataNetworkGatewayCidr']);
                 }
                 if (input['tkgWorkloadDataNetwork'].hasOwnProperty('tkgWorkloadAviServiceIpStartRange')) {
+                    if (input['tkgWorkloadDataNetwork']['tkgWorkloadAviServiceIpStartRange'] !== ""){
+                        this.apiClient.workloadDataSettings = true;
+                    }
                     this.dataService.changeTkgWrkDataDhcpStart(
                         input['tkgWorkloadDataNetwork']['tkgWorkloadAviServiceIpStartRange']);
                 }
                 if (input['tkgWorkloadDataNetwork'].hasOwnProperty('tkgWorkloadAviServiceIpEndRange')) {
+                    if (input['tkgWorkloadDataNetwork']['tkgWorkloadAviServiceIpEndRange'] !== ""){
+                        this.apiClient.workloadDataSettings = true;
+                    }
                     this.dataService.changeTkgWrkDataDhcpEnd(
                         input['tkgWorkloadDataNetwork']['tkgWorkloadAviServiceIpEndRange']);
                 }
             }
             if (input.hasOwnProperty('tkgWorkloadComponents')) {
                 if (input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadDeploymentType')) {
+                    if (input['tkgWorkloadComponents']['tkgWorkloadDeploymentType'] !== ""){
+                        this.apiClient.workloadClusterSettings = true;
+                    }
                     this.dataService.changeWrkDeploymentType(
                         input['tkgWorkloadComponents']['tkgWorkloadDeploymentType']);
                 }
                 if (input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadSize')) {
+                    if (input['tkgWorkloadComponents']['tkgWorkloadSize'] !== "") {
+                        this.apiClient.workloadClusterSettings = true;
+                    }
                     this.dataService.changeWrkDeploymentSize(
                         input['tkgWorkloadComponents']['tkgWorkloadSize']);
                 }
                 if(input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadCpuSize')){
+                    if (input['tkgWorkloadComponents']['tkgWorkloadCpuSize'] !== ""){
+                        this.apiClient.workloadClusterSettings = true;
+                    }
                     this.dataService.changeWrkCpu(input['tkgWorkloadComponents']['tkgWorkloadCpuSize']);
                 }
                 if(input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadMemorySize')){
+                    if (input['tkgWorkloadComponents']['tkgWorkloadMemorySize'] !== "") {
+                        this.apiClient.workloadClusterSettings = true;
+                    }
                     this.dataService.changeWrkMemory(input['tkgWorkloadComponents']['tkgWorkloadMemorySize']);
                 }
                 if(input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadStorageSize')){
+                    if (input['tkgWorkloadComponents']['tkgWorkloadStorageSize'] !== "") {
+                        this.apiClient.workloadClusterSettings = true;
+                    }
                     this.dataService.changeWrkStorage(input['tkgWorkloadComponents']['tkgWorkloadStorageSize']);
                 }
                 if (input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadClusterName')) {
+                    if (input['tkgWorkloadComponents']['tkgWorkloadClusterName'] !== "") {
+                        this.apiClient.workloadClusterSettings = true;
+                    }
                     this.dataService.changeWrkClusterName(
                         input['tkgWorkloadComponents']['tkgWorkloadClusterName']);
                 }
                 if (input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadWorkerMachineCount')) {
+                    if (input['tkgWorkloadComponents']['tkgWorkloadWorkerMachineCount'] !== "") {
+                        this.apiClient.workloadClusterSettings = true;
+                    }
                     this.dataService.changeWrkWorkerNodeCount(
                         input['tkgWorkloadComponents']['tkgWorkloadWorkerMachineCount']);
                 }
                 if (input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadNetworkName')) {
+                    if (input['tkgWorkloadComponents']['tkgWorkloadNetworkName'] !== "") {
+                        this.apiClient.workloadClusterSettings = true;
+                    }
                     this.dataService.changeWrkSegment(
                         input['tkgWorkloadComponents']['tkgWorkloadNetworkName']);
                 }
                 if (input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadGatewayCidr')) {
+                    if (input['tkgWorkloadComponents']['tkgWorkloadGatewayCidr'] !== ""){
+                        this.apiClient.workloadClusterSettings = true;
+                    }
                     this.dataService.changeWrkGateway(
                         input['tkgWorkloadComponents']['tkgWorkloadGatewayCidr']);
                 }
@@ -1250,34 +1410,55 @@ export class UploadWizardComponent implements OnInit {
                     }
                 }
                 if (input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadBaseOs')) {
+                    if (input['tkgWorkloadComponents']['tkgWorkloadBaseOs'] !== ""){
+                        this.apiClient.workloadClusterSettings = true;
+                    }
                     this.dataService.changeWrkBaseImage(
                         input['tkgWorkloadComponents']['tkgWorkloadBaseOs']);
                 }
                 if (input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadKubeVersion')) {
+                    if (input['tkgWorkloadComponents']['tkgWorkloadKubeVersion'] !== ""){
+                        this.apiClient.workloadClusterSettings = true;
+                    }
                     this.dataService.changeWrkBaseImageVersion(
                         input['tkgWorkloadComponents']['tkgWorkloadKubeVersion']);
                 }
                 if (this.apiClient.enableIdentityManagement) {
                     if (input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadRbacUserRoleSpec')) {
                         if (input['tkgWorkloadComponents']['tkgWorkloadRbacUserRoleSpec'].hasOwnProperty('clusterAdminUsers')) {
+                            if (input['tkgWorkloadComponents']['tkgWorkloadRbacUserRoleSpec']['clusterAdminUsers'] !== ""){
+                                this.apiClient.workloadClusterSettings = true;
+                            }
                             this.dataService.changeWrkClusterAdminUsers(
                                 input['tkgWorkloadComponents']['tkgWorkloadRbacUserRoleSpec']['clusterAdminUsers']);
                         }
                         if (input['tkgWorkloadComponents']['tkgWorkloadRbacUserRoleSpec'].hasOwnProperty('adminUsers')) {
+                            if (input['tkgWorkloadComponents']['tkgWorkloadRbacUserRoleSpec']['adminUsers'] !== ""){
+                                this.apiClient.workloadClusterSettings = true;
+                            }
                             this.dataService.changeWrkAdminUsers(
                                 input['tkgWorkloadComponents']['tkgWorkloadRbacUserRoleSpec']['adminUsers']);
                         }
                         if (input['tkgWorkloadComponents']['tkgWorkloadRbacUserRoleSpec'].hasOwnProperty('editUsers')) {
+                            if (input['tkgWorkloadComponents']['tkgWorkloadRbacUserRoleSpec']['editUsers'] !== ""){
+                                this.apiClient.workloadClusterSettings = true;
+                            }
                             this.dataService.changeWrkEditUsers(
                                 input['tkgWorkloadComponents']['tkgWorkloadRbacUserRoleSpec']['editUsers']);
                         }
                         if (input['tkgWorkloadComponents']['tkgWorkloadRbacUserRoleSpec'].hasOwnProperty('viewUsers')) {
+                            if (input['tkgWorkloadComponents']['tkgWorkloadRbacUserRoleSpec']['viewUsers'] !== ""){
+                                this.apiClient.workloadClusterSettings = true;
+                            }
                             this.dataService.changeWrkViewUsers(
                                 input['tkgWorkloadComponents']['tkgWorkloadRbacUserRoleSpec']['viewUsers']);
                         }
                     }
                 }
                 if (input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadClusterGroupName')) {
+                    if (input['tkgWorkloadComponents']['tkgWorkloadClusterGroupName'] !== ""){
+                        this.apiClient.workloadClusterSettings = true;
+                    }
                     this.dataService.changeWrkClusterGroupName(input['tkgWorkloadComponents']['tkgWorkloadClusterGroupName']);
                 }
                 if (input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadEnableDataProtection')) {
@@ -1285,10 +1466,16 @@ export class UploadWizardComponent implements OnInit {
                         this.dataService.changeWrkEnableDataProtection(true);
                         this.apiClient.wrkDataProtectionEnabled = true;
                         if (input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadClusterCredential')) {
+                            if (input['tkgWorkloadComponents']['tkgWorkloadClusterCredential'] !== ""){
+                                this.apiClient.workloadClusterSettings = true;
+                            }
                             this.dataService.changeWrkDataProtectionCreds(
                                 input['tkgWorkloadComponents']['tkgWorkloadClusterCredential']);
                         }
                         if (input['tkgWorkloadComponents'].hasOwnProperty('tkgWorkloadClusterBackupLocation')) {
+                            if (input['tkgWorkloadComponents']['tkgWorkloadClusterBackupLocation'] !== ""){
+                                this.apiClient.workloadClusterSettings = true;
+                            }
                             this.dataService.changeWrkDataProtectionTargetLocation(
                                 input['tkgWorkloadComponents']['tkgWorkloadClusterBackupLocation']);
                         }
@@ -1308,9 +1495,15 @@ export class UploadWizardComponent implements OnInit {
                             this.dataService.changeEnableTSM(true);
                             if (input['tkgWorkloadComponents'].hasOwnProperty('namespaceExclusions')) {
                                 if (input['tkgWorkloadComponents']['namespaceExclusions'].hasOwnProperty('exactName')) {
+                                    if (input['tkgWorkloadComponents']['namespaceExclusions']['exactName'] !== ""){
+                                        this.apiClient.workloadClusterSettings = true;
+                                    }
                                     this.dataService.changeTsmExactNamespaceExclusion(input['tkgWorkloadComponents']['namespaceExclusions']['exactName']);
                                 }
                                 if (input['tkgWorkloadComponents']['namespaceExclusions'].hasOwnProperty('startsWith')) {
+                                    if (input['tkgWorkloadComponents']['namespaceExclusions']['startsWith'] !== ""){
+                                        this.apiClient.workloadClusterSettings = true;
+                                    }
                                     this.dataService.changeTsmStartsWithNamespaceExclusion(input['tkgWorkloadComponents']['namespaceExclusions']['startsWith']);
                                 }
                             }
@@ -1811,6 +2004,52 @@ export class UploadWizardComponent implements OnInit {
                         } else {
                             this.vsphereTkgsDataService.changeEnableTSM(false);
                         }
+                        if (input['tkgsComponentSpec']['tkgsVsphereNamespaceSpec']['tkgsVsphereWorkloadClusterSpec'].hasOwnProperty('controlPlaneVolumes')) {
+                            // tslint:disable-next-line:max-line-length
+                            const tkgsVolumes: Map<string, string> = new Map<string, string>();
+                            let volumeName;
+                            let volumeMount;
+                            let volumeCapacity;
+                            let inputVal = input['tkgsComponentSpec']['tkgsVsphereNamespaceSpec']['tkgsVsphereWorkloadClusterSpec']['controlPlaneVolumes'];
+                            // tslint:disable-next-line:max-line-length
+                            for(const spec in inputVal) {
+                                if (inputVal[spec].hasOwnProperty('name') &&
+                                    inputVal[spec].hasOwnProperty('mountPath') &&
+                                    inputVal[spec].hasOwnProperty('storage')) {
+
+                                    volumeName = inputVal[spec]['name'];
+                                    volumeMount = inputVal[spec]['mountPath'];
+                                    volumeCapacity = inputVal[spec]['storage'];
+                                    let mountCap = volumeMount + ":" + volumeCapacity;
+                                    tkgsVolumes.set(volumeName, mountCap);
+                                }
+                            }
+                            this.apiClient.tkgsControlPlaneVolumes = tkgsVolumes;
+                            this.vsphereTkgsDataService.changeTkgsControlVolumes(tkgsVolumes);
+                        }
+                        if (input['tkgsComponentSpec']['tkgsVsphereNamespaceSpec']['tkgsVsphereWorkloadClusterSpec'].hasOwnProperty('workerVolumes')) {
+                            // tslint:disable-next-line:max-line-length
+                            const tkgsVolumes: Map<string, string> = new Map<string, string>();
+                            let volumeName;
+                            let volumeMount;
+                            let volumeCapacity;
+                            let inputVal = input['tkgsComponentSpec']['tkgsVsphereNamespaceSpec']['tkgsVsphereWorkloadClusterSpec']['workerVolumes'];
+                            // tslint:disable-next-line:max-line-length
+                            for(const spec in inputVal) {
+                                if (inputVal[spec].hasOwnProperty('name') &&
+                                    inputVal[spec].hasOwnProperty('mountPath') &&
+                                    inputVal[spec].hasOwnProperty('storage')) {
+
+                                    volumeName = inputVal[spec]['name'];
+                                    volumeMount = inputVal[spec]['mountPath'];
+                                    volumeCapacity = inputVal[spec]['storage'];
+                                    let mountCap = volumeMount + ":" + volumeCapacity;
+                                    tkgsVolumes.set(volumeName, mountCap);
+                                }
+                            }
+                            this.apiClient.tkgsWorkerVolumes = tkgsVolumes;
+                            this.vsphereTkgsDataService.changeTkgsWorkerVolumes(tkgsVolumes);
+                        }
                     }
 //                     if (input['tkgsComponentSpec']['tkgsVsphereNamespaceSpec'].hasOwnProperty()) {
 //                         this.vsphereTkgsDataService.changeNamespaceName(
@@ -2133,6 +2372,51 @@ export class UploadWizardComponent implements OnInit {
                         }
                     }
                 }
+
+                if(input['tkgsComponentSpec'].hasOwnProperty('tkgServiceConfig')) {
+                    if(input['tkgsComponentSpec']['tkgServiceConfig'].hasOwnProperty('defaultCNI')) {
+                        this.vsphereTkgsDataService.changeDefaultCNI(input['tkgsComponentSpec']['tkgServiceConfig']['defaultCNI']);
+                    }
+
+                    if (input['tkgsComponentSpec']['tkgServiceConfig'].hasOwnProperty('proxySpec')) {
+                        if (input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec'].hasOwnProperty('enableProxy')) {
+                            if (input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['enableProxy'] === 'true') {
+                                this.vsphereTkgsDataService.changeTkgsEnableProxy(true);
+                                if (input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec'].hasOwnProperty('httpProxy') &&
+                                    input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec'].hasOwnProperty('httpsProxy')) {
+                                        this.processTkgsProxyParam(input);
+                                    }
+                                if (input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec'].hasOwnProperty('noProxy')) {
+                                    this.vsphereTkgsDataService.changeTkgsNoProxy(
+                                        input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['noProxy']);
+                                }
+                                if(input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec'].hasOwnProperty('proxyCert')) {
+                                    this.vsphereTkgsDataService.changeTkgsProxyCert(
+                                        input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['proxyCert']);
+                                }
+                            } else {
+                                this.vsphereTkgsDataService.changeTkgsEnableProxy(false);
+                            }
+                        }
+                    }
+
+                    if(input['tkgsComponentSpec']['tkgServiceConfig'].hasOwnProperty('additionalTrustedCAs')) {
+                        let additionalCert = new Map<string, string>();
+                        if(input['tkgsComponentSpec']['tkgServiceConfig']['additionalTrustedCAs'].hasOwnProperty('paths')) {
+                            let paths = input['tkgsComponentSpec']['tkgServiceConfig']['additionalTrustedCAs']['paths'];
+                            for (let path in paths) {
+                                additionalCert.set(paths[path], 'Path');
+                            }
+                        }
+                        if(input['tkgsComponentSpec']['tkgServiceConfig']['additionalTrustedCAs'].hasOwnProperty('endpointUrls')) {
+                            let urls = input['tkgsComponentSpec']['tkgServiceConfig']['additionalTrustedCAs']['endpointUrls'];
+                            for (let url in urls) {
+                                additionalCert.set(urls[url], 'Endpoint');
+                            }
+                        }
+                        this.apiClient.tkgsAdditionalCerts = additionalCert;
+                    }
+                }
             }
         }
     }
@@ -2373,6 +2657,61 @@ export class UploadWizardComponent implements OnInit {
                         } else {
                             this.vsphereTkgsDataService.changeEnableTSM(false);
                         }
+                        if (input['tkgsComponentSpec']['tkgsVsphereNamespaceSpec']['tkgsVsphereWorkloadClusterSpec'].hasOwnProperty('controlPlaneVolumes')) {
+                            // tslint:disable-next-line:max-line-length
+                            const tkgsVolumes: Map<string, string> = new Map<string, string>();
+                            let volumeName;
+                            let volumeMount;
+                            let volumeCapacity;
+                            let volumeStorageClass;
+                            let inputVal = input['tkgsComponentSpec']['tkgsVsphereNamespaceSpec']['tkgsVsphereWorkloadClusterSpec']['controlPlaneVolumes'];
+                            // tslint:disable-next-line:max-line-length
+                            for(const spec in inputVal) {
+                                if (inputVal[spec].hasOwnProperty('name') &&
+                                    inputVal[spec].hasOwnProperty('mountPath') &&
+                                    inputVal[spec].hasOwnProperty('storage') &&
+                                    inputVal[spec].hasOwnProperty('storageClass')) {
+
+                                    volumeName = inputVal[spec]['name'];
+                                    volumeMount = inputVal[spec]['mountPath'];
+                                    volumeCapacity = inputVal[spec]['storage'];
+                                    //Remove Gi from end
+                                    volumeCapacity = volumeCapacity.slice(0, -2);
+                                    volumeStorageClass = input[spec]['storageClass'];
+                                    let mountCap = volumeMount + ":" + volumeCapacity + "#" + volumeStorageClass;
+                                    tkgsVolumes.set(volumeName, mountCap);
+                                }
+                            }
+                            this.apiClient.tkgsControlPlaneVolumes = tkgsVolumes;
+                            this.vsphereTkgsDataService.changeTkgsControlVolumes(tkgsVolumes);
+                        }
+                        if (input['tkgsComponentSpec']['tkgsVsphereNamespaceSpec']['tkgsVsphereWorkloadClusterSpec'].hasOwnProperty('workerVolumes')) {
+                            // tslint:disable-next-line:max-line-length
+                            const tkgsVolumes: Map<string, string> = new Map<string, string>();
+                            let volumeName;
+                            let volumeMount;
+                            let volumeCapacity;
+                            let volumeStorageClass;
+                            let inputVal = input['tkgsComponentSpec']['tkgsVsphereNamespaceSpec']['tkgsVsphereWorkloadClusterSpec']['workerVolumes'];
+                            // tslint:disable-next-line:max-line-length
+                            for(const spec in inputVal) {
+                                if (inputVal[spec].hasOwnProperty('name') &&
+                                    inputVal[spec].hasOwnProperty('mountPath') &&
+                                    inputVal[spec].hasOwnProperty('storage')) {
+
+                                    volumeName = inputVal[spec]['name'];
+                                    volumeMount = inputVal[spec]['mountPath'];
+                                    volumeCapacity = inputVal[spec]['storage'];
+                                    //Remove Gi from end
+                                    volumeCapacity = volumeCapacity.slice(0, -2);
+                                    volumeStorageClass = inputVal[spec]['storageClass'];
+                                    let mountCap = volumeMount + ":" + volumeCapacity + "#" + volumeStorageClass;
+                                    tkgsVolumes.set(volumeName, mountCap);
+                                }
+                            }
+                            this.apiClient.tkgsWorkerVolumes = tkgsVolumes;
+                            this.vsphereTkgsDataService.changeTkgsWorkerVolumes(tkgsVolumes);
+                        }
                         // this.vsphereTkgsDataService.changeWrkEnableDataProtection(true);
                         if (input['tkgsComponentSpec']['tkgsVsphereNamespaceSpec']['tkgsVsphereWorkloadClusterSpec'].hasOwnProperty('tkgsWorkloadClusterGroupName')) {
                             this.vsphereTkgsDataService.changeWrkClusterGroupName(input['tkgsComponentSpec']['tkgsVsphereNamespaceSpec']['tkgsVsphereWorkloadClusterSpec']['tkgsWorkloadClusterGroupName']);
@@ -2396,6 +2735,55 @@ export class UploadWizardComponent implements OnInit {
                             this.apiClient.wrkDataProtectionEnabled = false;
                         }
 
+                    }
+                }
+                if(input['tkgsComponentSpec'].hasOwnProperty('tkgServiceConfig')) {
+                    if(input['tkgsComponentSpec']['tkgServiceConfig'].hasOwnProperty('defaultCNI')) {
+                        this.vsphereTkgsDataService.changeDefaultCNI(input['tkgsComponentSpec']['tkgServiceConfig']['defaultCNI']);
+                    }
+
+                    if (input['tkgsComponentSpec']['tkgServiceConfig'].hasOwnProperty('proxySpec')) {
+                        if (input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec'].hasOwnProperty('enableProxy')) {
+                            if (input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['enableProxy'] === 'true') {
+                                this.vsphereTkgsDataService.changeTkgsEnableProxy(true);
+                                if (input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec'].hasOwnProperty('httpProxy') &&
+                                    input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec'].hasOwnProperty('httpsProxy')) {
+                                        this.processTkgsProxyParam(input);
+                                    }
+                                if (input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec'].hasOwnProperty('noProxy')) {
+                                    this.vsphereTkgsDataService.changeTkgsNoProxy(
+                                        input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['noProxy']);
+                                }
+                                if(input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec'].hasOwnProperty('proxyCert')) {
+                                    this.vsphereTkgsDataService.changeTkgsProxyCert(
+                                        input['tkgsComponentSpec']['tkgServiceConfig']['proxySpec']['proxyCert']);
+                                }
+                            } else {
+                                this.vsphereTkgsDataService.changeTkgsEnableProxy(false);
+                            }
+                        }
+                    }
+
+                    if(input['tkgsComponentSpec']['tkgServiceConfig'].hasOwnProperty('additionalTrustedCAs')) {
+                        let additionalCert = new Map<string, string>();
+                        if(input['tkgsComponentSpec']['tkgServiceConfig']['additionalTrustedCAs'].hasOwnProperty('paths')) {
+                            let paths = input['tkgsComponentSpec']['tkgServiceConfig']['additionalTrustedCAs']['paths'];
+                            console.log(paths);
+                            for (let num in paths) {
+                                console.log(num);
+                                additionalCert.set(paths[num], 'Path');
+                            }
+                        }
+                        if(input['tkgsComponentSpec']['tkgServiceConfig']['additionalTrustedCAs'].hasOwnProperty('endpointUrls')) {
+                            let urls = input['tkgsComponentSpec']['tkgServiceConfig']['additionalTrustedCAs']['endpointUrls'];
+                            console.log(urls);
+                            for (let num in urls) {
+                                console.log(num);
+                                additionalCert.set(urls[num], 'Endpoint');
+                            }
+                        }
+                        console.log(additionalCert);
+                        this.apiClient.tkgsAdditionalCerts = additionalCert;
                     }
                 }
             }

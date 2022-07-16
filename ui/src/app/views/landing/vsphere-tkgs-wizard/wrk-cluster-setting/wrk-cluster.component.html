@@ -434,6 +434,270 @@
 <!--            </div>-->
 <!--        </ng-container>-->
     </div>
+    <br>
+    <h4 i18n="Proxy Settings" class="sub-title" aria-level="2">
+        Optionally configure volumes for Control Plane Nodes
+   </h4>
+   <div class="clr-row">
+        <div *ngIf="this.apiClient.tkgsControlPlaneVolumes?.size; then hasVolumes"></div>
+        <ng-template #hasVolumes>
+            <ng-container *ngFor="let volume of this.apiClient.tkgsControlPlaneVolumes | keyvalue">
+                <div class="clr-col-2">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <input clrInput [value]="volume.key" [disabled]="true" placeholder="" autocomplete="off"/>
+                    </clr-input-container>
+                    <clr-control-helper></clr-control-helper>
+                </div>
+                <!-- <ng-container *ngFor="let mountAndCapacity of this.apiClient.tkgsVolumes.get(volume.key)" | keyvalue> -->
+                <div class="clr-col-3">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <input clrInput [value]="volume.value.split(':')[0]" [disabled]="true" placeholder="" autocomplete="off"/>
+                    </clr-input-container>
+                    <clr-control-helper></clr-control-helper>
+                </div>
+                <div class="clr-col-2">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <input clrInput [value]="volume.value.split(':')[1]" [disabled]="true" placeholder="" autocomplete="off"/>
+                    </clr-input-container>
+                    <clr-control-helper></clr-control-helper>
+                </div>
+                <div class="clr-col-3">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <input clrInput [value]="volume.value.split('#')[1]" [disabled]="true" placeholder="" autocomplete="off"/>
+                    </clr-input-container>
+                    <clr-control-helper></clr-control-helper>
+                </div>
+                <!-- </ng-container> -->
+                <div class="clr-col-2">
+                    <button id="label-delete-{{volume.key}}"
+                        class="btn btn-sm btn-label btn-delete"
+                        role="button"
+                        aria-label="delete label"
+                        (click)="deleteVolume(volume.key, 'control')">
+                        <clr-icon shape="trash" size="12"></clr-icon>
+                    </button>
+                </div>
+            </ng-container>
+        </ng-template>
+   </div>
+   <div class="clr-row">
+        <div class="clr-col-3">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    NAME
+                </label>
+                <input clrInput #newControlVolumeName formControlName="newControlVolumeName" placeholder="etcd" autocomplete="off"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Name has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-3">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    MOUNT PATH
+                </label>
+                <input clrInput #newControlMountPath formControlName="newControlMountPath" placeholder="/var/lib/etcd" autocomplete="off"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Mount path has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-3">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    CAPACITY in GB
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Minimum supported value is 0.001 GB(1MB) and maximum supported value is 10240 GB(10TB)
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput #newControlCapacity formControlName="newControlCapacity" placeholder="4" autocomplete="off"
+                        type="number" min=0.001 max=10240>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Capacity has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-3">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    STORAGE CLASS (OPTIONAL)
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                If not specified, the default storage class will be used.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect #newControlStorageClass name="newControlStorageClass" formControlName="newControlStorageClass"
+                        (ngModelChange)="updateAllowedStorageClass()">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let newControlStorageClass of allowedStorageOption">
+                        <option [value]="newControlStorageClass">
+                            {{newControlStorageClass}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+            </clr-select-container>
+        </div>
+    </div>
+    <div class="clr-row">
+        <div class="clr-col-3">
+            <div class="btn-container">
+                <button class="btn btn-outline edit-btn"
+                    i18n="return to wizard for edit button"
+                    (click)="addNewVolume(newControlVolumeName.value, newControlMountPath.value, newControlCapacity.value, newControlStorageClass.value, 'control')">
+                    ADD VOLUME
+                </button>
+            </div>
+        </div>
+   </div>
+   <br>
+   <h4 i18n="Proxy Settings" class="sub-title" aria-level="2">
+        Optionally configure volumes for Worker Nodes
+    </h4>
+    <div class="clr-row">
+        <div *ngIf="this.apiClient.tkgsWorkerVolumes?.size; then hasWorkerVolumes"></div>
+        <ng-template #hasWorkerVolumes>
+            <ng-container *ngFor="let volume of this.apiClient.tkgsWorkerVolumes | keyvalue">
+                <div class="clr-col-2">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <input clrInput [value]="volume.key" [disabled]="true" placeholder="" autocomplete="off"/>
+                    </clr-input-container>
+                    <clr-control-helper></clr-control-helper>
+                </div>
+                <!-- <ng-container *ngFor="let mountAndCapacity of this.apiClient.tkgsVolumes.get(volume.key)" | keyvalue> -->
+                <div class="clr-col-3">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <input clrInput [value]="volume.value.split(':')[0]" [disabled]="true" placeholder="" autocomplete="off"/>
+                    </clr-input-container>
+                    <clr-control-helper></clr-control-helper>
+                </div>
+                <div class="clr-col-2">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <input clrInput [value]="volume.value.split(':')[1]" [disabled]="true" placeholder="" autocomplete="off"/>
+                    </clr-input-container>
+                    <clr-control-helper></clr-control-helper>
+                </div>
+                <!-- </ng-container> -->
+                <div class="clr-col-3">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <input clrInput [value]="volume.value.split('#')[1]" [disabled]="true" placeholder="" autocomplete="off"/>
+                    </clr-input-container>
+                    <clr-control-helper></clr-control-helper>
+                </div>
+                <div class="clr-col-2">
+                    <button id="label-delete-{{volume.key}}"
+                        class="btn btn-sm btn-label btn-delete"
+                        role="button"
+                        aria-label="delete label"
+                        (click)="deleteVolume(volume.key, 'worker')">
+                        <clr-icon shape="trash" size="12"></clr-icon>
+                    </button>
+                </div>
+            </ng-container>
+        </ng-template>
+    </div>
+    <div class="clr-row">
+        <div class="clr-col-3">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    NAME
+                </label>
+                <input clrInput #newWorkerVolumeName formControlName="newWorkerVolumeName" placeholder="containerd" autocomplete="off"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Name has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-3">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    MOUNT PATH
+                </label>
+                <input clrInput #newWorkerMountPath formControlName="newWorkerMountPath" placeholder="/var/lib/containerd" autocomplete="off"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Mount path has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-3">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    CAPACITY in GB
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Minimum supported value is 0.001 GB(1MB) and maximum supported value is 10240 GB(10TB)
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput #newWorkerCapacity formControlName="newWorkerCapacity" placeholder="16" autocomplete="off"
+                        type="number" min=0.001 max=10240>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-3">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    STORAGE CLASS (OPTIONAL)
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                If not specified, the default storage class will be used.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect #newWorkerStorageClass name="newWorkerStorageClass" formControlName="newWorkerStorageClass"
+                        (ngModelChange)="updateAllowedStorageClass()">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let newWorkerStorageClass of allowedStorageOption">
+                        <option [value]="newWorkerStorageClass">
+                            {{newWorkerStorageClass}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+            </clr-select-container>
+        </div>
+    </div>
+    <div class="clr-row">
+        <div class="clr-col-3">
+            <div class="btn-container">
+                <button class="btn btn-outline edit-btn"
+                    i18n="return to wizard for edit button"
+                    (click)="addNewVolume(newWorkerVolumeName.value, newWorkerMountPath.value, newWorkerCapacity.value, newWorkerStorageClass.value, 'worker')">
+                    ADD VOLUME
+                </button>
+            </div>
+        </div>
+    </div>
+
     <ng-container *ngIf="this.apiClient.tmcEnabled">
         <br>
         <h4 i18n="Proxy Settings" class="sub-title" aria-level="2">

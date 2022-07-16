@@ -108,6 +108,8 @@ export class VSphereProviderStepComponent extends StepFormDirective implements O
 
     isMarketplace = false;
     private marketplaceRefreshToken;
+    // GLobal CEIP Participation
+    isCeipEnabled = false;
     constructor(private validationService: ValidationService,
                 private apiClient: APIClient,
                 private router: Router,
@@ -145,6 +147,8 @@ export class VSphereProviderStepComponent extends StepFormDirective implements O
         // Marketplace form fields
         this.formGroup.addControl('isMarketplace', new FormControl(false));
         this.formGroup.addControl('marketplaceRefreshToken', new FormControl('', []));
+        // Global CEIP Participation
+        this.formGroup.addControl('isCeipEnabled', new FormControl(false));
         // Optional if marketplace is enabled
         this.formGroup.addControl('contentLib', new FormControl('', [Validators.required]));
         this.formGroup.addControl('aviOvaImage', new FormControl('', [Validators.required]));
@@ -265,6 +269,9 @@ export class VSphereProviderStepComponent extends StepFormDirective implements O
             this.subscription = this.dataService.currentMarketplace.subscribe(
                 (marketplace) => this.isMarketplace = marketplace);
             this.formGroup.get('isMarketplace').setValue(this.isMarketplace);
+            this.subscription = this.dataService.currentCeipParticipation.subscribe(
+                (ceip) => this.isCeipEnabled = ceip);
+            this.formGroup.get('isCeipEnabled').setValue(this.isCeipEnabled);
             // if (this.customerConnect) {
             //     this.subscription = this.dataService.currentCustUsername.subscribe(
             //         (custUsername) => this.custUsername = custUsername);
@@ -939,11 +946,14 @@ export class VSphereProviderStepComponent extends StepFormDirective implements O
         let arcasEnableProxy;
         this.dataService.currentArcasEnableProxy.subscribe((enableProxy) => arcasEnableProxy = enableProxy);
         this.dataService.currentArcasNoProxy.subscribe((noProxy) => this.arcasNoProxy = noProxy);
+        let proxyCert;
+        this.dataService.currentArcasProxyCertificate.subscribe((cert) => proxyCert = cert);
+
         if (!(this.apiClient.proxyConfiguredVsphere) && arcasEnableProxy) {
             let httpProxy = this.getArcasHttpProxyParam();
             let httpsProxy = this.getArcasHttpsProxy();
             let noProxy = this.arcasNoProxy;
-            this.apiClient.enableArcasProxy(httpProxy, httpsProxy, noProxy, 'vsphere').subscribe((data: any) => {
+            this.apiClient.enableArcasProxy(httpProxy, httpsProxy, noProxy, proxyCert, 'vsphere').subscribe((data: any) => {
                 if (data && data !== null) {
                     if (data.responseType === 'SUCCESS') {
                         this.apiClient.proxyConfiguredVsphere = true;

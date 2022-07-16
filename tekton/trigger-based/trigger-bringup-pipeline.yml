@@ -1,0 +1,113 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: trigger-bringup-pipeline
+spec:
+  description: >-
+    The Pipline to capture git event and trigger tasks
+
+  workspaces:
+    - name: pipeline-shared-data
+
+  params:
+    - name: imagename
+      description: "The image location"
+      default: "UPDATE IMAGE LOCATION"
+    - name: giturl
+      description: The full http git path
+      default: "UPDATE FULL GIT PATH OF REPOSITORY"
+    - name: branch
+      description: the branch to clone from. By default, it is set to main.
+      default: main
+    - name: message
+      description: The commit message
+    - name: imagepullpolicy
+      description: imagepullpolicy for operand image("Always", "IfNotPresent", "Never")
+  tasks:
+    - name: start-prep-workspace
+      taskRef:
+        name: git-pvtclone
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: giturl
+          value: "$(params.giturl)"
+        - name: branch
+          value: "$(params.branch)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+    - name: start-avi
+      when:
+        - input: "$(params.message)"
+          operator: in
+          values:  [ "exec_bringup" ]
+      taskRef:
+        name: avi-setup-task
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+      runAfter:
+          - start-prep-workspace
+
+    - name: start-mgmt-create
+      when:
+        - input: "$(params.message)"
+          operator: in
+          values:  [ "exec_bringup" ]
+      taskRef:
+        name: dind-mgmt-create
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+      runAfter:
+            - start-avi
+
+    - name: start-shared-cluster-create
+      when:
+        - input: "$(params.message)"
+          operator: in
+          values:  [ "exec_bringup" ]
+      taskRef:
+        name: dind-sharedcluster-create
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+      runAfter:
+            - start-mgmt-create
+
+    - name: start-workload-cluster
+      when:
+        - input: "$(params.message)"
+          operator: in
+          values:  [ "exec_bringup" ]
+      taskRef:
+        name: dind-wld-create
+      workspaces:
+          - name: task-shared-data
+            workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+      runAfter:
+            - start-shared-cluster-create
+

@@ -6,7 +6,7 @@ Arcas Appliance component spec.
 
 # Photon OS ISO
 CSC_PHOTON_BRANCH = 'photon3-vmw-updates'
-CSC_PHOTON_CLN = 9785956
+CSC_PHOTON_CLN = 10058579
 CSC_PHOTON_BUILDTYPE = 'release'
 CSC_PHOTON_DELIVERABLE = [
     r'publish/csc-photon-.*x86_64\.iso',

@@ -13,6 +13,7 @@
    "marketplaceSpec":{
       "refreshToken":""
    },
+   "ceipParticipation":  "true",
    "envVariablesSpec":{
       "dnsServersIp":"",
       "searchDomains":"tanzu.lab",
@@ -36,6 +37,7 @@
          "aviMgmtDhcpStartRange":"11.12.13.15",
          "aviMgmtDhcpEndRange":"11.12.13.28"
       },
+
       "aviComponentSpec":{
          "aviPasswordBase64":"Vk13YXJlMSE=",
          "aviBackupPassPhraseBase64":"Vk13YXJlMSE=",

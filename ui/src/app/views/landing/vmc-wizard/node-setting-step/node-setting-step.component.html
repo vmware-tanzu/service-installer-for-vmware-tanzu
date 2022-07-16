@@ -389,19 +389,19 @@
                             <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
                             <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
                                 <span>
-                                    Please specify Custom Memory Size in GB, min value is 8 GB.
+                                    Please specify Custom Memory Size in GB, min value is 4 GB.
                                 </span>
                             </clr-tooltip-content>
                         </clr-tooltip>
                     </label>
-                    <input clrInput formControlName="mgmtMemory" type="number" min=8 placeholder=""/>
+                    <input clrInput formControlName="mgmtMemory" type="number" min=4 placeholder=""/>
                     <clr-control-helper></clr-control-helper>
                     <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
                         Memory size is required!
                     </clr-control-error>
                     <clr-control-error i18n="gateway address format msg"
                                        *clrIfError="validatorEnum.MIN">
-                        Minimum Memory size is 8 GB!
+                        Minimum Memory size is 4 GB!
                     </clr-control-error>
                     <clr-control-error i18n="gateway address format msg"
                                        *clrIfError="validatorEnum.WHITESPACE">
@@ -417,19 +417,19 @@
                             <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
                             <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
                                 <span>
-                                    Please specify Custom Storage Size in GB, min value is 40 GB.
+                                    Please specify Custom Storage Size in GB, min value is 20 GB.
                                 </span>
                             </clr-tooltip-content>
                         </clr-tooltip>
                     </label>
-                    <input clrInput formControlName="mgmtStorage" type="number" min=40 placeholder=""/>
+                    <input clrInput formControlName="mgmtStorage" type="number" min=20 placeholder=""/>
                     <clr-control-helper></clr-control-helper>
                     <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
                         Storage size is required!
                     </clr-control-error>
                     <clr-control-error i18n="gateway address format msg"
                                        *clrIfError="validatorEnum.MIN">
-                        Minimum Storage size is 40 GB!
+                        Minimum Storage size is 20 GB!
                     </clr-control-error>
                     <clr-control-error i18n="gateway address format msg"
                                        *clrIfError="validatorEnum.WHITESPACE">

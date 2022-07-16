@@ -191,6 +191,10 @@ class RaSharedClusterWorkflow:
                 "ERROR_CODE": 500
             }
             return json.dumps(d), 500
+        #Init tanzu cli plugins
+        tanzu_init_cmd = "tanzu plugin sync"
+        command_status = self.rcmd.run_cmd_output(tanzu_init_cmd)
+        logger.debug("Tanzu plugin output: {}".format(command_status))
         podRunninng = ["tanzu", "cluster", "list"]
         command_status = self.rcmd.runShellCommandAndReturnOutputAsList(podRunninng)
         if command_status[1] != 0:
@@ -220,21 +224,6 @@ class RaSharedClusterWorkflow:
             return json.dumps(d), 500
         size = str(self.jsonspec['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceSize'])
 
-        if size.lower() == "large":
-            pass
-        elif size.lower() == "extra-large":
-            pass
-        elif size.lower() == "custom":
-            pass
-        else:
-            logger.error("Un supported cluster size please specify large/extra-large/custom " +
-                         size)
-            d = {
-                "responseType": "ERROR",
-                "msg": "Un supported cluster size please specify large/extra-large/custom " + size,
-                "ERROR_CODE": 500
-            }
-            return json.dumps(d), 500
         if size.lower() == "medium":
             cpu = Sizing.medium['CPU']
             memory = Sizing.medium['MEMORY']

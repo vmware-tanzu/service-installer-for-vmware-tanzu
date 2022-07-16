@@ -69,6 +69,9 @@ export class WorkloadClusterComponent extends StepFormDirective implements OnIni
     selection: any;
     stateList: any[];
     public disabled = false;
+    // ADDITIONAL VOLUMES
+    volumeErrorNotification: string;
+
     // VELERO
     loadingState: ClrLoadingState = ClrLoadingState.DEFAULT;
     public fetchCredential = false;
@@ -150,19 +153,54 @@ export class WorkloadClusterComponent extends StepFormDirective implements OnIni
         this.formGroup.addControl('veleroTargetLocation', 
             new FormControl('', []));
 
-            SupervisedField.forEach(field => {
-                this.formGroup.get(field).valueChanges.pipe(
-                    debounceTime(500),
-                    distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
-                    takeUntil(this.unsubscribe))
-                    .subscribe(() => {
-                        if (this.apiClient.wrkDataProtectionEnabled && this.validatedDataProtection){
-                            this.validatedDataProtection = false;
-                            this.loadingState = ClrLoadingState.DEFAULT;
-                        }
-                    });
-            });
-            this.formGroup['canMoveToNext'] = () => {
+        //CONFIGURE ADDITIONAL VOLUMES FOR TKGS
+        this.formGroup.addControl('tkgsControlVolumes',
+            new FormControl('',[]));
+        this.formGroup.addControl('newControlVolumeName',
+            new FormControl('',
+                [this.validationService.noWhitespaceOnEnds()])
+        );
+        this.formGroup.addControl('newControlMountPath',
+            new FormControl('',
+                [this.validationService.noWhitespaceOnEnds()])
+        );
+        this.formGroup.addControl('newControlCapacity',
+            new FormControl('',
+                [Validators.min(0.001), Validators.max(10240)])
+        );
+        this.formGroup.addControl('newControlStorageClass',
+            new FormControl('', [])
+        );
+        this.formGroup.addControl('tkgsWorkerVolumes',
+            new FormControl('',[]));
+        this.formGroup.addControl('newWorkerVolumeName',
+            new FormControl('',
+                [this.validationService.noWhitespaceOnEnds()])
+        );
+        this.formGroup.addControl('newWorkerMountPath',
+            new FormControl('',
+                [this.validationService.noWhitespaceOnEnds()])
+        );
+        this.formGroup.addControl('newWorkerCapacity',
+            new FormControl('',
+                [Validators.min(0.001), Validators.max(10240)])
+        );
+        this.formGroup.addControl('newWorkerStorageClass',
+            new FormControl('', [])
+        );
+        SupervisedField.forEach(field => {
+            this.formGroup.get(field).valueChanges.pipe(
+                debounceTime(500),
+                distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+                takeUntil(this.unsubscribe))
+                .subscribe(() => {
+                    if (this.apiClient.wrkDataProtectionEnabled && this.validatedDataProtection){
+                        this.validatedDataProtection = false;
+                        this.loadingState = ClrLoadingState.DEFAULT;
+                    }
+                });
+        });
+        this.formGroup['canMoveToNext'] = () => {
             if (this.apiClient.wrkDataProtectionEnabled){
                 if (this.uploadStatus) {
                     return (this.formGroup.valid && this.validatedDataProtection);
@@ -171,7 +209,8 @@ export class WorkloadClusterComponent extends StepFormDirective implements OnIni
             }
             return this.formGroup.valid;
         }
-            setTimeout(_ => {
+
+        setTimeout(_ => {
             this.resurrectField('clusterName',
                 [Validators.required,
                 this.validationService.noWhitespaceOnEnds(),
@@ -212,11 +251,7 @@ export class WorkloadClusterComponent extends StepFormDirective implements OnIni
                 this.subscription = this.dataService.currentWrkClusterName.subscribe(
                     (clusterName) => this.clusterName = clusterName);
                 this.formGroup.get('clusterName').setValue(this.clusterName);
-                // Set Workload Namespace Name from Input Spec
-                // this.subscription = this.dataService.currentWrkNamespaceName.subscribe(
-                //     (namespaceName) => this.namespaceName = namespaceName);
-                // this.formGroup.get()
-                // Set Workload Service CIDR from Input Spec
+
                 this.subscription = this.dataService.currentServiceCidr.subscribe(
                     (serviceCidr) => this.serviceCidr = serviceCidr);
                 if (this.serviceCidr !== '') {
@@ -259,7 +294,7 @@ export class WorkloadClusterComponent extends StepFormDirective implements OnIni
             }
             this.toggleTSMSetting();
             });
-    }
+        }
 
     setSavedDataAfterLoad() {
         if (this.hasSavedData()) {
@@ -649,4 +684,49 @@ export class WorkloadClusterComponent extends StepFormDirective implements OnIni
         return !(this.formGroup.get('veleroCredential').valid && this.formGroup.get('veleroTargetLocation').valid);
     }
 
+    deleteVolume(volumeName: string, nodeType: string) {
+        if(nodeType === 'control') {
+            this.apiClient.tkgsControlPlaneVolumes.delete(volumeName);
+            this.formGroup.get('tkgsControlVolumes').setValue(this.apiClient.tkgsControlPlaneVolumes);
+        } else if (nodeType === 'worker') {
+            this.apiClient.tkgsWorkerVolumes.delete(volumeName);
+            this.formGroup.get('tkgsWorkerVolumes').setValue(this.apiClient.tkgsWorkerVolumes);
+        }
+    }
+
+    addNewVolume(volName: string, mount: string, capacity: string, storageClass: string, nodeType:string) {
+        let errorList = [];
+        if(volName === '') errorList.push("Name");
+        if(mount === '') errorList.push("Mount path");
+        if(capacity === '') errorList.push("Capacity");
+
+        if(errorList.length > 0) this.volumeErrorNotification = "Please provide following details to configure additional volumes : " + errorList;
+        else {
+            if(nodeType === 'control') {
+                if(!this.apiClient.tkgsControlPlaneVolumes.has(volName)) {
+                    let mountCapacity = mount + ":" + capacity + "#" + storageClass;
+                    this.apiClient.tkgsControlPlaneVolumes.set(volName, mountCapacity);
+                    this.formGroup.get('tkgsControlVolumes').setValue(this.apiClient.tkgsControlPlaneVolumes);
+                    this.formGroup.get('newControlVolumeName').setValue('');
+                    this.formGroup.get('newControlMountPath').setValue('');
+                    this.formGroup.get('newControlCapacity').setValue('');
+                    this.formGroup.get('newControlStorageClass').setValue('');
+                } else {
+                    this.volumeErrorNotification = "Control plane volume configuration with the same name already exists!";
+                }
+            } else if(nodeType === 'worker') {
+                if(!this.apiClient.tkgsWorkerVolumes.has(volName)) {
+                    let mountCapacity = mount + ":" + capacity + "#" + storageClass;
+                    this.apiClient.tkgsWorkerVolumes.set(volName, mountCapacity);
+                    this.formGroup.get('tkgsWorkerVolumes').setValue(this.apiClient.tkgsWorkerVolumes);
+                    this.formGroup.get('newWorkerVolumeName').setValue('');
+                    this.formGroup.get('newWorkerMountPath').setValue('');
+                    this.formGroup.get('newWorkerCapacity').setValue('');
+                    this.formGroup.get('newWorkerStorageClass').setValue('');
+                } else {
+                    this.volumeErrorNotification = "Worker volume configuration with the same name already exists!";
+                }
+            }
+        }
+    }
 }

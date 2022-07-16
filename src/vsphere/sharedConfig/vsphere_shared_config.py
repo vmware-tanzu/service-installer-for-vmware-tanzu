@@ -11,33 +11,235 @@ from tqdm import tqdm
 import time
 import base64
 import json
+import ruamel
 from common.model.vsphereSpec import VsphereMasterSpec
 
 sys.path.append(".../")
+from vsphere.workloadConfig.vsphere_workload_config import getVipNetworkIpNetMask
 from common.operation.vcenter_operations import createResourcePool, create_folder, checkforIpAddress, getSi
-from common.operation.constants import ResourcePoolAndFolderName, Vcenter, CIDR, Env, PLAN, Sizing, Type, Tkg_version
+from common.operation.constants import ResourcePoolAndFolderName, Vcenter, CIDR, Env, PLAN, Sizing, Type, \
+    Tkg_version, Paths
 from common.operation.ShellHelper import runShellCommandAndReturnOutput, grabKubectlCommand, grabIpAddress, \
     verifyPodsAreRunning, grabPipeOutput, runShellCommandAndReturnOutputAsList, \
     runShellCommandAndReturnOutputAsListWithChangedDir, grabPipeOutputChagedDir, runShellCommandWithPolling, runProcess
-from common.operation.constants import SegmentsName, RegexPattern, Versions, AkoType, AppName, Extentions
+from common.operation.constants import SegmentsName, RegexPattern, Versions, AkoType, AppName, Extentions, Cloud
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from vmc.sharedConfig.shared_config import deployExtentions
 from common.common_utilities import preChecks, envCheck, checkSharedServiceProxyEnabled, \
     checkWorkloadProxyEnabled, enableProxy, checkAirGappedIsEnabled, grabPortFromUrl, grabHostFromUrl, \
     registerWithTmcOnSharedAndWorkload, deployCluster, registerTanzuObservability, registerTSM, getNetworkFolder, \
     downloadAndPushKubernetesOvaMarketPlace, isEnvTkgs_wcp, isEnvTkgs_ns, getKubeVersionFullName, getNetworkPathTMC, \
-    checkDataProtectionEnabled, enable_data_protection
+    checkDataProtectionEnabled, enable_data_protection, obtain_second_csrf, createClusterFolder
 from common.common_utilities import preChecks, envCheck, get_avi_version, checkSharedServiceProxyEnabled, \
     checkWorkloadProxyEnabled, enableProxy, checkAirGappedIsEnabled, grabPortFromUrl, grabHostFromUrl, \
     registerWithTmcOnSharedAndWorkload, deployCluster, registerTanzuObservability, registerTSM, getNetworkFolder, \
     checkTmcEnabled, createProxyCredentialsTMC, checkTmcRegister, checkEnableIdentityManagement, checkPinnipedInstalled, \
-    checkPinnipedServiceStatus, checkPinnipedDexServiceStatus, createRbacUsers
+    checkPinnipedServiceStatus, checkPinnipedDexServiceStatus, createRbacUsers, isAviHaEnabled
 
 from common.certificate_base64 import getBase64CertWriteToFile
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 vsphere_shared_config = Blueprint("vsphere_shared_config", __name__, static_folder="sharedConfig")
+
+
+def akoDeploymentConfigSharedCluster(shared_cluster_name):
+    env = envCheck()
+    if env[1] != 200:
+        current_app.logger.error("Wrong env provided " + env[0])
+        d = {
+            "responseType": "ERROR",
+            "msg": "Wrong env provided " + env[0],
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    env = env[0]
+    management_cluster = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents'][
+        'tkgMgmtClusterName']
+    commands = ["tanzu", "management-cluster", "kubeconfig", "get", management_cluster, "--admin"]
+    kubeContextCommand = grabKubectlCommand(commands, RegexPattern.SWITCH_CONTEXT_KUBECTL)
+    if kubeContextCommand is None:
+        current_app.logger.error("Failed to get switch to management cluster context command")
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to get switch to management cluster context command",
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    lisOfSwitchContextCommand = str(kubeContextCommand).split(" ")
+    status = runShellCommandAndReturnOutputAsList(lisOfSwitchContextCommand)
+    if status[1] != 0:
+        current_app.logger.error("Failed to get switch to management cluster context " + str(status[0]))
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to get switch to management cluster context " + str(status[0]),
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+
+    podRunninng_ako_main = ["kubectl", "get", "pods", "-A"]
+    podRunninng_ako_grep = ["grep", AppName.AKO]
+    time.sleep(30)
+    timer = 30
+    ako_pod_running = False
+    while timer < 600:
+        current_app.logger.info("Check AKO pods are running. Waited for " + str(timer) + "s retrying")
+        command_status_ako = grabPipeOutput(podRunninng_ako_main, podRunninng_ako_grep)
+        if command_status_ako[1] != 0:
+            time.sleep(30)
+            timer = timer + 30
+        else:
+            ako_pod_running = True
+            break
+    if not ako_pod_running:
+        current_app.logger.error("AKO pods are not running on waiting for 10m " + command_status_ako[0])
+        d = {
+            "responseType": "ERROR",
+            "msg": "AKO pods are not running on waiting for 10m " + str(command_status_ako[0]),
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+
+    current_app.logger.info("Checking if AKO Deployment Config already exists for Shared services cluster: " + shared_cluster_name)
+    command_main = ["kubectl", "get", "adc"]
+    command_grep = ["grep", "install-ako-for-shared-services-cluster"]
+    command_status_adc = grabPipeOutput(command_main, command_grep)
+    if command_status_adc[1] == 0:
+        current_app.logger.debug("Found an already existing AKO Deployment Config: "
+                                 "install-ako-for-shared-services-cluster")
+        command = ["kubectl", "delete", "adc", "install-ako-for-shared-services-cluster"]
+        status = runShellCommandAndReturnOutputAsList(command)
+        if status[1] != 0:
+            current_app.logger.error("Failed to delete an already present AKO Deployment config")
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to delete an already present AKO Deployment config",
+                "ERROR_CODE": 500
+            }
+            return jsonify(d), 500
+
+    if isAviHaEnabled(env):
+        avi_fqdn = request.get_json(force=True)['tkgComponentSpec']['aviComponents']['aviClusterFqdn']
+    else:
+        avi_fqdn = request.get_json(force=True)['tkgComponentSpec']['aviComponents']['aviController01Fqdn']
+    if avi_fqdn is None:
+        current_app.logger.error("Failed to get ip of avi controller")
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to get ip of avi controller",
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    try:
+        tkg_mgmt_data_pg = request.get_json(force=True)['tkgMgmtDataNetwork']['tkgMgmtDataNetworkName']
+        tkg_cluster_vip_name = request.get_json(force=True)['tkgComponentSpec']['tkgClusterVipNetwork']['tkgClusterVipNetworkName']
+    except Exception as e:
+        current_app.logger.error("One of the following values is not present in input file: "
+                                 "tkgMgmtDataNetworkName, tkgClusterVipNetworkName")
+        current_app.logger.error(str(e))
+        d = {
+            "responseType": "ERROR",
+            "msg": "One of the following values is not present in input file: tkgMgmtDataNetworkName, "
+                   "tkgClusterVipNetworkName",
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    csrf2 = obtain_second_csrf(avi_fqdn, env)
+    if csrf2 is None:
+        current_app.logger.error("Failed to get csrf from new set password")
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to get csrf from new set password",
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    aviVersion = get_avi_version(env)
+    tkg_mgmt_data_netmask = getVipNetworkIpNetMask(avi_fqdn, csrf2, tkg_mgmt_data_pg, aviVersion)
+    if tkg_mgmt_data_netmask[0] is None or tkg_mgmt_data_netmask[0] == "NOT_FOUND":
+        current_app.logger.error("Failed to get TKG Management Data netmask")
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to get TKG Management Data netmask",
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    tkg_cluster_vip_netmask = getVipNetworkIpNetMask(avi_fqdn, csrf2, tkg_cluster_vip_name, aviVersion)
+    if tkg_cluster_vip_netmask[0] is None or tkg_cluster_vip_netmask[0] == "NOT_FOUND":
+        current_app.logger.error("Failed to get Cluster VIP netmask")
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to get Cluster VIP netmask",
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    current_app.logger.info("Creating AKODeploymentConfig for shared services cluster...")
+    createAkoFile(avi_fqdn, shared_cluster_name, tkg_mgmt_data_netmask[0], tkg_mgmt_data_pg, env)
+    yaml_file_path = Paths.CLUSTER_PATH + shared_cluster_name + "/tkgvsphere-ako-shared-services-cluster.yaml"
+    listOfCommand = ["kubectl", "create", "-f", yaml_file_path]
+    status = runShellCommandAndReturnOutputAsList(listOfCommand)
+    if status[1] != 0:
+        if not str(status[0]).__contains__("already has a value"):
+            current_app.logger.error("Failed to apply ako" + str(status[0]))
+            d = {
+                "responseType": "ERROR",
+                "msg": "Failed to create new AkoDeploymentConfig " + str(status[0]),
+                "ERROR_CODE": 500
+            }
+            return jsonify(d), 500
+    current_app.logger.info("Successfully created a new AkoDeploymentConfig for shared services cluster")
+    d = {
+        "responseType": "SUCCESS",
+        "msg": "Successfully validated running status for AKO",
+        "ERROR_CODE": 200
+    }
+    return jsonify(d), 200
+    # Step: create shared cluster
+    # Step: Label cluster
+    # Step: check ako running status
+    # Do we need to check the cloud status here as well?
+
+
+def createAkoFile(ip, shared_cluster_name, tkgMgmtDataVipCidr, tkgMgmtDataPg, env):
+    if checkAirGappedIsEnabled(env):
+        air_gapped_repo = str(
+            request.get_json(force=True)['envSpec']['customRepositorySpec']['tkgCustomImageRepository'])
+        air_gapped_repo = air_gapped_repo.replace("https://", "").replace("http://", "")
+        repository = air_gapped_repo + '/ako'
+    else:
+        repository = 'projects.registry.vmware.com/tkg/ako'
+
+    data = dict(
+        apiVersion='networking.tkg.tanzu.vmware.com/v1alpha1',
+        kind='AKODeploymentConfig',
+        metadata=dict(
+            finalizers=['ako-operator.networking.tkg.tanzu.vmware.com'],
+            generation=1,
+            name='install-ako-for-shared-services-cluster',
+        ),
+        spec=dict(
+            adminCredentialRef=dict(
+                name='avi-controller-credentials',
+                namespace='tkg-system-networking'),
+            certificateAuthorityRef=dict(
+                name='avi-controller-ca',
+                namespace='tkg-system-networking'
+            ),
+            cloudName=Cloud.CLOUD_NAME_VSPHERE,
+            clusterSelector=dict(
+                matchLabels=dict(
+                    type=AkoType.SHARED_CLUSTER_SELECTOR
+                )
+            ),
+            controller=ip,
+            dataNetwork=dict(cidr=tkgMgmtDataVipCidr, name=tkgMgmtDataPg),
+            extraConfigs=dict(ingress=dict(defaultIngressController=False, disableIngressClass=True)),
+            serviceEngineGroup=Cloud.SE_GROUP_NAME_VSPHERE
+        )
+    )
+    with open(Paths.CLUSTER_PATH + shared_cluster_name + '/tkgvsphere-ako-shared-services-cluster.yaml', 'w') as outfile:
+        yaml = ruamel.yaml.YAML()
+        yaml.indent(mapping=2, sequence=4, offset=3)
+        yaml.dump(data, outfile)
 
 
 @vsphere_shared_config.route("/api/tanzu/vsphere/tkgsharedsvc", methods=['POST'])
@@ -228,10 +430,10 @@ def deploy():
             machineCount = request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents'][
                 'tkgSharedserviceWorkerMachineCount']
     else:
-        current_app.logger.error("Un supported control plan provided please specify prod or dev " + cluster_plan)
+        current_app.logger.error("Unsupported control plan provided please specify PROD or DEV " + cluster_plan)
         d = {
             "responseType": "ERROR",
-            "msg": "Un supported control plan provided please specify prod or dev " + cluster_plan,
+            "msg": "Unsupported control plan provided please specify PROD or DEV " + cluster_plan,
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
@@ -239,7 +441,10 @@ def deploy():
         size = str(request.get_json(force=True)['tkgComponentSpec']['tkgMgmtComponents']['tkgSharedserviceSize'])
     else:
         size = str(request.get_json(force=True)['tkgComponentSpec']['tkgSharedserviceSpec']['tkgSharedserviceSize'])
-    if size.lower() == "large":
+    if size.lower() == "small":
+        current_app.logger.debug("Recommended size for shared services cluster is: medium/large/extra-large/custom")
+        pass
+    elif size.lower() == "large":
         pass
     elif size.lower() == "medium":
         pass
@@ -248,14 +453,20 @@ def deploy():
     elif size.lower() == "custom":
         pass
     else:
-        current_app.logger.error("Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom")
+        current_app.logger.error("Provided cluster size: " + size + "is not supported, please provide one of: "
+                                                                    "small/medium/large/extra-large/custom")
         d = {
             "responseType": "ERROR",
-            "msg": "Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom",
+            "msg": "Provided cluster size: " + size + "is not supported, please provide one of: "
+                                                      "small/medium/large/extra-large/custom",
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
-    if size.lower() == "medium":
+    if size.lower() == "small":
+        cpu = Sizing.small['CPU']
+        memory = Sizing.small['MEMORY']
+        disk = Sizing.small['DISK']
+    elif size.lower() == "medium":
         cpu = Sizing.medium['CPU']
         memory = Sizing.medium['MEMORY']
         disk = Sizing.medium['DISK']
@@ -285,10 +496,12 @@ def deploy():
                 'tkgSharedserviceMemorySize']
             memory = str(int(control_plane_mem_gb) * 1024)
     else:
-        current_app.logger.error("Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom")
+        current_app.logger.error("Provided cluster size: " + size + "is not supported, please provide one of: "
+                                                                    "small/medium/large/extra-large/custom")
         d = {
             "responseType": "ERROR",
-            "msg": "Provided cluster size: " + size + "is not supported, please provide one of: medium/large/extra-large/custom",
+            "msg": "Provided cluster size: " + size + "is not supported, please provide one of: "
+                                                      "small/medium/large/extra-large/custom",
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
@@ -319,6 +532,15 @@ def deploy():
             "ERROR_CODE": 500
         }
         return jsonify(d), 500
+
+    if not createClusterFolder(shared_cluster_name):
+        d = {
+            "responseType": "ERROR",
+            "msg": "Failed to create directory: " + Paths.CLUSTER_PATH + shared_cluster_name,
+            "ERROR_CODE": 500
+        }
+        return jsonify(d), 500
+    current_app.logger.info("The config files for shared services cluster will be located at: " + Paths.CLUSTER_PATH + shared_cluster_name)
     if Tkg_version.TKG_VERSION == "1.5" and checkTmcEnabled(env):
         if env == Env.VCF:
             clusterGroup = request.get_json(force=True)['tkgComponentSpec']["tkgSharedserviceSpec"]['tkgSharedserviceClusterGroupName']
@@ -423,7 +645,17 @@ def deploy():
     isCheck = False
     if command_status[0] is None:
         if Tkg_version.TKG_VERSION == "1.5" and checkTmcEnabled(env):
-            current_app.logger.info("Deploying shared cluster")
+            current_app.logger.info("Creating AkoDeploymentConfig for shared services cluster")
+            ako_deployment_config_status = akoDeploymentConfigSharedCluster(shared_cluster_name)
+            if ako_deployment_config_status[1] != 200:
+                current_app.logger.info("Failed to create AKO Deployment Config for shared services cluster")
+                d = {
+                    "responseType": "SUCCESS",
+                    "msg": ako_deployment_config_status[0].json['msg'],
+                    "ERROR_CODE": 500
+                }
+                return jsonify(d), 500
+            current_app.logger.info("Deploying shared cluster...")
             command_status = runShellCommandAndReturnOutputAsList(createSharedCluster)
             if command_status[1] != 0:
                 current_app.logger.error("Failed to run command to create shared cluster " + str(command_status[0]))
@@ -439,6 +671,16 @@ def deploy():
         if not verifyPodsAreRunning(shared_cluster_name, command_status[0], RegexPattern.running):
             isCheck = True
             if not checkTmcEnabled(env):
+                current_app.logger.info("Creating AkoDeploymentConfig for shared services cluster")
+                ako_deployment_config_status = akoDeploymentConfigSharedCluster(shared_cluster_name)
+                if ako_deployment_config_status[1] != 200:
+                    current_app.logger.info("Failed to create AKO Deployment Config for shared services cluster")
+                    d = {
+                        "responseType": "SUCCESS",
+                        "msg": ako_deployment_config_status[0].json['msg'],
+                        "ERROR_CODE": 500
+                    }
+                    return jsonify(d), 500
                 current_app.logger.info("Deploying shared cluster using tanzu 1.5")
                 deploy_status = deployCluster(shared_cluster_name, cluster_plan,
                                               data_center, data_store, shared_folder_path, shared_network_path,
@@ -455,6 +697,16 @@ def deploy():
                     return jsonify(d), 500
             else:
                 if checkTmcEnabled(env):
+                    current_app.logger.info("Creating AkoDeploymentConfig for shared services cluster")
+                    ako_deployment_config_status = akoDeploymentConfigSharedCluster(shared_cluster_name)
+                    if ako_deployment_config_status[1] != 200:
+                        current_app.logger.info("Failed to create AKO Deployment Config for shared services cluster")
+                        d = {
+                            "responseType": "SUCCESS",
+                            "msg": ako_deployment_config_status[0].json['msg'],
+                            "ERROR_CODE": 500
+                        }
+                        return jsonify(d), 500
                     current_app.logger.info("Deploying shared cluster, after verification using tmc")
                     command_status_v = runShellCommandAndReturnOutputAsList(createSharedCluster)
                     if command_status_v[1] != 0:
@@ -542,7 +794,7 @@ def deploy():
                 }
                 return jsonify(d), 500
             lisOfCommand = ["kubectl", "label", "cluster",
-                            shared_cluster_name, AkoType.KEY + "=" + AkoType.VALUE, "--overwrite=true"]
+                            shared_cluster_name, AkoType.KEY + "=" + AkoType.SHARED_CLUSTER_SELECTOR, "--overwrite=true"]
             status = runShellCommandAndReturnOutputAsList(lisOfCommand)
             if status[1] != 0:
                 if not str(status[0]).__contains__("already has a value"):
@@ -635,16 +887,16 @@ def deploy():
                 current_app.logger.info("Successfully created RBAC for all the provided users")
             else:
                 current_app.logger.info("Identity Management is not enabled")
-            podRunninng_ako_main = ["kubectl", "get", "pods", "-A"]
-            podRunninng_ako_grep = ["grep", AppName.AKO]
-            count_ako = 0
+
+            current_app.logger.info("Verifying if AKO pods are running...")
+            podRunninng_ako_main = ["kubectl", "get", "pods", "-n", "avi-system"]
+            podRunninng_ako_grep = ["grep", "ako-0"]
             command_status_ako = grabPipeOutput(podRunninng_ako_main, podRunninng_ako_grep)
+            count_ako = 0
             found = False
             if verifyPodsAreRunning(AppName.AKO, command_status_ako[0], RegexPattern.RUNNING):
                 found = True
-
-            while not verifyPodsAreRunning(AppName.AKO, command_status_ako[0],
-                                           RegexPattern.RUNNING) and count_ako < 20:
+            while not verifyPodsAreRunning(AppName.AKO, command_status_ako[0], RegexPattern.RUNNING) and count_ako < 20:
                 command_status = grabPipeOutput(podRunninng_ako_main, podRunninng_ako_grep)
                 if verifyPodsAreRunning(AppName.AKO, command_status[0], RegexPattern.RUNNING):
                     found = True

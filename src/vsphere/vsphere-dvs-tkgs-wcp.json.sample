@@ -27,10 +27,21 @@
          "dnsServersIp":"1.2.3.4",
          "searchDomains":"xx.xx",
          "ntpServers":"time.xx.com"
+      },
+      "proxySpec":{
+               "tkgServiceConfig":{
+                  "enableProxy":"false",
+                  "proxyCert": "",
+                  "isCaCertPath": "",
+                  "httpProxy":"http://<fqdn/ip>:<port>",
+                  "httpsProxy":"https://<fqdn/ip>:<port>",
+                  "noProxy":"vcenter.xx.xx,172.x.x.x"
+               }
       }
    },
    "tkgsComponentSpec":{
       "controlPlaneSize":"SMALL",
+      "defaultCNI": "antrea",
       "aviMgmtNetwork":{
          "aviMgmtNetworkName":"NSX-ALB-Mgmt",
          "aviMgmtNetworkGatewayCidr":"11.12.14.15/24",
@@ -81,6 +92,20 @@
          "tkgsWorkloadDnsServers":"1.2.3.4",
          "tkgsWorkloadNtpServers":"time.xx.com",
          "tkgsWorkloadServiceCidr":"10.96.0.0/22"
-      }
+      },
+          'tkgServiceConfig': {
+              'proxySpec': {
+                  'enableProxy': '',
+                  'httpProxy': '',
+                  'httpsProxy': '',
+                  'noProxy': '',
+                  'proxyCert': ''
+              },
+              'defaultCNI': '',
+              'additionalTrustedCAs': {
+                  'paths': '',
+                  'endpointUrls': ''
+              }
+          }
    }
 }

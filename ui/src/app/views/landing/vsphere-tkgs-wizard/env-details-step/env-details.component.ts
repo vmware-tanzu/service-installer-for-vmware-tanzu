@@ -126,6 +126,7 @@ export class EnvDetailsComponent extends StepFormDirective implements OnInit {
                 });
         });
         this.formGroup['canMoveToNext'] = () => {
+            // return true;
             this.apiClient.vcAddress = this.formGroup.get('vcenterAddress').value;
             this.apiClient.vcUser = this.formGroup.get('username').value;
             this.apiClient.vcPass = this.formGroup.get('password').value;
@@ -179,21 +180,21 @@ export class EnvDetailsComponent extends StepFormDirective implements OnInit {
         this.getSSLThumbprint(this.vsphereHost);
         // this.getStoragePolicy();
         // Remove from 133 to 144
-//         this.thumbprint = 'XYXYXYXYXYXYX';
-//         FormMetaDataStore.deleteMetaDataEntry('vsphereProviderForm', 'thumbprint');
-//         this.formGroup.controls['thumbprint'].setValue(this.thumbprint);
-//         FormMetaDataStore.saveMetaDataEntry(this.formName, 'thumbprint', {
-//             label: 'SSL THUMBPRINT',
-//             displayValue: this.thumbprint,
-//         });
-//         this.sslThumbprintModal.open();
-//         this.dumyFormFields();
-//         this.errorNotification = '';
-//         this.enableAllFormFields();
-//         this.connected = true;
-//         if (this.uploadStatus) {
-//             this.validateResourceGroupData();
-//         }
+        // this.thumbprint = 'XYXYXYXYXYXYX';
+        // FormMetaDataStore.deleteMetaDataEntry('vsphereProviderForm', 'thumbprint');
+        // this.formGroup.controls['thumbprint'].setValue(this.thumbprint);
+        // FormMetaDataStore.saveMetaDataEntry(this.formName, 'thumbprint', {
+        //     label: 'SSL THUMBPRINT',
+        //     displayValue: this.thumbprint,
+        // });
+        // this.sslThumbprintModal.open();
+        // this.dumyFormFields();
+        // this.errorNotification = '';
+        // this.enableAllFormFields();
+        // this.connected = true;
+        // if (this.uploadStatus) {
+        //     this.validateResourceGroupData();
+        // }
     }
 
     validateResourceGroupData() {

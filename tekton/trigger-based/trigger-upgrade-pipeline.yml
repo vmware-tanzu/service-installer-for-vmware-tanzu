@@ -1,0 +1,126 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: trigger-upgrade-pipeline
+spec:
+  description: >-
+    The Pipline to capture git event and trigger tasks
+
+  workspaces:
+    - name: pipeline-shared-data
+
+  params:
+    - name: imagename
+      description: "The image location"
+      default: "UPDATE IMAGE LOCATION"
+    - name: giturl
+      description: The full http git path
+      default: "UPDATE FULL GIT PATH OF REPOSITORY"
+    - name: branch
+      description: the branch to clone from. By default, it is set to master.
+      default: repave
+    - name: message
+      description: The commit message
+    - name: imagepullpolicy
+      description: imagepullpolicy for operand image("Always", "IfNotPresent", "Never")
+  tasks:
+    - name: start-prep-workspace
+      taskRef:
+        name: git-pvtclone
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: giturl
+          value: "$(params.giturl)"
+        - name: branch
+          value: "$(params.branch)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+    - name: start-mgmt-upgrade
+      when:
+        - input: "$(params.message)"
+          operator: in
+          values:  [ "exec_upgrade" ]
+      taskRef:
+        name: dind-mgmt-upgrade
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+      runAfter:
+          - start-prep-workspace
+
+    - name: start-shared-upgrade
+      when:
+        - input: "$(params.message)"
+          operator: in
+          values:  [ "exec_upgrade" ]
+      taskRef:
+          name: dind-shared-upgrade
+      workspaces:
+          - name: task-shared-data
+            workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: $(params.imagename)
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+      runAfter:
+          - start-mgmt-upgrade
+
+    - name: dind-workload-upgrade
+      when:
+        - input: "$(params.message)"
+          operator: in
+          values:  [ "exec_upgrade" ]
+      taskRef:
+          name: dind-workload-upgrade
+      workspaces:
+          - name: task-shared-data
+            workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: $(params.imagename)
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+      runAfter:
+          -  start-shared-upgrade
+
+    - name: exec-scale
+      when:
+        - input: "$(params.message)"
+          operator: in
+          values:  [ "exec_scale" ]
+      taskRef:
+          name: scale-cluster-task
+      workspaces:
+          - name: task-shared-data
+            workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: $(params.imagename)
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+
+    - name: exec-repave
+      when:
+        - input: "$(params.message)"
+          operator: in
+          values:  [ "exec_repave" ]
+      taskRef:
+          name: repave-cluster-task
+      workspaces:
+          - name: task-shared-data
+            workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: $(params.imagename)
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"

@@ -215,6 +215,7 @@ export class TanzuSaasStepComponent extends StepFormDirective implements OnInit 
         } else {
             this.apiClient.tmcEnabled = false;
             this.apiClient.toEnabled = false;
+            this.apiClient.wrkDataProtectionEnabled = false;
             tmcSettingsFields.forEach((field) => {
                 this.disarmField(field, true);
             });

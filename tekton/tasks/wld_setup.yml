@@ -8,10 +8,12 @@ spec:
   params:
     - name: imagename
       description: the operand image
-
+    - name: imagepullpolicy
+      description: imagepullpolicy for operand image("Always", "IfNotPresent", "Never")
   steps:
     - image: $(params.imagename)
       name: step-wld-cluster-setup
+      imagePullPolicy: $(params.imagepullpolicy)
       env:
       # Connect to the sidecar over TCP, with TLS.
       - name: DOCKER_HOST
@@ -37,6 +39,9 @@ spec:
           echo -e "\n====== /root/.config/tanzu/config.yaml  \n"
           cat /root/.config/tanzu/config.yaml
           python arcas-tekton-cicd/scripts/__main__.py --root-dir=/workspace/task-shared-data workload-clusters deploy
+          cp -rf /root/.kube /workspace/task-shared-data/kubeconfig-repo/
+          cp -rf /root/.kube-tkg /workspace/task-shared-data/kubeconfig-repo/
+          cp -rf /root/.config /workspace/task-shared-data/kubeconfig-repo/
       volumeMounts:
       - mountPath: /certs/client
         name: dind-certs
@@ -44,6 +49,7 @@ spec:
   sidecars:
     - image: docker:dind
       name: wldserver
+      imagePullPolicy: $(params.imagepullpolicy)
       args:
         - --storage-driver=vfs
         - --userland-proxy=false

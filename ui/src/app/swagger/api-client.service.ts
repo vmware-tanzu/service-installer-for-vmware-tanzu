@@ -8,9 +8,11 @@ import {ApiEndPoint} from 'src/app/configs/api-endpoint.config';
 })
 export class APIClient {
 
-    // Kubernetes Base OS Image
+    // KUBERNETES BASE IMAGE SUPPORTED VERSIONS
     public baseImage = ['photon', 'ubuntu'];
-    public baseImageVersion = ['v1.22.8', 'v1.21.11', 'v1.20.15'];
+    public baseImageVersion = ['v1.22.9', 'v1.21.11', 'v1.20.15'];
+    public AllSupportedCNI = ['antrea', 'calico'];
+    public TkgsCertTypes = ['Path', 'Endpoint'];
     public sharedBaseImageVersion = [];
     public wrkBaseImageVersion = [];
 
@@ -65,6 +67,10 @@ export class APIClient {
     public allowedStoragePolicy = [];
     public selectedVmClass = [];
     public storagePolicy: Map<string, string> = new Map<string, string>();
+    // CONFIGURE ADDITIONAL VOLUMES FOR TKGS
+    public tkgsControlPlaneVolumes: Map<string, string> = new Map<string, string>();
+    public tkgsWorkerVolumes: Map<string, string> = new Map<string, string>();
+    public tkgsAdditionalCerts: Map<string, string> = new Map<string, string>();
 
     public proxyConfiguredVsphere = false;
     public proxyConfiguredVCF = false;
@@ -86,16 +92,22 @@ export class APIClient {
     public dataProtectionCredentials = [];
     public dataProtectionTargetLocations = [];
 
+    // VCENTER DETAILS
     public vcAddress;
     public vcUser;
     public vcPass;
     public fetchNamespaceStorageSpec = false;
-
+    // CHECK CLUSTER VERSION MISMATCH
     public clusterVersionMismatch = false;
-
+    // IDENTITY MANAGEMENT FIELDS
     public enableIdentityManagement = false;
     public rbacUsersAccess: Map<string, string> = new Map<string, string>();
     public rbacAccessLevel = ['cluster-admin', 'admin', 'edit', 'view'];
+
+    //CHECKING IF SHARED AND WORKLOAD CLUSTER FIELDS ARE TO BE MADE MANDATORY
+    sharedServicesClusterSettings = false;
+    workloadClusterSettings = false;
+    workloadDataSettings = false;
 
     constructor(private apiHandlerService: ApiHandlerService){
         this.apiEndPointConfig = new ApiEndPoint();
@@ -118,7 +130,7 @@ export class APIClient {
         return this.apiHandlerService.post(url, payload);
     }
 
-    enableArcasProxy(httpProxy, httpsProxy, noProxy, env) {
+    enableArcasProxy(httpProxy, httpsProxy, noProxy, proxyCert, env) {
         let payload = {
             "envSpec": {
                 "proxySpec": {
@@ -126,7 +138,8 @@ export class APIClient {
                         "enableProxy": "true",
                         "httpProxy": httpProxy,
                         "httpsProxy": httpsProxy,
-                        "noProxy": noProxy
+                        "noProxy": noProxy,
+                        "proxyCert": proxyCert
                     }
                 }
             }

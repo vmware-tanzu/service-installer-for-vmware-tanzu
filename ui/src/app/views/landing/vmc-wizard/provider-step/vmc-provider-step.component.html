@@ -178,6 +178,35 @@
     </ng-container>
     <br>
 
+    <h4 aria-level="2">CEIP Participation </h4>
+    <div class="clr-row">
+        <div class="clr-col-12">
+            <clr-toggle-container [attr.data-step-metadata]="formName">
+                <clr-toggle-wrapper>
+                    <input
+                            type="checkbox"
+                            clrToggle
+                            id="isCeipEnabled"
+                            name="isCeipEnabled"
+                            formControlName="isCeipEnabled"
+                            aria-describedby="tmcSettings-helper"/>
+                    <label>
+                        Enable CEIP Participation
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    VMware’s Customer Experience Improvement Program (CEIP) is a voluntary program that collects information about how people use our products.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                </clr-toggle-wrapper>
+            </clr-toggle-container>
+        </div>
+    </div>
+
+    <br>
     <h4 aria-level="2">VMC </h4>
 
     <div class="clr-row">

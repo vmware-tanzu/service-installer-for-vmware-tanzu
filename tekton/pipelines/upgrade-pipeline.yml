@@ -19,7 +19,8 @@ spec:
       default: alpha
     - name: targetcluster
       description: The targetted cluster
-
+    - name: imagepullpolicy
+      description: imagepullpolicy for operand image("Always", "IfNotPresent", "Never")
   tasks:
     - name: start-prep-workspace
       taskRef:
@@ -34,6 +35,8 @@ spec:
           value: "$(params.giturl)"
         - name: branch
           value: "$(params.branch)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
 
     - name: start-mgmt-upgrade-only
       when:
@@ -48,6 +51,8 @@ spec:
       params:
         - name: imagename
           value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
       runAfter:
           - start-prep-workspace
 
@@ -64,6 +69,8 @@ spec:
       params:
         - name: imagename
           value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
       runAfter:
           - start-prep-workspace
 
@@ -80,6 +87,8 @@ spec:
       params:
         - name: imagename
           value: $(params.imagename)
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
       runAfter:
           - start-mgmt-upgrade-all
 
@@ -96,6 +105,8 @@ spec:
       params:
         - name: imagename
           value: $(params.imagename)
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
 
       runAfter:
           -  start-shared-upgrade

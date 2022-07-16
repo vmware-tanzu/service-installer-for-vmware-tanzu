@@ -50,8 +50,8 @@ export abstract class WizardBaseDirective extends BasicSubscriber implements Aft
     nsxtSteps = [true, false, false, false, false, false, false, false, false, false, false, false, false, false];
 //     nsxtSteps = [true, false, false, false, false, false, false, false, false, false, false, false];
     vsphereTkgsSteps = [true, false, false, false, false, false, false, false, false, false, false, false];
-    vsphereTkgsWcpSteps = [true, false, false, false, false, false, false, false, false, false];
-    vsphereTkgsNamespaceSteps = [true, false, false, false, false, false, false];
+    vsphereTkgsWcpSteps = [true, false, false, false, false, false, false, false, false, false, false];
+    vsphereTkgsNamespaceSteps = [true, false, false, false, false, false, false, false];
     review = false;
     uploadStatus: boolean;
     subscription: Subscription;
@@ -238,6 +238,8 @@ export abstract class WizardBaseDirective extends BasicSubscriber implements Aft
             this.getFieldValue('vsphereInfraDetailsForm', 'httpsProxyPassword'));
         this.dataService.changeArcasNoProxy(
             this.getFieldValue('vsphereInfraDetailsForm', 'noProxy'));
+        this.dataService.changeArcasProxyCert(
+            this.getFieldValue('vsphereInfraDetailsForm', 'proxyCert'));
     }
 
 
@@ -328,7 +330,9 @@ export abstract class WizardBaseDirective extends BasicSubscriber implements Aft
             this.getFieldValue('vsphereInfraDetailsForm', 'httpsProxyPassword'));
         this.nsxtDataService.changeArcasNoProxy(
             this.getFieldValue('vsphereInfraDetailsForm', 'noProxy'));
-    }
+            this.nsxtDataService.changeArcasProxyCert(
+                this.getFieldValue('vsphereInfraDetailsForm', 'proxyCert'));
+        }
 
     vSphereProviderNextStep() {
 //         this.dataService.changeIsAirgapped(this.getBooleanFieldValue('vsphereProviderForm', 'airgapped'));
@@ -407,24 +411,36 @@ export abstract class WizardBaseDirective extends BasicSubscriber implements Aft
                 this.apiClient.mgmtSegmentError = false;
                 this.form.get('vmcMgmtNodeSettingForm').get('segmentName').setValue(mgmtSegment);
             }
-            let grpName;
-            this.vmcDataService.currentSharedClusterGroupName.subscribe((grp) => grpName = grp);
-            if (this.apiClient.clusterGroups.indexOf(grpName) !== -1) {
-                this.form.get('vmcSharedServiceNodeSettingForm').get('clusterGroupName').setValue(grpName);
-            }
-            if (this.apiClient.tmcEnabled && this.apiClient.sharedDataProtectonEnabled) {
-                let cred;
-                let targetLocation;
-                this.form.get('vmcSharedServiceNodeSettingForm').get('enableDataProtection').setValue(true);
+            if (!this.apiClient.sharedServicesClusterSettings){
+                this.form.get('vmcSharedServiceNodeSettingForm').get('sharedServicesClusterSettings').setValue(false);
+            } else {
+                this.form.get('vmcSharedServiceNodeSettingForm').get('sharedServicesClusterSettings').setValue(true);
+                let grpName;
+                this.vmcDataService.currentSharedClusterGroupName.subscribe((grp) => grpName = grp);
+                if (this.apiClient.clusterGroups.indexOf(grpName) !== -1) {
+                    this.form.get('vmcSharedServiceNodeSettingForm').get('clusterGroupName').setValue(grpName);
+                }
+                if (this.apiClient.tmcEnabled && this.apiClient.sharedDataProtectonEnabled) {
+                    let cred;
+                    let targetLocation;
+                    this.form.get('vmcSharedServiceNodeSettingForm').get('enableDataProtection').setValue(true);
 
-                this.vmcDataService.currentSharedDataProtectionCreds.subscribe((creds) => cred = creds);
-                if(this.apiClient.dataProtectionCredentials.indexOf(cred) !== -1) {
-                    this.form.get('vmcSharedServiceNodeSettingForm').get('veleroCredential').setValue(cred);
+                    this.vmcDataService.currentSharedDataProtectionCreds.subscribe((creds) => cred = creds);
+                    if(this.apiClient.dataProtectionCredentials.indexOf(cred) !== -1) {
+                        this.form.get('vmcSharedServiceNodeSettingForm').get('veleroCredential').setValue(cred);
+                    }
+                    this.vmcDataService.currentSharedDataProtectionTargetLocation.subscribe((loc) => targetLocation = loc);
+                    if(this.apiClient.dataProtectionTargetLocations.indexOf(targetLocation) !== -1) {
+                        this.form.get('vmcSharedServiceNodeSettingForm').get('veleroTargetLocation').setValue(targetLocation);
+                    }
                 }
-                this.vmcDataService.currentSharedDataProtectionTargetLocation.subscribe((loc) => targetLocation = loc);
-                if(this.apiClient.dataProtectionTargetLocations.indexOf(targetLocation) !== -1) {
-                    this.form.get('vmcSharedServiceNodeSettingForm').get('veleroTargetLocation').setValue(targetLocation);
-                }
+            }
+            if (!this.apiClient.workloadDataSettings){
+                this.form.get('vmcTKGWorkloadDataNWForm').get('workloadClusterSettings').setValue(false);
+                this.form.get('vmcWorkloadNodeSettingForm').get('workloadClusterSettings').setValue(false);
+            } else {
+                this.form.get('vmcTKGWorkloadDataNWForm').get('workloadClusterSettings').setValue(true);
+                this.form.get('vmcWorkloadNodeSettingForm').get('workloadClusterSettings').setValue(true);
             }
         }
         this.onNextStep();
@@ -435,7 +451,9 @@ export abstract class WizardBaseDirective extends BasicSubscriber implements Aft
         this.vmcDataService.changeSharedClusterName(sharedCluster);
         const wrkCluster = this.getFieldValue('vmcWorkloadNodeSettingForm', 'clusterName');
         this.vmcDataService.changeWrkClusterName(wrkCluster);
-        this.apiClient.allClusters = [sharedCluster, wrkCluster];
+        this.apiClient.allClusters = [];
+        if (sharedCluster !== "") this.apiClient.allClusters.push(sharedCluster);
+        if (wrkCluster !== "") this.apiClient.allClusters.push(wrkCluster);
         let enableTanzuExtension;
         this.vmcDataService.currentEnableTanzuExtension.subscribe((enableExtension) => enableTanzuExtension = enableExtension);
         let tkgCluster;
@@ -527,31 +545,43 @@ export abstract class WizardBaseDirective extends BasicSubscriber implements Aft
     }
     onMgmtNextClick() {
         if (this.uploadStatus) {
-            let tkgWrkDataSegment;
-            this.dataService.currentTkgWrkDataSegment.subscribe((segmentName) => tkgWrkDataSegment = segmentName);
-            if (this.apiClient.networks.indexOf(tkgWrkDataSegment) === -1) {
-                this.apiClient.tkgWrkDataSegmentError = true;
+            if (!this.apiClient.workloadDataSettings){
+                this.form.get('TKGWorkloadDataNWForm').get('workloadClusterSettings').setValue(false);
             } else {
-                this.apiClient.tkgWrkDataSegmentError = false;
-                this.form.get('TKGWorkloadDataNWForm').get('TKGDataSegmentName').setValue(tkgWrkDataSegment);
-            }
-            let grpName;
-            this.dataService.currentSharedClusterGroupName.subscribe((grp) => grpName = grp);
-            if (this.apiClient.clusterGroups.indexOf(grpName) !== -1) {
-                this.form.get('vsphereSharedServiceNodeSettingForm').get('clusterGroupName').setValue(grpName);
-            }
-            if (this.apiClient.tmcEnabled && this.apiClient.sharedDataProtectonEnabled) {
-                let cred;
-                let targetLocation;
-                this.form.get('vsphereSharedServiceNodeSettingForm').get('enableDataProtection').setValue(true);
+                this.form.get('TKGWorkloadDataNWForm').get('workloadClusterSettings').setValue(true);
+                let tkgWrkDataSegment;
+                this.dataService.currentTkgWrkDataSegment.subscribe((segmentName) => tkgWrkDataSegment = segmentName);
 
-                this.dataService.currentSharedDataProtectionCreds.subscribe((creds) => cred = creds);
-                if(this.apiClient.dataProtectionCredentials.indexOf(cred) !== -1) {
-                    this.form.get('vsphereSharedServiceNodeSettingForm').get('veleroCredential').setValue(cred);
+                if (this.apiClient.networks.indexOf(tkgWrkDataSegment) === -1) {
+                    this.apiClient.tkgWrkDataSegmentError = true;
+                } else {
+                    this.apiClient.tkgWrkDataSegmentError = false;
+                    this.form.get('TKGWorkloadDataNWForm').get('TKGDataSegmentName').setValue(tkgWrkDataSegment);
                 }
-                this.dataService.currentSharedDataProtectionTargetLocation.subscribe((loc) => targetLocation = loc);
-                if(this.apiClient.dataProtectionTargetLocations.indexOf(targetLocation) !== -1) {
-                    this.form.get('vsphereSharedServiceNodeSettingForm').get('veleroTargetLocation').setValue(targetLocation);
+            }
+
+            if (!this.apiClient.sharedServicesClusterSettings){
+                this.form.get('vsphereSharedServiceNodeSettingForm').get('sharedServicesClusterSettings').setValue(false);
+            } else {
+                this.form.get('vsphereSharedServiceNodeSettingForm').get('sharedServicesClusterSettings').setValue(true);
+                let grpName;
+                this.dataService.currentSharedClusterGroupName.subscribe((grp) => grpName = grp);
+                if (this.apiClient.clusterGroups.indexOf(grpName) !== -1) {
+                    this.form.get('vsphereSharedServiceNodeSettingForm').get('clusterGroupName').setValue(grpName);
+                }
+                if (this.apiClient.tmcEnabled && this.apiClient.sharedDataProtectonEnabled) {
+                    let cred;
+                    let targetLocation;
+                    this.form.get('vsphereSharedServiceNodeSettingForm').get('enableDataProtection').setValue(true);
+
+                    this.dataService.currentSharedDataProtectionCreds.subscribe((creds) => cred = creds);
+                    if(this.apiClient.dataProtectionCredentials.indexOf(cred) !== -1) {
+                        this.form.get('vsphereSharedServiceNodeSettingForm').get('veleroCredential').setValue(cred);
+                    }
+                    this.dataService.currentSharedDataProtectionTargetLocation.subscribe((loc) => targetLocation = loc);
+                    if(this.apiClient.dataProtectionTargetLocations.indexOf(targetLocation) !== -1) {
+                        this.form.get('vsphereSharedServiceNodeSettingForm').get('veleroTargetLocation').setValue(targetLocation);
+                    }
                 }
             }
         }
@@ -560,32 +590,37 @@ export abstract class WizardBaseDirective extends BasicSubscriber implements Aft
 
     onTkgWrkDataNextClick() {
         if (this.uploadStatus) {
-            let wrkSegment;
-            this.dataService.currentWrkSegment.subscribe((segmentName) => wrkSegment = segmentName);
-            if (this.apiClient.networks.indexOf(wrkSegment) === -1) {
-                this.apiClient.wrkSegmentError = true;
+            if (!this.apiClient.workloadClusterSettings){
+                this.form.get('vsphereWorkloadNodeSettingForm').get('workloadClusterSettings').setValue(false);
             } else {
-                this.apiClient.wrkSegmentError = false;
-                this.form.get('vsphereWorkloadNodeSettingForm').get('segmentName').setValue(wrkSegment);
-            }
-            let grpName;
-            this.dataService.currentWrkClusterGroupName.subscribe((grp) => grpName = grp);
-            if (this.apiClient.clusterGroups.indexOf(grpName) !== -1) {
-                this.form.get('vsphereWorkloadNodeSettingForm').get('clusterGroupName').setValue(grpName);
-            }
-
-            if(this.apiClient.tmcEnabled && this.apiClient.wrkDataProtectionEnabled) {
-                let cred;
-                let targetLocation;
-                this.form.get('vsphereWorkloadNodeSettingForm').get('enableDataProtection').setValue(true);
-
-                this.dataService.currentWrkDataProtectionCreds.subscribe((creds) => cred = creds);
-                if(this.apiClient.dataProtectionCredentials.indexOf(cred) !== -1) {
-                    this.form.get('vsphereWorkloadNodeSettingForm').get('veleroCredential').setValue(cred);
+                this.form.get('vsphereWorkloadNodeSettingForm').get('workloadClusterSettings').setValue(true);
+                let wrkSegment;
+                this.dataService.currentWrkSegment.subscribe((segmentName) => wrkSegment = segmentName);
+                if (this.apiClient.networks.indexOf(wrkSegment) === -1) {
+                    this.apiClient.wrkSegmentError = true;
+                } else {
+                    this.apiClient.wrkSegmentError = false;
+                    this.form.get('vsphereWorkloadNodeSettingForm').get('segmentName').setValue(wrkSegment);
                 }
-                this.dataService.currentWrkDataProtectionTargetLocation.subscribe((loc) => targetLocation = loc);
-                if(this.apiClient.dataProtectionTargetLocations.indexOf(targetLocation) !== -1) {
-                    this.form.get('vsphereWorkloadNodeSettingForm').get('veleroTargetLocation').setValue(targetLocation);
+                let grpName;
+                this.dataService.currentWrkClusterGroupName.subscribe((grp) => grpName = grp);
+                if (this.apiClient.clusterGroups.indexOf(grpName) !== -1) {
+                    this.form.get('vsphereWorkloadNodeSettingForm').get('clusterGroupName').setValue(grpName);
+                }
+
+                if(this.apiClient.tmcEnabled && this.apiClient.wrkDataProtectionEnabled) {
+                    let cred;
+                    let targetLocation;
+                    this.form.get('vsphereWorkloadNodeSettingForm').get('enableDataProtection').setValue(true);
+
+                    this.dataService.currentWrkDataProtectionCreds.subscribe((creds) => cred = creds);
+                    if(this.apiClient.dataProtectionCredentials.indexOf(cred) !== -1) {
+                        this.form.get('vsphereWorkloadNodeSettingForm').get('veleroCredential').setValue(cred);
+                    }
+                    this.dataService.currentWrkDataProtectionTargetLocation.subscribe((loc) => targetLocation = loc);
+                    if(this.apiClient.dataProtectionTargetLocations.indexOf(targetLocation) !== -1) {
+                        this.form.get('vsphereWorkloadNodeSettingForm').get('veleroTargetLocation').setValue(targetLocation);
+                    }
                 }
             }
         }
@@ -603,7 +638,10 @@ export abstract class WizardBaseDirective extends BasicSubscriber implements Aft
         dataObj.changeSharedClusterName(sharedCluster);
         const wrkCluster = this.getFieldValue('vsphereWorkloadNodeSettingForm', 'clusterName');
         dataObj.changeWrkClusterName(wrkCluster);
-        this.apiClient.allClusters = [sharedCluster, wrkCluster];
+        this.apiClient.allClusters = [];
+        if (sharedCluster !== "") this.apiClient.allClusters.push(sharedCluster);
+        if (wrkCluster !== "") this.apiClient.allClusters.push(wrkCluster);
+
         let enableTanzuExtension;
         dataObj.currentEnableTanzuExtension.subscribe((enableExtension) => enableTanzuExtension = enableExtension);
         let tkgCluster;
@@ -831,6 +869,16 @@ export abstract class WizardBaseDirective extends BasicSubscriber implements Aft
                 this.form.get('workloadClusterForm').get('clusterGroupName').setValue(grpName);
             }
 
+            //Setting Additonal Volumes from uploaded value here
+            let tkgsControlVolumeUpload;
+            this.vsphereTkgsDataService.currentTkgsControlVolumes.subscribe(
+                (volumes) => tkgsControlVolumeUpload = volumes);
+            this.apiClient.tkgsControlPlaneVolumes = tkgsControlVolumeUpload;
+            let tkgsWorkerVolumeUpload;
+            this.vsphereTkgsDataService.currentTkgsWorkerVolumes.subscribe(
+                (volumes) => tkgsWorkerVolumeUpload = volumes);
+            this.apiClient.tkgsWorkerVolumes = tkgsWorkerVolumeUpload;
+
             if(this.apiClient.tmcEnabled && this.apiClient.wrkDataProtectionEnabled) {
                 let cred;
                 let targetLocation;
@@ -858,13 +906,9 @@ export abstract class WizardBaseDirective extends BasicSubscriber implements Aft
         let tkgCluster;
         let clusterVersion = this.form.get('workloadClusterForm').get('clusterVersion').value;
         if(["v1.20.7+vmware.1-tkg.1.7fb9067", "v1.20.9+vmware.1-tkg.1.a4cee5b", "v1.21.2+vmware.1-tkg.1.ee25d55", "v1.21.6+vmware.1-tkg.1.b3d708a", "v1.21.6+vmware.1-tkg.1"].indexOf(clusterVersion) === -1){
-//             this.form.get('extensionSettingForm').get('tanzuExtensions').setValue(false);
-//             enableTanzuExtension = false;
             this.apiClient.clusterVersionMismatch = true;
-//             this.form.get('extensionSettingForm').get('tanzuExtensions').disable();
         } else {
             this.apiClient.clusterVersionMismatch = false;
-//             this.form.get('extensionSettingForm').get('tanzuExtensions').enable();
         }
         if (this.uploadStatus) {
             if (enableTanzuExtension) {
@@ -878,9 +922,6 @@ export abstract class WizardBaseDirective extends BasicSubscriber implements Aft
                 }
             }
         }
-//         else if (this.uploadStatus && this.apiClient.toEnabled) {
-//             this.apiClient.tkgClusterError = false;
-//         }
         for (let i = 0; i < this.steps.length; i++) {
             if (!this.steps[i]) {
                 this.steps[i] = true;
@@ -1024,31 +1065,52 @@ export abstract class WizardBaseDirective extends BasicSubscriber implements Aft
     //     return obj;
     // }
 
+    onMgmtNextNSXT() {
+        if (this.uploadStatus){
+            if (!this.apiClient.sharedServicesClusterSettings){
+                this.form.get('vsphereSharedServiceNodeSettingForm').get('sharedServicesClusterSettings').setValue(false);
+            } else {
+                this.form.get('vsphereSharedServiceNodeSettingForm').get('sharedServicesClusterSettings').setValue(true);
+            }
+            if (!this.apiClient.workloadDataSettings){
+                this.form.get('TKGWorkloadDataNWForm').get('workloadClusterSettings').setValue(false);
+            } else {
+                this.form.get('TKGWorkloadDataNWForm').get('workloadClusterSettings').setValue(true);
+            }
+        }
+        this.onNextStep();
+    }
+
     onWorkloadDataNextNSXT() {
         if(this.uploadStatus) {
-            if(!this.apiClient.tmcEnabled){
-                this.form.get('vsphereWorkloadNodeSettingForm').get('tsmSettings').setValue(false);
-                this.form.get('vsphereWorkloadNodeSettingForm').get('tsmSettings').setValidators(Validators.min(1));
-                this.form.get('vsphereWorkloadNodeSettingForm').get('tsmSettings').updateValueAndValidity();
-            }
-            let grpName;
-            this.nsxtDataService.currentWrkClusterGroupName.subscribe((grp) => grpName = grp);
-            if (this.apiClient.clusterGroups.indexOf(grpName) !== -1) {
-                this.form.get('vsphereWorkloadNodeSettingForm').get('clusterGroupName').setValue(grpName);
-            }
-
-            if(this.apiClient.tmcEnabled && this.apiClient.wrkDataProtectionEnabled) {
-                let cred;
-                let targetLocation;
-                this.form.get('vsphereWorkloadNodeSettingForm').get('enableDataProtection').setValue(true);
-
-                this.nsxtDataService.currentWrkDataProtectionCreds.subscribe((creds) => cred = creds);
-                if(this.apiClient.dataProtectionCredentials.indexOf(cred) !== -1) {
-                    this.form.get('vsphereWorkloadNodeSettingForm').get('veleroCredential').setValue(cred);
+            if (!this.apiClient.workloadClusterSettings){
+                this.form.get('vsphereWorkloadNodeSettingForm').get('workloadClusterSettings').setValue(false);
+            } else {
+                this.form.get('vsphereWorkloadNodeSettingForm').get('workloadClusterSettings').setValue(true);
+                if(!this.apiClient.tmcEnabled){
+                    this.form.get('vsphereWorkloadNodeSettingForm').get('tsmSettings').setValue(false);
+                    this.form.get('vsphereWorkloadNodeSettingForm').get('tsmSettings').setValidators(Validators.min(1));
+                    this.form.get('vsphereWorkloadNodeSettingForm').get('tsmSettings').updateValueAndValidity();
                 }
-                this.nsxtDataService.currentWrkDataProtectionTargetLocation.subscribe((loc) => targetLocation = loc);
-                if(this.apiClient.dataProtectionTargetLocations.indexOf(targetLocation) !== -1) {
-                    this.form.get('vsphereWorkloadNodeSettingForm').get('veleroTargetLocation').setValue(targetLocation);
+                let grpName;
+                this.nsxtDataService.currentWrkClusterGroupName.subscribe((grp) => grpName = grp);
+                if (this.apiClient.clusterGroups.indexOf(grpName) !== -1) {
+                    this.form.get('vsphereWorkloadNodeSettingForm').get('clusterGroupName').setValue(grpName);
+                }
+
+                if(this.apiClient.tmcEnabled && this.apiClient.wrkDataProtectionEnabled) {
+                    let cred;
+                    let targetLocation;
+                    this.form.get('vsphereWorkloadNodeSettingForm').get('enableDataProtection').setValue(true);
+
+                    this.nsxtDataService.currentWrkDataProtectionCreds.subscribe((creds) => cred = creds);
+                    if(this.apiClient.dataProtectionCredentials.indexOf(cred) !== -1) {
+                        this.form.get('vsphereWorkloadNodeSettingForm').get('veleroCredential').setValue(cred);
+                    }
+                    this.nsxtDataService.currentWrkDataProtectionTargetLocation.subscribe((loc) => targetLocation = loc);
+                    if(this.apiClient.dataProtectionTargetLocations.indexOf(targetLocation) !== -1) {
+                        this.form.get('vsphereWorkloadNodeSettingForm').get('veleroTargetLocation').setValue(targetLocation);
+                    }
                 }
             }
         }
@@ -1057,24 +1119,29 @@ export abstract class WizardBaseDirective extends BasicSubscriber implements Aft
 
     onWrkDataNextStepVMC() {
         if(this.uploadStatus) {
-            let grpName;
-            this.vmcDataService.currentWrkClusterGroupName.subscribe((grp) => grpName = grp);
-            if (this.apiClient.clusterGroups.indexOf(grpName) !== -1) {
-                this.form.get('vmcWorkloadNodeSettingForm').get('clusterGroupName').setValue(grpName);
-            }
-
-            if(this.apiClient.tmcEnabled && this.apiClient.wrkDataProtectionEnabled) {
-                let cred;
-                let targetLocation;
-                this.form.get('vmcWorkloadNodeSettingForm').get('enableDataProtection').setValue(true);
-
-                this.vmcDataService.currentWrkDataProtectionCreds.subscribe((creds) => cred = creds);
-                if(this.apiClient.dataProtectionCredentials.indexOf(cred) !== -1) {
-                    this.form.get('vmcWorkloadNodeSettingForm').get('veleroCredential').setValue(cred);
+            if (!this.apiClient.workloadClusterSettings){
+                this.form.get('vmcWorkloadNodeSettingForm').get('workloadClusterSettings').setValue(false);
+            } else {
+                this.form.get('vmcWorkloadNodeSettingForm').get('workloadClusterSettings').setValue(true);
+                let grpName;
+                this.vmcDataService.currentWrkClusterGroupName.subscribe((grp) => grpName = grp);
+                if (this.apiClient.clusterGroups.indexOf(grpName) !== -1) {
+                    this.form.get('vmcWorkloadNodeSettingForm').get('clusterGroupName').setValue(grpName);
                 }
-                this.vmcDataService.currentWrkDataProtectionTargetLocation.subscribe((loc) => targetLocation = loc);
-                if(this.apiClient.dataProtectionTargetLocations.indexOf(targetLocation) !== -1) {
-                    this.form.get('vmcWorkloadNodeSettingForm').get('veleroTargetLocation').setValue(targetLocation);
+
+                if(this.apiClient.tmcEnabled && this.apiClient.wrkDataProtectionEnabled) {
+                    let cred;
+                    let targetLocation;
+                    this.form.get('vmcWorkloadNodeSettingForm').get('enableDataProtection').setValue(true);
+
+                    this.vmcDataService.currentWrkDataProtectionCreds.subscribe((creds) => cred = creds);
+                    if(this.apiClient.dataProtectionCredentials.indexOf(cred) !== -1) {
+                        this.form.get('vmcWorkloadNodeSettingForm').get('veleroCredential').setValue(cred);
+                    }
+                    this.vmcDataService.currentWrkDataProtectionTargetLocation.subscribe((loc) => targetLocation = loc);
+                    if(this.apiClient.dataProtectionTargetLocations.indexOf(targetLocation) !== -1) {
+                        this.form.get('vmcWorkloadNodeSettingForm').get('veleroTargetLocation').setValue(targetLocation);
+                    }
                 }
             }
         }

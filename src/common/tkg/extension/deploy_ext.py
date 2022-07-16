@@ -67,18 +67,18 @@ def deploy_tkg_extentions():
             elif Tkg_version.TKG_VERSION == "1.5":
                 extention = deploy_Dot4_ext()
             else:
-                current_app.logger.info("Unsupported Tkg version")
+                current_app.logger.info("Unsupported TKG version")
                 d = {
                     "responseType": "ERROR",
-                    "msg": "Unsupported Tkg version",
+                    "msg": "Unsupported TKG version",
                     "ERROR_CODE": 500
                 }
                 return jsonify(d), 500
             if len(listOfExtention) > 1:
-                current_app.logger.info("More then one logging extentions are enabled, only one logging extentions are supported")
+                current_app.logger.info("User can only enable one logging extension at a once, please select only one.")
                 d = {
                     "responseType": "ERROR",
-                    "msg": "More then one logging extensions are enabled, only one logging extensions are supported",
+                    "msg": "User can only enable one logging extension at a once, please select only one.",
                     "ERROR_CODE": 500
                 }
                 return jsonify(d), 500
