@@ -68,6 +68,7 @@ Before deploying Tanzu Kubernetes Grid on AWS using Service Installer for VMware
   - git
 
   The following binaries are available as part of the TAR file and they get uploaded to S3 bucket in a prerequisite step. You do not need to install these binaries manually.
+  
   - kind
   - goss
   - CAPI Image builder
@@ -141,7 +142,7 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
 1. Copy the dependencies to the AWS S3 bucket by executing following commands inside the Federal SIVT AWS git repository.
     ```sh
     export BUCKET_NAME=<S3 Bucket>
-    export DEPS_DIR=<Directory where dependencies are located> -> Should be set to `<your_directory>/deployment_binaries/`                    ->
+    export DEPS_DIR=<Directory where dependencies are located> -> Should be set to `<your_directory>/deployment_binaries/`
     
     make upload-deps
     ```
@@ -164,7 +165,15 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
     ```
 1. Specify the deployment type. 
    
-   **Compliant deployment:** By default, Service Installer for VMware Tanzu deploys FIPS compliant Tanzu Kubernetes Grid master and worker nodes. In this type of deployment, Service Installer for VMware Tanzu makes use of FIPS compliant and STIG hardened Ubuntu (18.04) base OS for Tanzu Kubernetes Grid cluster nodes, FIPS enabled Kubernetes overlay, and FIPS compliant Tanzu Kubernetes Grid images.
+   **Compliant deployment:** By default, Service Installer for VMware Tanzu deploys FIPS compliant Tanzu Kubernetes Grid master and worker nodes. In this type of deployment, Service Installer for VMware Tanzu makes use of FIPS compliant and STIG hardened Ubuntu (18.04) base OS for Tanzu Kubernetes Grid cluster nodes, FIPS enabled Kubernetes overlay, and FIPS compliant Tanzu Kubernetes Grid images. To perform compliant deployment, perform the following steps:
+   
+    - For doing FIPS compliant deployment on Ubuntu, the installer needs Ubuntu advantage username and password. Export these using the following commands:
+      ```
+      export UBUNTU_ADVANTAGE_PASSWORD=<user:password>
+      export UBUNTU_ADVANTAGE_PASSWORD_UPDATES=<user:password>
+      ```
+    - If Ubuntu advantage username and password are not available, disable FIPS enablement for Ubuntu by setting `install_fips` variable to `no` in file `<your_directory>/deployment_binaries/sivt-aws-federal/ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/vars/main.yml`. This will disable FIPS at the OS level.
+
 
    **Non-compliant deployment:** If you are looking for deployment with vanilla Tanzu Kubernetes Grid master and worker nodes, set the `COMPLIANT_DEPLOYMENT` variable to `false` by running the following command on your Jumpbox VM. Once this variable is set, Service Installer for VMware Tanzu makes use of vanilla Tanzu Kubernetes Grid images for installation.
 
@@ -202,6 +211,7 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
     The installer resolves the prerequisites for extension deployments. For example: Grafana needs cert-manager, Contour, and Prometheus. The scripts install cert-manager, Contour, and Prometheus before Grafana installation if `GRAFANA_DEPLOYMENT` is set to `true`.
 
     **Known Issues with Extensions:**
+    
     - Prometheus deployment fails if SaaS is enabled.
     - Harbor deployment fails both with and without SaaS in multi workload cluster configurations.
 
@@ -259,9 +269,9 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
 1. Install Tanzu Kubernetes Grid.
     
     **Note:** 
-    1. Once you extract the TAR file downloaded as part of [Prerequisites](#prerequisites), make sure that you are in `<your_directory>/deployment_binaries/sivt-aws-federal/` folder while running `make` commands.
       
-      1. To enable or disable STIG and FIPS compliance, see step 4 of this deployment procedure.
+      - Once you extract the TAR file downloaded as part of [Prerequisites](#prerequisites), make sure that you are in `<your_directory>/deployment_binaries/sivt-aws-federal/` folder while running `make` commands.
+      - To enable or disable STIG and FIPS compliance, see step 4 of this deployment procedure.
     
     To get the list of all the make command targets run the following command.
     ```sh
@@ -359,7 +369,7 @@ The following diagram depicts single VPC and associated networking created by th
 
 The `make cf` command creates the following instance profiles, roles, and policies. If you are manually creating instance profiles, roles, and policies, ensure that the following are created and they are given the same names as in this table.
 
-**Note:** For more information on role and their detailed actions, see the [cloud-formation-iamtemplate](https://gitlab.eng.vmware.com/core-build/sivt-aws-federal/-/blob/main/cloud-formation-iamtemplate) file
+**Note:** For more information on role and their detailed actions, see the [cloud-formation-iamtemplate](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/aws/cloud-formation-iamtemplate) file
 
 |Profile|Roles|Policies|
 |-------|-----|--------|
@@ -372,7 +382,7 @@ The `make cf` command creates the following instance profiles, roles, and polici
 ## <a id=customizing-tanzu-kubernetes-grid> </a> Customizing Tanzu Kubernetes Grid
 
 All configurable options and their default values can be seen in the
-[terraform/startup.sh](https://gitlab.eng.vmware.com/core-build/sivt-aws-federal/-/tree/main/terraform) file. The variables must be edited in this file for them to take effect because Terraform is not configured to take all of them as input.
+[terraform/startup*.sh](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/terraform) files. The variables must be edited in this file for them to take effect because Terraform is not configured to take all of them as input.
 
 For a description of all variables, see the [Variables](#variables) section.
 
@@ -419,7 +429,7 @@ For a description of all variables, see the [Variables](#variables) section.
 
 ## <a id=variables> </a> Variables
 
-The `terraform/startup.sh` file contains the following configurable options that you can set within the file.
+The `terraform/startup*.sh` files contain the following configurable options that you can set within the file.
 
 |Name|Default|Description
 |---|---|---|
