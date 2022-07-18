@@ -164,7 +164,15 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
     ```
 1. Specify the deployment type. 
    
-   **Compliant deployment:** By default, Service Installer for VMware Tanzu deploys FIPS compliant Tanzu Kubernetes Grid master and worker nodes. In this type of deployment, Service Installer for VMware Tanzu makes use of FIPS compliant and STIG hardened Ubuntu (18.04) base OS for Tanzu Kubernetes Grid cluster nodes, FIPS enabled Kubernetes overlay, and FIPS compliant Tanzu Kubernetes Grid images.
+   **Compliant deployment:** By default, Service Installer for VMware Tanzu deploys FIPS compliant Tanzu Kubernetes Grid master and worker nodes. In this type of deployment, Service Installer for VMware Tanzu makes use of FIPS compliant and STIG hardened Ubuntu (18.04) base OS for Tanzu Kubernetes Grid cluster nodes, FIPS enabled Kubernetes overlay, and FIPS compliant Tanzu Kubernetes Grid images. To perform compliant deployment, perform following steps
+    - For doing FIPS compliance deployment on ubuntu, automation needs ubuntu advantage username and password. Export these using following commands
+      ```
+      export UBUNTU_ADVANTAGE_PASSWORD=<user:password>
+      export UBUNTU_ADVANTAGE_PASSWORD_UPDATES=<user:password>
+      ```
+
+
+    - If ubuntu advantage username and password are not available, then disable FIPS enablement for ubuntu by setting `install_fips` variable to `no` in file `<your_directory>/deployment_binaries/sivt-aws-federal/ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/vars/main.yml`. This will disable FIPS at OS level.
 
    **Non-compliant deployment:** If you are looking for deployment with vanilla Tanzu Kubernetes Grid master and worker nodes, set the `COMPLIANT_DEPLOYMENT` variable to `false` by running the following command on your Jumpbox VM. Once this variable is set, Service Installer for VMware Tanzu makes use of vanilla Tanzu Kubernetes Grid images for installation.
 

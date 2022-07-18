@@ -4,7 +4,9 @@
 -->
 # README
 
-Service Installer for VMware Tanzu (SIVT) enables users to install Tanzu for Kubernetes Operations on the AWS environment. This project helps build an architecture in AWS that corresponds to [Tanzu for Kubernetes Operations Reference Design](https://docs.vmware.com/en/VMware-Tanzu/services/tanzu-reference-architecture/GUID-reference-designs-tko-on-aws.html). 
+Service Installer for VMware Tanzu (SIVT) enables users to install Tanzu for Kubernetes Operations on the AWS environment. This project helps build an architecture in AWS that corresponds to following reference architecture
+- Non-Airgap: [Tanzu for Kubernetes Operations Reference Design](https://docs.vmware.com/en/VMware-Tanzu/services/tanzu-reference-architecture/GUID-reference-designs-tko-on-aws.html).
+- Airgap: RA is yet to be published
 
 Service Installer for VMware Tanzu provides automation of Tanzu Kubernetes Grid deployment on the following two AWS environments:
 
@@ -26,7 +28,7 @@ Service Installer for VMware Tanzu deploys:
 
 For air-gapped deployment, Service Installer for VMware Tanzu supports Ubuntu and vanilla Amazon Linux 2 based cluster nodes.
 
-For detailed information, see Tanzu Kubernetes Grid on [Federal Air-gapped AWS Deployment Guide](./docs/product/release/AWS%20-%20Federal%20Airgap/AWSFederalAirgap-DeploymentGuide.md).
+For detailed information, see Tanzu Kubernetes Grid on [Federal Air-gapped AWS Deployment Guide](../docs/product/release/AWS%20-%20Federal%20Airgap/AWSFederalAirgap-DeploymentGuide.md).
 
 ## Tanzu for Kubernetes Operations Deployment on Non Air-Gapped AWS
 
@@ -52,4 +54,4 @@ Compliant deployment enables users to deploy Tanzu Kubernetes Grid according to 
 
 This Tanzu Kubernetes Grid deployment process makes use of vanilla Tanzu Kubernetes Grid images for installation and deploys non-FIPS and non-STIG hardened Tanzu Kubernetes Grid master and worker nodes.
 
-For detailed information, see Tanzu Kubernetes Grid on [Non Air-gapped AWS Deployment Guide](./docs/product/release/AWS%20-%20Non%20Airgap/AWSNonAirgap-DeploymentGuide.md).
+For detailed information, see Tanzu Kubernetes Grid on [Non Air-gapped AWS Deployment Guide](../docs/product/release/AWS%20-%20Non%20Airgap/AWSNonAirgap-DeploymentGuide.md).

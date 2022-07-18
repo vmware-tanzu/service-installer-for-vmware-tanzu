@@ -45,6 +45,14 @@
 - Service Installer for VMware Tanzu UI allows to skip shared services cluster and workload cluster deployments
 - Support for updated packages for Photon 3.0 operating system
 
+### Tekton Enhancements
+
+- Bringup of reference architecture based Tanzu Kubernetes Grid environment on vSphere TKGM 1.5.3 and 1.5.4
+- E2E Tanzu Kubernetes Grid deployment and configuration of AVI controller, management, shared services, and workload clusters, plugins, extensions
+- Rescale and resize Day-2 operations
+- Upcoming support of Tanzu Kubernetes Grid Service E2E deployment*
+- Upcoming support of Tanzu Kubernetes Grid Day-2 Upgrade support from 1.5.x to 1.5.4 with packages and extensions*
+
 ## Resolved Issues
 
 - Datacenter, cluster, and datastores now support sub-folder structure.
