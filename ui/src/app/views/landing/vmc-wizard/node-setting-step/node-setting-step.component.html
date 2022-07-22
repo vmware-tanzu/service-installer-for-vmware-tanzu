@@ -1,0 +1,681 @@
+<form [formGroup]="formGroup" >
+    <div *ngIf="this.apiClient.mgmtSegmentError" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <div class="newline">
+                    <span class="alert-text">
+                        {{ segmentErrorMsg }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <h4 i18n="cluster settings" aria-level="2">
+        Management Cluster Settings
+    </h4>
+
+    <div class="clr-row">
+        <div class="clr-col-lg-6 clr-col-12">
+            <a class="card clickable" [ngClass]="{'card-selected': getEnvType()==='dev'}" (click)="cardClick('dev')"
+               role="none">
+                <div class="card-block">
+                    <clr-icon class="card-icon" shape="computer" size="72">
+                    </clr-icon>
+                    <p class="card-title" i18n="development control plane title">
+                        Development
+                    </p>
+                    <p i18n="development description" class="card-text">
+                        Single control plane node. Recommended for a development environment.
+                    </p>
+                </div>
+                <div class="card-footer">
+                    <div class="clr-row" [attr.data-step-metadata]="formName">
+                        <div class="clr-col-xl-4 clr-col-sm-12 clr-col-12 no-wrap">
+                            <label i18n="instance type label" data-full="Development instance type">
+                                INSTANCE TYPE
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22">
+                                    </clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Choose the configuration for the control plane node VMs depending on
+                                            the expected number of workload clusters to manage.
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                        </div>
+                        <div class="clr-col-xl-8 clr-col-sm-12 clr-col-12">
+                            <clr-select-container class="node-type-container">
+                                <select clrSelect class="node-type-select" name="devInstanceType"
+                                        formControlName="devInstanceType" role="listbox"
+                                        aria-label="development instance type"
+                                        (click)="checkCustom()" (ngModelChange)="checkCustom()">
+                                    <option aria-label="blank" title="blank"></option>
+                                    <ng-container *ngFor="let nodeType of nodeTypes">
+                                        <option [value]="nodeType.id">
+                                            {{nodeType.name}}
+                                        </option>
+                                    </ng-container>
+                                </select>
+                                <clr-control-error>Selecting an instance type is required</clr-control-error>
+                            </clr-select-container>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="clr-col-lg-6 clr-col-12">
+            <a class="card clickable" [ngClass]="{'card-selected': getEnvType()==='prod'}" (click)="cardClick('prod')"
+               role="none">
+                <div class="card-block">
+                    <clr-icon class="card-icon" shape="building" size="72">
+                    </clr-icon>
+                    <p class="card-title" i18n="production control plane title">
+                        Production
+                    </p>
+                    <p i18n="production description" class="card-text">
+                        Three control plane nodes. Recommended for a production environment.
+                    </p>
+                </div>
+                <div class="card-footer">
+                    <div class="clr-row" [attr.data-step-metadata]="formName">
+                        <div class="clr-col-xl-4 clr-col-sm-12 clr-col-12 no-wrap">
+                            <label i18n="instance type label" data-full="Production instance type">
+                                INSTANCE TYPE
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22">
+                                    </clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Choose the configuration for the control plane node VMs depending on
+                                            the expected number of workload clusters to manage.
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                        </div>
+                        <div class="clr-col-xl-8 clr-col-sm-12 clr-col-12">
+                            <clr-select-container class="node-type-container">
+                                <select clrSelect class="node-type-select" name="prodInstanceType"
+                                        formControlName="prodInstanceType" role="listbox"
+                                        aria-label="production instance type"
+                                        (click)="checkCustom()" (ngModelChange)="checkCustom()">
+                                    <option aria-label="blank" title="blank"></option>
+                                    <ng-container *ngFor="let nodeType of nodeTypes">
+                                        <option [value]="nodeType.id">
+                                            {{nodeType.name}}
+                                        </option>
+                                    </ng-container>
+                                </select>
+                                <clr-control-error>Selecting an instance type is required</clr-control-error>
+                            </clr-select-container>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="cluster name label" clr-control-label>
+                    MANAGEMENT CLUSTER NAME
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                {{
+                                    'Specify a name for the Management cluster.'
+                                }}
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="clusterName" placeholder="Management Cluster" maxlength="42"
+                       (ngModelChange)="onTkgMgmtValidateClick()" (blur)="onTkgMgmtValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="cluster name valid msg"
+                                   *clrIfError="validatorEnum.VALID_CLUSTER_NAME">
+                    Management Cluster name must start and end with a letter or number, and can contain only
+                    lowercase letters, numbers, and hyphens.
+                </clr-control-error>
+                <clr-control-error i18n="cluster name valid msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Management Cluster Name must not include whitespace on ends.
+                </clr-control-error>
+                <clr-control-error i18n="cluster name required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Cluster name is required
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <ng-container *ngIf="this.apiClient.tmcEnabled">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="datacenter label">
+                        CLUSTER GROUP
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Provide name of the cluster group to be attached to the Management Cluster.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <select clrSelect name="clusterGroupName" formControlName="clusterGroupName">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let clusterGroupName of this.apiClient.clusterGroups">
+                            <option [value]="clusterGroupName">
+                                {{clusterGroupName}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg"
+                                    *clrIfError="validatorEnum.REQUIRED">
+                        Selecting a cluster group name is required
+                    </clr-control-error>
+                </clr-select-container>
+            </div>
+        </ng-container>
+    </div>
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+<!--            <clr-input-container [attr.data-step-metadata]="formName">-->
+<!--                <label class="hidden" i18n="load balancer template label">-->
+<!--                    WORKER NODES COUNT-->
+<!--                    <clr-tooltip>-->
+<!--                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>-->
+<!--                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>-->
+<!--                            <span>-->
+<!--                                Please specify the number of worker nodes that are to be deployed, in the range of 1- -->
+<!--                            </span>-->
+<!--                        </clr-tooltip-content>-->
+<!--                    </clr-tooltip>-->
+<!--                </label>-->
+<!--                <input clrInput formControlName="workerNodeCount" placeholder="Worker node count" />-->
+<!--                &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+<!--                <clr-control-helper></clr-control-helper>-->
+<!--                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">-->
+<!--                    Control Plane Endpoint is required!-->
+<!--                </clr-control-error>-->
+<!--&lt;!&ndash;                <clr-control-error i18n="control plane endpoint format msg"&ndash;&gt;-->
+<!--&lt;!&ndash;                                   *clrIfError="validatorEnum.VALID_IP_OR_FQDN">&ndash;&gt;-->
+<!--&lt;!&ndash;                    Control Plane Endpoint format is invalid!&ndash;&gt;-->
+<!--&lt;!&ndash;                </clr-control-error>&ndash;&gt;-->
+<!--            </clr-input-container>-->
+<!--        </div>-->
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+<!--            <clr-input-container [attr.data-step-metadata]="formName">-->
+<!--                <label class="hidden" i18n="load balancer template label">-->
+<!--                    CONTROL PLANE ENDPOINT (OPTIONAL)-->
+<!--                    <clr-tooltip>-->
+<!--                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>-->
+<!--                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>-->
+<!--                            <span>-->
+<!--                                Control plane IP for Management cluster is to be specified.-->
+<!--                            </span>-->
+<!--                        </clr-tooltip-content>-->
+<!--                    </clr-tooltip>-->
+<!--                </label>-->
+<!--                <input clrInput formControlName="controlPlaneEndpointIP" placeholder="192.168.0.1"-->
+<!--                       (ngModelChange)="onTkgMgmtValidateClick()" (blur)="onTkgMgmtValidateClick()"/>-->
+<!--                &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+<!--                <clr-control-helper></clr-control-helper>-->
+<!--                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">-->
+<!--                    Control Plane Endpoint is required!-->
+<!--                </clr-control-error>-->
+<!--                <clr-control-error i18n="control plane endpoint format msg"-->
+<!--                                   *clrIfError="validatorEnum.VALID_IP_OR_FQDN">-->
+<!--                    Control Plane Endpoint format is invalid!-->
+<!--                </clr-control-error>-->
+<!--            </clr-input-container>-->
+<!--        </div>-->
+
+    <!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+    <!--            <clr-select-container [attr.data-step-metadata]="formName">-->
+    <!--                <label i18n="datacenter label">-->
+    <!--                    NETWORK SEGMENT NAME-->
+    <!--                    <clr-tooltip>-->
+    <!--                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>-->
+    <!--                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>-->
+    <!--                            <span>-->
+    <!--                                Name of the segment in vCenter Server.-->
+    <!--                            </span>-->
+    <!--                        </clr-tooltip-content>-->
+    <!--                    </clr-tooltip>-->
+    <!--                </label>-->
+    <!--                <select clrSelect name="segmentName" formControlName="segmentName">-->
+    <!--                    <option aria-label="blank" title="blank"></option>-->
+    <!--                    <ng-container *ngFor="let segmentName of networks">-->
+    <!--                        <option [value]="segmentName">-->
+    <!--                            {{segmentName}}-->
+    <!--                        </option>-->
+    <!--                    </ng-container>-->
+    <!--                </select>-->
+    <!--                &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+    <!--                <clr-control-helper></clr-control-helper>-->
+    <!--                <clr-control-error>Selecting a segment is required</clr-control-error>-->
+    <!--            </clr-select-container>-->
+    <!--        </div>-->
+
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    NETWORK SEGMENT NAME
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Name of the network segment for Management Cluster.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="segmentName" formControlName="segmentName"
+                    (ngModelChange)="onTkgMgmtValidateClick()" (blur)="onTkgMgmtValidateClick()">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let segmentName of this.apiClient.networks">
+                        <option [value]="segmentName">
+                            {{segmentName}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg"
+                                   *clrIfError="validatorEnum.REQUIRED">
+                    Selecting a segment name for Management Cluster is required!
+                </clr-control-error>
+            </clr-select-container>
+        </div>
+
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    GATEWAY CIDR
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify Gateway CIDR to be configured for Management Cluster.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="gatewayAddress" placeholder="192.168.0.1/24"
+                       (ngModelChange)="onTkgMgmtValidateClick()" (blur)="onTkgMgmtValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Gateway CIDR is required!
+                </clr-control-error>
+                <clr-control-error i18n="gateway address format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    Gateway CIDR is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="cluster service cidr required msg" *clrIfError="validatorEnum.NETWORKING_IP_UNIQUE">
+                    Gateway CIDR must be unique!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Gateway CIDR has leading or trailing whitespaces!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+    <ng-container *ngIf="formGroup.value['devInstanceType'] === 'custom' || formGroup.value['prodInstanceType'] === 'custom'">
+        <h5 i18n="cluster settings" aria-level="2">
+            Resource Configuration
+        </h5>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        CPU SIZE (vCPU)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please specify Custom CPU Size in GB, min value is 2.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="mgmtCpu" type="number" min=2 placeholder=""/>
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                        CPU size is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="gateway address format msg"
+                                       *clrIfError="validatorEnum.MIN">
+                        Minimum CPU size is 2!
+                    </clr-control-error>
+                    <clr-control-error i18n="gateway address format msg"
+                                       *clrIfError="validatorEnum.WHITESPACE">
+                        Management Cluster CIDR has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        MEMORY SIZE (GB)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please specify Custom Memory Size in GB, min value is 4 GB.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="mgmtMemory" type="number" min=4 placeholder=""/>
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Memory size is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="gateway address format msg"
+                                       *clrIfError="validatorEnum.MIN">
+                        Minimum Memory size is 4 GB!
+                    </clr-control-error>
+                    <clr-control-error i18n="gateway address format msg"
+                                       *clrIfError="validatorEnum.WHITESPACE">
+                        Memory size has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        STORAGE SIZE (GB)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please specify Custom Storage Size in GB, min value is 20 GB.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="mgmtStorage" type="number" min=20 placeholder=""/>
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Storage size is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="gateway address format msg"
+                                       *clrIfError="validatorEnum.MIN">
+                        Minimum Storage size is 20 GB!
+                    </clr-control-error>
+                    <clr-control-error i18n="gateway address format msg"
+                                       *clrIfError="validatorEnum.WHITESPACE">
+                        Storage size has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+        </div>
+    </ng-container>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    BASE OS IMAGE
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Select the Base OS Image for Management Cluster nodes.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="baseImage" formControlName="baseImage">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let baseImage of this.apiClient.baseImage">
+                        <option [value]="baseImage">
+                            {{baseImage}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg"
+                                   *clrIfError="validatorEnum.REQUIRED">
+                    Selecting a base OS image is required!
+                </clr-control-error>
+            </clr-select-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    CLUSTER CIDR
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                The Cluster CIDR for Management Cluster is by default : 100.96.0.0/11, Edit the field if needed
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="clusterCidr" placeholder="100.96.0.0/11"/>
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Management Cluster CIDR is required!
+                </clr-control-error>
+                <clr-control-error i18n="gateway address format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    Management Cluster CIDR is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Management Cluster CIDR has leading or trailing whitespaces!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    SERVICE CIDR
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                The Service CIDR for Management Cluster is by default : 100.64.0.0/13, Edit the field if needed
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="serviceCidr" placeholder="100.64.0.0/13"/>
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Service CIDR for Management Cluster is required!
+                </clr-control-error>
+                <clr-control-error i18n="gateway address format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                   Service CIDR for Management Cluster is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Management Cluster Service CIDR has leading or trailing whitespaces!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+    <ng-container *ngIf="this.apiClient.enableIdentityManagement">
+        <br>
+        <h4 i18n="Proxy Settings" class="sub-title" aria-level="2">
+            Optionally Create RBAC configurations
+        </h4>
+        <div *ngIf="rbacErrorClusterAdmin" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text">
+                        {{ errorRBACClusterAdmin }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="rbacErrorClusterAdmin = false" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div *ngIf="rbacErrorAdmin" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text">
+                        {{ errorRBACAdmin }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="rbacErrorAdmin = false" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div *ngIf="rbacErrorEdit" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text">
+                        {{ errorRBACEdit }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="rbacErrorEdit = false" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div *ngIf="rbacErrorView" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text">
+                        {{ errorRBACView }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="rbacErrorView = false" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="http proxy url label" clr-control-label>
+                        CLUSTER ADMIN ROLE (OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Specify comma separated list of users to grant them Cluster Admin privileges
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput name="clusterAdminUsers" formControlName="clusterAdminUsers" placeholder="ex: username, email"
+                            (ngModelChange)="onClusterAdminFieldChange()"/>
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Field has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="http proxy url label" clr-control-label>
+                        ADMIN ROLE (OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Specify comma separated list of users to grant them Admin privileges
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput name="adminUsers" formControlName="adminUsers" placeholder="ex: username, email"
+                            (ngModelChange)="onAdminFieldChange()"/>
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Field has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+        </div>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="http proxy url label" clr-control-label>
+                        EDIT ROLE (OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Specify comma separated list of users to grant them Edit privileges
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput name="editUsers" formControlName="editUsers" placeholder="ex: username, email"
+                            (ngModelChange)="onEditFieldChange()"/>
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Field has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="http proxy url label" clr-control-label>
+                        VIEW ROLE (OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Specify comma separated list of users to grant them View privileges
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput name="viewUsers" formControlName="viewUsers" placeholder="ex: username, email"
+                            (ngModelChange)="onViewFieldChange()"/>
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Field has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+        </div>
+    </ng-container>
+</form>

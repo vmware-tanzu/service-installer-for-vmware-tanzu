@@ -1,0 +1,1008 @@
+<form [formGroup]="formGroup">
+    <div class="alert alert-warning" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text" i18n="connect vcenter failure notification">
+                    Validated Tanzu K8s versions to deploy User-Managed Packages such as Harbor, Prometheus and Grafana are:
+                    <pre></pre>
+                    For vSphere 7.0 U3: v1.20.7+vmware.1-tkg.1.7fb9067, v1.20.9+vmware.1-tkg.1.a4cee5b, v1.20.12+vmware.1-tkg.1.b9a42f3, v1.21.2+vmware.1-tkg.1.ee25d55, v1.21.6+vmware.1-tkg.1.b3d708a, v1.21.6+vmware.1-tkg.1
+                    <pre></pre>
+                    For vSphere 7.0 U2: v1.20.12+vmware.1-tkg.1.b9a42f3, v1.19.7+vmware.1-tkg.1.fc82c41
+                </span>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="this.apiClient.tkgClusterError" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ tkgClusterErrorMsg}}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div *ngIf="loggingEndpointError" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ loggingEndpointErrorMsg }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div *ngIf="syslogModeError" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ syslogModeErrorMsg }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div *ngIf="syslogFormatError" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ syslogFormatErrorMsg }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <div class="clr-row">
+        <div class="clr-col-12">
+            <clr-toggle-container [attr.data-step-metadata]="formName">
+                <clr-toggle-wrapper>
+                    <input
+                            type="checkbox"
+                            clrToggle
+                            id="tanzuExtensions"
+                            (change)="toggleTanzuExtension()"
+                            name="tanzuExtensions"
+                            formControlName="tanzuExtensions"
+                            aria-describedby="proxySettings-helper"/>
+                    <label>Add User-Managed Packages</label>
+                </clr-toggle-wrapper>
+            </clr-toggle-container>
+            <span id="tanzuExtensions-helper" class="display-none">
+             Enabling tanzu extension settings exposes additional field and disabling will hide those fields
+            </span>
+        </div>
+    </div>
+    <ng-container *ngIf="formGroup.value['tanzuExtensions']">
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="datacenter label">
+                        CLUSTER NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Select the workload cluster name.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <select clrSelect name="tanzuExtensionClusters" formControlName="tanzuExtensionClusters">
+                        <!--                        (ngModelChange)="onTkgMgmtValidateClick()" (blur)="onTkgMgmtValidateClick()"-->
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let clusterName of this.apiClient.allClusters">
+                            <option [value]="clusterName">
+                                {{clusterName}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg"
+                                       *clrIfError="validatorEnum.REQUIRED">
+                        Cluster Name is required for Tanzu Extension Configuration!
+                    </clr-control-error>
+                </clr-select-container>
+            </div>
+        </div>
+        <!--        <div class="clr-row">-->
+        <!--            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+        <!--                <clr-combobox-container>-->
+        <!--&lt;!&ndash;                    add label&ndash;&gt;-->
+        <!--                    <label>Select Clusters for Tanzu Extension Services</label>-->
+        <!--                    <clr-combobox-->
+        <!--                            [(ngModel)]="selection"-->
+        <!--                            name="multiSelect"-->
+        <!--                            clrMulti="true"-->
+        <!--                            formControlName="tanzuExtensionClusters">-->
+        <!--                        <ng-container *clrOptionSelected="let selected">-->
+        <!--                            {{selected}}-->
+        <!--                        </ng-container>-->
+        <!--                        <clr-options>-->
+        <!--                            <clr-option-->
+        <!--                                    *clrOptionItems="let cluster of allClusters"-->
+        <!--                                    [clrValue]="cluster">-->
+        <!--                                {{cluster}}-->
+        <!--                            </clr-option>-->
+        <!--                        </clr-options>-->
+        <!--                    </clr-combobox>-->
+        <!--                </clr-combobox-container>-->
+        <!--            </div>-->
+        <!--        </div>-->
+        <br>
+        <h4 i18n="Proxy Settings" class="sub-title" aria-level="2">
+            Harbor Package Settings
+        </h4>
+        <div class="clr-row">
+            <div class="clr-col-12">
+                <clr-toggle-container [attr.data-step-metadata]="formName">
+                    <clr-toggle-wrapper>
+                        <input
+                            type="checkbox"
+                            clrToggle
+                            id="harborSettings"
+                            name="harborSettings"
+                            formControlName="harborSettings"
+                            (change)="toggleHarborSetting()"
+                            aria-describedby="proxySettings-helper"/>
+                        <label>Configure Harbor Package</label>
+                    </clr-toggle-wrapper>
+                </clr-toggle-container>
+                <span id="proxySettings-helper" class="display-none">
+                     Enabling harbor package settings exposes additional field and disabling will hide those fields
+                </span>
+            </div>
+        </div>
+        <ng-container *ngIf="formGroup.value['harborSettings']">
+            <div class="clr-row">
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            HARBOR FQDN
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Please specify Harbor FQDN for deploying Harbor Extension Services
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="harborFqdn" placeholder="FQDN"/>
+                        <!--                           (ngModelChange)="onTkgSharedValidateClick()" (blur)="onTkgSharedValidateClick()"-->
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                            Harbor FQDN is Required.
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.VALID_FQDN">
+                            Harbor FQDN is invalid.
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                            Harbor FQDN has whitespaces on ends!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-password-container [attr.data-step-metadata]="formName">
+                        <label i18n="password label" clr-control-label>
+                            HARBOR PASSWORD
+                        </label>
+                        <input clrPassword formControlName="harborPassword" placeholder="Password"/>
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="Password required msg" *clrIfError="validatorEnum.REQUIRED">
+                            Harbor Password cannot be empty
+                        </clr-control-error>
+                    </clr-password-container>
+                </div>
+            </div>
+            <div class="clr-row">
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            HARBOR CERT PATH (OPTIONAL)
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Optionally specify PEM formatted certificate path to be used for deploying Harbor Extension Services
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="harborCertPath" placeholder="/root/cert.pem" />
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                            Harbor Cert Path has whitespaces on ends!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            HARBOR CERT KEY PATH (OPTIONAL)
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Optionally specify PEM formatted certificate key path to be used for deploying Harbor Extension Services
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="harborCertKeyPath" placeholder="/root/key.pem" />
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                            Harbor Cert-key Path has whitespaces on ends!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+            </div>
+        </ng-container>
+        <ng-container>
+            <div class="clr-col-12">
+                <clr-toggle-container [attr.data-step-metadata]="formName">
+                    <clr-toggle-wrapper>
+                        <input
+                                type="checkbox"
+                                clrToggle
+                                id="enableLogging"
+                                (change)="toggleEnableLogging()"
+                                name="enableLogging"
+                                formControlName="enableLogging"
+                                aria-describedby="proxySettings-helper"/>
+                        <label>Enable Logging  </label>
+                    </clr-toggle-wrapper>
+                </clr-toggle-container>
+                <span id="loggingSettings-helper" class="display-none">
+                 Enabling logging settings exposes additional field and disabling will hide those fields
+                </span>
+            </div>
+            <ng-container *ngIf="formGroup.value['enableLogging']">
+                <div class="clr-row">
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-select-container [attr.data-step-metadata]="formName">
+                            <label i18n="datacenter label">
+                                SELECT LOGGING ENDPOINT
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            5 Logging Endpoints are supported, select one of the 5 for Logging Extension configuration
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <select clrSelect name="loggingEndpoint" formControlName="loggingEndpoint"
+                                    (change)="setLoggingEndpoint()">
+                                <option aria-label="blank" title="blank"></option>
+                                <ng-container *ngFor="let loggingEndpoint of loggingEndpoints">
+                                    <option [value]="loggingEndpoint">
+                                        {{loggingEndpoint}}
+                                    </option>
+                                </ng-container>
+                            </select>
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="control plane endpoint required msg"
+                                               *clrIfError="validatorEnum.REQUIRED">
+                                Selecting a logging endpoint is required!
+                            </clr-control-error>
+                        </clr-select-container>
+                    </div>
+                </div>
+            </ng-container>
+            <ng-container *ngIf="formGroup.value['loggingEndpoint'] === 'Syslog'">
+                <h6 i18n="Proxy Settings" class="sub-title" aria-level="2">
+                    Syslog Endpoint Settings
+                </h6>
+                <div class="clr-row">
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-input-container [attr.data-step-metadata]="formName">
+                            <label class="hidden" i18n="load balancer template label">
+                                SYSLOG ENDPOINT ADDRESS
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Endpoint Address for configuring Syslog Logging Extension Service
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <input clrInput formControlName="syslogEndpointAddress" placeholder="Syslog Address" />
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                                Endpoint Address is required!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.VALID_FQDN">
+                                Endpoint Address is invalid!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.WHITESPACE">
+                                Endpoint Address has whitespaces on ends!
+                            </clr-control-error>
+                        </clr-input-container>
+                    </div>
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-input-container [attr.data-step-metadata]="formName">
+                            <label class="hidden" i18n="load balancer template label">
+                                SYSLOG ENDPOINT PORT
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Endpoint Port Number for configuring Syslog Logging Extension Service
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <input clrInput formControlName="syslogEndpointPort" placeholder="Port" />
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                                Port Number is required!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.VALID_PORT">
+                                Port Number is invalid!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.WHITESPACE">
+                                Port Number has whitespaces on ends!
+                            </clr-control-error>
+                        </clr-input-container>
+                    </div>
+                </div>
+                <div class="clr-row">
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-select-container [attr.data-step-metadata]="formName">
+                            <label i18n="datacenter label">
+                                SELECT SYSLOG ENDPOINT MODE
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Select one of TCP or UDP mode to be configured for Syslog Endpoint Logging.
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <select clrSelect name="syslogEndpointMode" formControlName="syslogEndpointMode">
+                                <option aria-label="blank" title="blank"></option>
+                                <ng-container *ngFor="let syslogEndpointMode of syslogEndpointModes">
+                                    <option [value]="syslogEndpointMode">
+                                        {{syslogEndpointMode}}
+                                    </option>
+                                </ng-container>
+                            </select>
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="control plane endpoint required msg"
+                                               *clrIfError="validatorEnum.REQUIRED">
+                                Selecting a syslog endpoint mode is required!
+                            </clr-control-error>
+                        </clr-select-container>
+                    </div>
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-select-container [attr.data-step-metadata]="formName">
+                            <label i18n="datacenter label">
+                                SELECT SYSLOG ENDPOINT FORMAT
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Select one of the following formats to be configured for Syslog Endpoint Logging.
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <select clrSelect name="syslogEndpointFormat" formControlName="syslogEndpointFormat">
+                                <option aria-label="blank" title="blank"></option>
+                                <ng-container *ngFor="let syslogEndpointFormat of syslogEndpointFormat">
+                                    <option [value]="syslogEndpointFormat">
+                                        {{syslogEndpointFormat}}
+                                    </option>
+                                </ng-container>
+                            </select>
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="control plane endpoint required msg"
+                                               *clrIfError="validatorEnum.REQUIRED">
+                                Selecting a format for syslog endpoint is required!
+                            </clr-control-error>
+                        </clr-select-container>
+                    </div>
+                </div>
+            </ng-container>
+            <ng-container *ngIf="formGroup.value['loggingEndpoint'] === 'HTTP'">
+                <h6 i18n="Proxy Settings" class="sub-title" aria-level="2">
+                    HTTP Endpoint Settings
+                </h6>
+                <div class="clr-row">
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-input-container [attr.data-step-metadata]="formName">
+                            <label class="hidden" i18n="load balancer template label">
+                                HTTP ENDPOINT ADDRESS
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Endpoint Address for configuring HTTP Logging Extension Service
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <input clrInput formControlName="httpEndpointAddress" placeholder="HTTP Address" />
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                                Endpoint Address is required!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.VALID_FQDN">
+                                Endpoint Address is invalid!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.WHITESPACE">
+                                Endpoint Address has whitespaces on ends!
+                            </clr-control-error>
+                        </clr-input-container>
+                    </div>
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-input-container [attr.data-step-metadata]="formName">
+                            <label class="hidden" i18n="load balancer template label">
+                                HTTP ENDPOINT PORT
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Endpoint Port Number for configuring HTTP Logging Extension Service
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <input clrInput formControlName="httpEndpointPort" placeholder="Port" />
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                                Port Number is required!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.VALID_PORT">
+                                Port number is invalid!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.WHITESPACE">
+                                Port number has whitespaces on ends!
+                            </clr-control-error>
+                        </clr-input-container>
+                    </div>
+                </div>
+                <div class="clr-row">
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-input-container [attr.data-step-metadata]="formName">
+                            <label class="hidden" i18n="load balancer template label">
+                                HTTP ENDPOINT URI
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Endpoint URI for configuring HTTP Logging Extension Service
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <input clrInput formControlName="httpEndpointUri" placeholder="http://exampleUrl" />
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                                Endpoint URI is required!
+                            </clr-control-error>
+                            <!-- <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.HTTP_OR_HTTPS">
+                                Endpoint URI is invalid!
+                            </clr-control-error> -->
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.WHITESPACE">
+                                Endpoint URI has whitespaces on ends!
+                            </clr-control-error>
+                        </clr-input-container>
+                    </div>
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-input-container [attr.data-step-metadata]="formName">
+                            <label class="hidden" i18n="load balancer template label">
+                                HTTP ENDPOINT KEY-VALUE
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Please provide the complete header to be used, ex: "Authorization Bearer header-key-value"
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <input clrInput formControlName="httpEndpointHeaderKeyValue" placeholder="" />
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                                Header Key Value is required!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.WHITESPACE">
+                                Header Key Value has whitespaces on ends!
+                            </clr-control-error>
+                        </clr-input-container>
+                    </div>
+                </div>
+            </ng-container>
+            <ng-container *ngIf="formGroup.value['loggingEndpoint'] === 'Elastic Search'">
+                <h6 i18n="Proxy Settings" class="sub-title" aria-level="2">
+                    Elastic Search Endpoint Settings
+                </h6>
+                <div class="clr-row">
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-input-container [attr.data-step-metadata]="formName">
+                            <label class="hidden" i18n="load balancer template label">
+                                ELASTIC SEARCH ENDPOINT ADDRESS
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Endpoint Address for configuring ElasticSearch Logging Extension Service
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <input clrInput formControlName="elasticSearchAddress" placeholder="Elastic Search Address" />
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                                Endpoint Address is required!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.VALID_FQDN">
+                                Endpoint Address is invalid!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.WHITESPACE">
+                                Endpoint Address has whitespaces on ends!
+                            </clr-control-error>
+                        </clr-input-container>
+                    </div>
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-input-container [attr.data-step-metadata]="formName">
+                            <label class="hidden" i18n="load balancer template label">
+                                ELASTIC SEARCH ENDPOINT PORT
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Endpoint Port Number for configuring ElasticSearch Logging Extension Service
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <input clrInput formControlName="elasticSearchPort" placeholder="Port" />
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                                Port Number is required!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.VALID_PORT">
+                                Port number is invalid!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.WHITESPACE">
+                                Port number has whitespaces on ends!
+                            </clr-control-error>
+                        </clr-input-container>
+                    </div>
+                </div>
+            </ng-container>
+            <ng-container *ngIf="formGroup.value['loggingEndpoint'] === 'Kafka'">
+                <h6 i18n="Proxy Settings" class="sub-title" aria-level="2">
+                    Kafka Endpoint Settings
+                </h6>
+                <div class="clr-row">
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-input-container [attr.data-step-metadata]="formName">
+                            <label class="hidden" i18n="load balancer template label">
+                                BROKER SERVICE NAME
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Broker Service name for configuring Kafka Logging Extension Service
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <input clrInput formControlName="kafkaBrokerServiceName" placeholder="Broker Service" />
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                                Broker Service Name is required!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.WHITESPACE">
+                                Broker Service Name has whitespaces on ends!
+                            </clr-control-error>
+                        </clr-input-container>
+                    </div>
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-input-container [attr.data-step-metadata]="formName">
+                            <label class="hidden" i18n="load balancer template label">
+                                TOPIC NAME
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Topic name for configuring Kafka Logging Extension Service
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <input clrInput formControlName="kafkaTopicName" placeholder="Topic Name" />
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                                Kakfa Topic Name is required!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.WHITESPACE">
+                                Kakfa Topic Name has whitespaces on ends!
+                            </clr-control-error>
+                        </clr-input-container>
+                    </div>
+                </div>
+            </ng-container>
+            <ng-container *ngIf="formGroup.value['loggingEndpoint'] === 'Splunk'">
+                <h6 i18n="Proxy Settings" class="sub-title" aria-level="2">
+                    Splunk Endpoint Settings
+                </h6>
+                <div class="clr-row">
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-input-container [attr.data-step-metadata]="formName">
+                            <label class="hidden" i18n="load balancer template label">
+                                SPLUNK ENDPOINT ADDRESS
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Endpoint Address for configuring Splunk Logging Extension Service
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <input clrInput formControlName="splunkAddress" placeholder="Splunk Address" />
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                                Endpoint Address is required!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.VALID_FQDN">
+                                Endpoint Address is invalid!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.WHITESPACE">
+                                Endpoint Address has whitespaces on ends!
+                            </clr-control-error>
+                        </clr-input-container>
+                    </div>
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-input-container [attr.data-step-metadata]="formName">
+                            <label class="hidden" i18n="load balancer template label">
+                                SPLUNK ENDPOINT PORT
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Endpoint Port Number for configuring Splunk Logging Extension Service
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <input clrInput formControlName="splunkPort" placeholder="Port" />
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                                Port Number is required!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.VALID_PORT">
+                                Port number is invalid!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address format msg"
+                                               *clrIfError="validatorEnum.WHITESPACE">
+                                Port number has whitespaces on ends!
+                            </clr-control-error>
+                        </clr-input-container>
+                    </div>
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-input-container [attr.data-step-metadata]="formName">
+                            <label class="hidden" i18n="load balancer template label">
+                                SPLUNK ENDPOINT TOKEN
+                                <clr-tooltip>
+                                    <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                    <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                        <span>
+                                            Endpoint Token for configuring Splunk Logging Extension Service
+                                        </span>
+                                    </clr-tooltip-content>
+                                </clr-tooltip>
+                            </label>
+                            <input clrInput formControlName="splunkToken" placeholder="token" />
+                            <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                            <clr-control-helper></clr-control-helper>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                                Token is required!
+                            </clr-control-error>
+                            <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.WHITESPACE">
+                                Token has whitespaces on ends!
+                            </clr-control-error>
+                        </clr-input-container>
+                    </div>
+                </div>
+            </ng-container>
+        </ng-container>
+
+        <ng-container *ngIf="!this.apiClient.toEnabled">
+            <br>
+            <h4 i18n="Proxy Settings" class="sub-title" aria-level="2">
+                Monitoring Package Settings
+            </h4>
+            <div class="clr-col-12">
+                <clr-toggle-container [attr.data-step-metadata]="formName">
+                    <clr-toggle-wrapper>
+                        <input
+                                type="checkbox"
+                                clrToggle
+                                id="enableMonitoring"
+                                name="enableMonitoring"
+                                formControlName="enableMonitoring"
+                                (change)="toggleEnableMonitoring()"
+                                aria-describedby="proxySettings-helper"/>
+                        <label>Enable Monitoring  </label>
+                    </clr-toggle-wrapper>
+                </clr-toggle-container>
+                <span id="enableMonitoring-helper" class="display-none">
+                    Enabling monitoring settings exposes additional field and disabling will hide those fields
+                </span>
+            </div>
+            <ng-container *ngIf="formGroup.value['enableMonitoring']">
+            <h6 i18n="Proxy Settings" class="sub-title" aria-level="2">
+                Prometheus Settings
+            </h6>
+            <div class="clr-row">
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            PROMETHEUS FQDN
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Specify FQDN for configuring Prometheus Monitoring Extension Service
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="prometheusFqdn" placeholder="FQDN" />
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                            FQDN is required!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.VALID_FQDN">
+                            FQDN is invalid!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                            FQDN has whitespaces on ends!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+            </div>
+            <div class="clr-row">
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            PROMETHEUS CERT PATH (OPTIONAL)
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Optionally specify PEM formatted certificate path for Prometheus Endpoint Service
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="prometheusCertPath" placeholder="/root/cert.pem" />
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                            Cert Path has whitespaces on ends!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            PROMETHEUS CERT KEY PATH (OPTIONAL)
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Optionally specify PEM formatted certificate key path for Prometheus Endpoint Service
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="prometheusCertKeyPath" placeholder="/root/key.pem" />
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                            Cert-key Path has whitespaces on ends!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+            </div>
+            <h6 i18n="Proxy Settings" class="sub-title" aria-level="2">
+                Grafana Settings
+            </h6>
+            <div class="clr-row">
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            GRAFANA FQDN
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Specify FQDN for configuring Grafana Monitoring Extension Service
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="grafanaFqdn" placeholder="FQDN" />
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                            FQDN is required!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.VALID_FQDN">
+                            FQDN is invalid!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.WHITESPACE">
+                            FQDN has whitespaces on ends!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-password-container [attr.data-step-metadata]="formName">
+                        <label i18n="password label" clr-control-label>
+                            GRAFANA PASSWORD
+                        </label>
+                        <input clrPassword formControlName="grafanaPassword" placeholder="Password" />
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="Password required msg" *clrIfError="validatorEnum.REQUIRED">
+                            Password cannot be empty!
+                        </clr-control-error>
+                    </clr-password-container>
+                </div>
+            </div>
+            <div class="clr-row">
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            GRAFANA CERT PATH (OPTIONAL)
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Optionally specify PEM formatted certificate path for Grafana Endpoint Service
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="grafanaCertPath" placeholder="/root/cert.pem" />
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                            Cert Path has whitespaces on ends!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            GRAFANA CERT KEY PATH (OPTIONAL)
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Optionally specify PEM formatted certificate key path for Grafana Endpoint Service
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="grafanaCertKeyPath" placeholder="/root/key.pem" />
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                            Cert-key Path has whitespaces on ends!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+            </div>
+        </ng-container>
+        </ng-container>
+    </ng-container>
+
+    <br>
+    <ng-container *ngIf="this.apiClient.toEnabled">
+        <div class="alert alert-info" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="info-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text" i18n="vsphere wizard step info notification">
+                        Tanzu Observability is already enabled. Monitoring will happen via Tanzu Observability and not via Prometheus and Grafana.
+                    </span>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+</form>
+
+
+

@@ -1,0 +1,27 @@
+- name: "[Common] sshd_config"
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: "^{{ item.key }} "
+    validate: '/usr/sbin/sshd -T -f %s'
+    line: "{{ item.key }} {{ item.value }} "
+  with_items:
+    -  key: Banner
+       value: /etc/issue 
+    -  key: Ciphers
+       value: aes128-ctr,aes192-ctr,aes256-ctr 
+    -  key: ClientAliveCountMax
+       value: 1 
+    -  key: ClientAliveInterval
+       value: 600 
+    -  key: MACs
+       value: hmac-sha2-256,hmac-sha2-512 
+    -  key: PermitEmptyPasswords
+       value: "no" 
+    -  key: PermitUserEnvironment
+       value: "no" 
+    -  key: Protocol
+       value: 2 
+    -  key: UsePAM
+       value: "yes" 
+

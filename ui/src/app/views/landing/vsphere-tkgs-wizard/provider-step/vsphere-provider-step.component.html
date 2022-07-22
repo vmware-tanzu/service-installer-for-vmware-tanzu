@@ -1,0 +1,548 @@
+<form [formGroup]="formGroup">
+    <div *ngIf="!connected" class="alert alert-info" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="info-circle"></clr-icon>
+                </div>
+                <span class="alert-text" i18n="vsphere wizard step info notification">
+                    You must click "CONNECT" to verify
+                    the vSphere credentials before moving to next step.
+                </span>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="aviOvaErrorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text" i18n="connect vcenter failure notification">
+                    {{ aviOvaErrorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="aviOvaErrorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div *ngIf="datastoreError" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text" i18n="connect vcenter failure notification">
+                    {{ datastoreErrorMsg }}
+                </span>
+            </div>
+        </div>
+        <button (click)="datastoreError = false" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div *ngIf="clusterError" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text" i18n="connect vcenter failure notification">
+                    {{ clusterErrorMsg }}
+                </span>
+            </div>
+        </div>
+        <button (click)="clusterError = false" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div *ngIf="datacenterError" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text" i18n="connect vcenter failure notification">
+                    {{ datacenterErrorMsg }}
+                </span>
+            </div>
+        </div>
+        <button (click)="datacenterError = false" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text" i18n="connect vcenter failure notification">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <h4 aria-level="2">Marketplace </h4>
+    <div class="clr-row">
+        <div class="clr-col-12">
+            <clr-toggle-container [attr.data-step-metadata]="formName">
+                <clr-toggle-wrapper>
+                    <input
+                            type="checkbox"
+                            clrToggle
+                            id="isMarketplace"
+                            name="isMarketplace"
+                            formControlName="isMarketplace"
+                            (change)="toggleMarketPlace()"
+                            aria-describedby="tmcSettings-helper"/>
+                    <!--                    (change)="toggleCustomerConnect()"-->
+                    <label>Download NSX ALB Controller from Marketplace</label>
+                    <!--                    <label>Pull OVA images via Customer Connect</label>-->
+                </clr-toggle-wrapper>
+            </clr-toggle-container>
+            <span id="tmcSettings-helper" class="display-none">
+                    Turn on for setting up customer connect account details to download AVI Controller and Kubernetes OVA images
+            </span>
+        </div>
+    </div>
+    <ng-container *ngIf="formGroup.value['isMarketplace']">
+        <h5 aria-level="2"> Marketplace Account Details</h5>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="username label" clr-control-label>
+                        REFRESH TOKEN
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Use Refresh token generated from CSP portal for Arcas Access Group Organization.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="marketplaceRefreshToken" placeholder="Marketplace Refresh Token" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="username required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Refresh Token is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="username required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Refresh Token has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4" aria-live="assertive">
+                <button [clrLoading]="validateLoadingState"
+                        [disabled]="!this.formGroup.get('marketplaceRefreshToken').valid || validateToken"
+                        (click)="verifyMarketplaceRefreshToken()" i18n="connect btn"
+                        class="btn btn-primary btn-connect">
+                    {{ validateToken ? "VALIDATED" : "VALIDATE" }}
+                </button>
+            </div>
+        </div>
+    </ng-container>
+    <br>
+    <h4 aria-level="2">vSphere </h4>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="vcenter server addr label" clr-control-label aria-describedby="tooltip-vcenter-server">
+                    VCENTER SERVER
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                IP address or hostname of the vCenter server that manages your vSphere infrastructure.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="vcenterAddress" placeholder="IP or FQDN" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="vcenter server addr required msg" *clrIfError="validatorEnum.REQUIRED">
+                    vCenter Server address cannot be empty
+                </clr-control-error>
+                <clr-control-error i18n="vcenter server addr valid msg" *clrIfError="validatorEnum.VALID_IP_OR_FQDN">
+                    Enter a valid IP address or FQDN
+                </clr-control-error>
+                <clr-control-error i18n="vcenter server addr required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    vCenter Server address has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="username label" clr-control-label>
+                    USERNAME
+                </label>
+                <input clrInput formControlName="username" placeholder="Username" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="username required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Username cannot be empty
+                </clr-control-error>
+                <clr-control-error i18n="username required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Username has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-password-container [attr.data-step-metadata]="formName">
+                <label i18n="password label" clr-control-label>
+                    PASSWORD
+                </label>
+                <input clrPassword formControlName="password" placeholder="Password" id="ssoPassword"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="Password required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Password cannot be empty
+                </clr-control-error>
+            </clr-password-container>
+        </div>
+    </div>
+
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-4" aria-live="assertive">
+            <button [clrLoading]="loadingState"
+                    [disabled]="getDisabled() || connected"
+                    (click)="connectVC()" i18n="connect btn"
+                    class="btn btn-primary btn-connect">
+                {{ connected ? "CONNECTED" : "CONNECT" }}
+            </button>
+        </div>
+        <div *ngIf="connected">
+            <div class="clr-col-12 clr-col-sm-4" aria-live="assertive">
+                <button [clrLoading]="dataLoadingState"
+                        [disabled]="getDisabled()"
+                        (click)="reloadVsphereData()" i18n="connect btn"
+                        class="btn btn-primary btn-connect">
+                    {{ "RELOAD" }}
+                </button>
+            </div>
+        </div>
+    </div>
+<!--    <div class="clr-row">-->
+<!--        <div class="clr-col-12">-->
+<!--            <clr-toggle-container [attr.data-step-metadata]="formName">-->
+<!--                <clr-toggle-wrapper>-->
+<!--                    <input-->
+<!--                            type="checkbox"-->
+<!--                            clrToggle-->
+<!--                            id="airgapped"-->
+<!--                            name="airgapped"-->
+<!--                            formControlName="airgapped"-->
+<!--                            (change)="toggleAirgappedSetting()"-->
+<!--                            aria-describedby="tmcSettings-helper"/>-->
+<!--                    <label>Turn ON for Airgapped Environment</label>-->
+<!--                </clr-toggle-wrapper>-->
+<!--            </clr-toggle-container>-->
+<!--            <span id="tmcSettings-helper" class="display-none">-->
+<!--                    Turning ON Airgapped Environment exposes additional fields.-->
+<!--            </span>-->
+<!--        </div>-->
+<!--    </div>-->
+    <h5 aria-level="2"> Resource Group Details </h5>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    DATACENTER
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify Datacenter from the drop-down
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="datacenter" formControlName="datacenter" (ngModelChange)="onDatacenterChange()">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let datacenter of datacenters">
+                        <option [value]="datacenter">
+                            {{datacenter}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error>Selecting a datacenter is required!</clr-control-error>
+            </clr-select-container>
+        </div>
+
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    CLUSTER
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Only Clusters that are compatible with WCP are listed. Please select one from the list.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="cluster" formControlName="cluster">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let cluster of clusters">
+                        <option [value]="cluster">
+                            {{cluster}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error>Selecting a cluster is required!</clr-control-error>
+            </clr-select-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    DATASTORE
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify Datastore from the drop-down
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="datastore" formControlName="datastore">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let datastore of datastores">
+                        <option [value]="datastore">
+                            {{datastore}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error>Selecting a datastore is required!</clr-control-error>
+            </clr-select-container>
+        </div>
+
+        <!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+        <!--            <clr-select-container [attr.data-step-metadata]="formName">-->
+        <!--                <label i18n="datacenter label">-->
+        <!--                    RESOURCE POOL-->
+        <!--                    <clr-tooltip>-->
+        <!--                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>-->
+        <!--                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>-->
+        <!--                            <span>-->
+        <!--                                Specify Resource pool from the drop-down-->
+        <!--                            </span>-->
+        <!--                        </clr-tooltip-content>-->
+        <!--                    </clr-tooltip>-->
+        <!--                </label>-->
+        <!--                <select clrSelect name="resourcePool" formControlName="resourcePool">-->
+        <!--                    <option aria-label="blank" title="blank"></option>-->
+        <!--                    <ng-container *ngFor="let resourcePool of resourcePools">-->
+        <!--                        <option [value]="resourcePool">-->
+        <!--                            {{resourcePool}}-->
+        <!--                        </option>-->
+        <!--                    </ng-container>-->
+        <!--                </select>-->
+        <!--                &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+        <!--                <clr-control-helper></clr-control-helper>-->
+        <!--                <clr-control-error>Selecting a resource pool is required!</clr-control-error>-->
+        <!--            </clr-select-container>-->
+        <!--        </div>-->
+
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4" *ngIf="!formGroup.value['customerConnect']">-->
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4" *ngIf="!formGroup.value['isMarketplace']">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    CONTENT LIBRARY
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify Content Library from the drop-down
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="contentLib" formControlName="contentLib" (ngModelChange)="onContentLibChange()">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let contentLib of this.apiClient.contentLibs">
+                        <option [value]="contentLib">
+                            {{contentLib}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error>Selecting a content library is required!</clr-control-error>
+            </clr-select-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4" *ngIf="!formGroup.value['isMarketplace']">
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4" *ngIf="!formGroup.value['customerConnect']">-->
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    AVI OVA IMAGE
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                               Please specify AVI Ova Image from the drop-down
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="aviOvaImage" formControlName="aviOvaImage">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let aviOvaImage of aviOvaImages">
+                        <option [value]="aviOvaImage">
+                            {{aviOvaImage}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error>Selecting an ova image is required!</clr-control-error>
+            </clr-select-container>
+        </div>
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+<!--            <clr-select-container [attr.data-step-metadata]="formName">-->
+<!--                <label i18n="datacenter label">-->
+<!--                    RESOURCE POOL (OPTIONAL)-->
+<!--                    <clr-tooltip>-->
+<!--                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>-->
+<!--                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>-->
+<!--                            <span>-->
+<!--                                Optionally specify resource pool name for creating child resource pools within this resource pool.-->
+<!--                            </span>-->
+<!--                        </clr-tooltip-content>-->
+<!--                    </clr-tooltip>-->
+<!--                </label>-->
+<!--                <select clrSelect name="resourcePool" formControlName="resourcePool">-->
+<!--                    <option aria-label="blank" title="blank"></option>-->
+<!--                    <ng-container *ngFor="let resourcePool of resourcePools">-->
+<!--                        <option [value]="resourcePool">-->
+<!--                            {{resourcePool}}-->
+<!--                        </option>-->
+<!--                    </ng-container>-->
+<!--                </select>-->
+<!--                &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+<!--                <clr-control-helper></clr-control-helper>-->
+<!--            </clr-select-container>-->
+<!--        </div>-->
+    </div>
+    <ng-container *ngIf="formGroup.value['customerConnect']">
+        <h5 aria-level="2"> Customer Connect Account Details</h5>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="username label" clr-control-label>
+                        USERNAME
+                    </label>
+                    <input clrInput formControlName="custUsername" placeholder="Username" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="username required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Username cannot be empty
+                    </clr-control-error>
+                    <clr-control-error i18n="username required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Username has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-password-container [attr.data-step-metadata]="formName">
+                    <label i18n="password label" clr-control-label>
+                        PASSWORD
+                    </label>
+                    <input clrPassword formControlName="custPassword" placeholder="Password" id="custPassword"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="Password required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Password cannot be empty
+                    </clr-control-error>
+                </clr-password-container>
+            </div>
+<!--            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4" *ngIf="this.apiClient.arcasProxyEnabled">-->
+<!--                <clr-input-container [attr.data-step-metadata]="formName">-->
+<!--                    <label i18n="username label" clr-control-label>-->
+<!--                        AVI PULSE JWT TOKEN-->
+<!--                    </label>-->
+<!--                    <input clrInput formControlName="jwtToken" placeholder="Token" />-->
+<!--                    &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+<!--                    <clr-control-helper></clr-control-helper>-->
+<!--                    <clr-control-error i18n="username required msg" *clrIfError="validatorEnum.REQUIRED">-->
+<!--                        JWT Token cannot be empty-->
+<!--                    </clr-control-error>-->
+<!--                    <clr-control-error i18n="username required msg" *clrIfError="validatorEnum.WHITESPACE">-->
+<!--                        JWT Token has whitespaces on ends!-->
+<!--                    </clr-control-error>-->
+<!--                </clr-input-container>-->
+<!--            </div>-->
+<!--        <div *ngIf="this.apiClient.arcasProxyEnabled" class="alert alert-info" role="alert">-->
+<!--            <div class="alert-items">-->
+<!--                <div class="alert-item static">-->
+<!--                    <div class="alert-icon-wrapper">-->
+<!--                        <clr-icon class="alert-icon" shape="info-circle"></clr-icon>-->
+<!--                    </div>-->
+<!--                    <span class="alert-text" i18n="vsphere wizard step info notification">-->
+<!--                        Please upload the latest Photon or Ubuntu OVA in the proxy configured vCenter Environment.-->
+<!--                    </span>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="username label" clr-control-label>
+                        AVI PULSE JWT TOKEN
+                    </label>
+                    <input clrInput formControlName="jwtToken" placeholder="Token" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="username required msg" *clrIfError="validatorEnum.REQUIRED">
+                        JWT Token cannot be empty
+                    </clr-control-error>
+                    <clr-control-error i18n="username required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        JWT Token has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+<!--            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+<!--                <clr-select-container [attr.data-step-metadata]="formName">-->
+<!--                    <label i18n="datacenter label">-->
+<!--                        KUBERNETES OVA-->
+<!--                        <clr-tooltip>-->
+<!--                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>-->
+<!--                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>-->
+<!--                            <span>-->
+<!--                                Please specify OVA name that is to be downloaded in the environment.-->
+<!--                            </span>-->
+<!--                            </clr-tooltip-content>-->
+<!--                        </clr-tooltip>-->
+<!--                    </label>-->
+<!--                    <select clrSelect name="kubernetesOva" formControlName="kubernetesOva">-->
+<!--                        <option aria-label="blank" title="blank"></option>-->
+<!--                        <ng-container *ngFor="let kubernetesOva of nodeTypes">-->
+<!--                            <option [value]="kubernetesOva.id">-->
+<!--                                {{kubernetesOva.name}}-->
+<!--                            </option>-->
+<!--                        </ng-container>-->
+<!--                    </select>-->
+<!--                    &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+<!--                    <clr-control-helper></clr-control-helper>-->
+<!--                    <clr-control-error i18n="cluster name required msg" *clrIfError="validatorEnum.REQUIRED">-->
+<!--                        Please select one of the two Kubernetes OVA to be deployed.-->
+<!--                    </clr-control-error>-->
+<!--                </clr-select-container>-->
+<!--            </div>-->
+        </div>
+    </ng-container>
+</form>
+<app-ssl-thumbprint-modal [thumbprint]="thumbprint" [vcenterHost]="vsphereHost" (verifiedThumbprint)="thumbprintModalResponse($event)"></app-ssl-thumbprint-modal>

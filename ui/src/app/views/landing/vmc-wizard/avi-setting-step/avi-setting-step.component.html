@@ -1,0 +1,591 @@
+<form [formGroup]="formGroup" >
+<!--    <div *ngIf="this.apiClient.aviSegmentError" class="alert alert-danger" role="alert">-->
+<!--        <div class="alert-items">-->
+<!--            <div class="alert-item static">-->
+<!--                <div class="alert-icon-wrapper">-->
+<!--                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>-->
+<!--                </div>-->
+<!--                <div class="newline">-->
+<!--                    <span class="alert-text">-->
+<!--                        {{ segmentErrorMsg }}-->
+<!--                    </span>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">-->
+<!--            <clr-icon aria-hidden="true" shape="close"></clr-icon>-->
+<!--        </button>-->
+<!--    </div>-->
+<!--    <div *ngIf="this.apiClient.aviClusterSegmentError" class="alert alert-danger" role="alert">-->
+<!--        <div class="alert-items">-->
+<!--            <div class="alert-item static">-->
+<!--                <div class="alert-icon-wrapper">-->
+<!--                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>-->
+<!--                </div>-->
+<!--                <div class="newline">-->
+<!--                    <span class="alert-text">-->
+<!--                        {{ segmentClusterErrorMsg }}-->
+<!--                    </span>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">-->
+<!--            <clr-icon aria-hidden="true" shape="close"></clr-icon>-->
+<!--        </button>-->
+<!--    </div>-->
+    <div *ngIf="mgmtIPErrorMsg" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <div class="newline">
+                    <span class="alert-text">
+                        {{ mgmtIPErrorMsg }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div *ngIf="clusterVipIPError" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <div class="newline">
+                    <span class="alert-text">
+                        {{ clusterVipIPError }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div *ngIf="aviSeIPError" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <div class="newline">
+                    <span class="alert-text">
+                        {{  aviSeIPError }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <div class="newline">
+                    <span class="alert-text">
+                        {{ errorNotification }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <h3 i18n="cluster settings" aria-level="2">
+        NSX ALB Component Setting
+    </h3>
+
+    <h5 i18n="cluster settings" aria-level="2">
+        NSX Advanced Load Balancer Size Configuration
+    </h5>
+    <div class="clr-row">
+        <div class="clr-col-6 clr-form-horizontal">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    CONTROLLER SIZE
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please choose size of NSX ALB Controller.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="aviSize" formControlName="aviSize"
+                        (blur)="onAviValidateClick()" (ngModelChange)="onAviValidateClick()">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let aviSize of nodeTypes">
+                        <option [value]="aviSize.id">
+                            {{aviSize.name}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error>Selecting NSX ALB Controller size is required!</clr-control-error>
+            </clr-select-container>
+        </div>
+    </div>
+<!--    <h4 i18n="Proxy Settings" class="sub-title" aria-level="2">-->
+<!--        Docker Image Custom Repository Settings-->
+<!--    </h4>-->
+<!--    <div class="clr-row">-->
+<!--        <div class="clr-col-12">-->
+<!--            <clr-toggle-container [attr.data-step-metadata]="formName">-->
+<!--                <clr-toggle-wrapper>-->
+<!--                    <input-->
+<!--                            type="checkbox"-->
+<!--                            clrToggle-->
+<!--                            id="enableHA"-->
+<!--                            name="enableHA"-->
+<!--                            formControlName="enableHA"-->
+<!--                            (change)="toggleEnableHA()"-->
+<!--                            aria-describedby="tmcSettings-helper"/>-->
+<!--                    <label>Enable HA for NSX ALB Controller</label>-->
+<!--                </clr-toggle-wrapper>-->
+<!--            </clr-toggle-container>-->
+<!--            <span id="tmcSettings-helper-1" class="display-none">-->
+<!--                    Configuring Custom Repository settings exposes additional field and disabling will hide those fields-->
+<!--            </span>-->
+<!--        </div>-->
+<!--    </div>-->
+    <h5 i18n="cluster settings" aria-level="2">
+        Enable High Availability for NSX Advanced Load Balancer
+    </h5>
+    <div class="clr-row">
+        <div class="clr-col-12">
+            <clr-toggle-container [attr.data-step-metadata]="formName">
+                <clr-toggle-wrapper>
+                    <input
+                            type="checkbox"
+                            clrToggle
+                            id="enableHA"
+                            name="enableHA"
+                            formControlName="enableHA"
+                            (change)="toggleEnableHA()"
+                            aria-describedby="tmcSettings-helper"/>
+                    <label class="hidden">Enable HA for NSX ALB Controller</label>
+                </clr-toggle-wrapper>
+            </clr-toggle-container>
+            <span id="tmcSettings-helper-1" class="display-none">
+                    Configuring Custom Repository settings exposes additional field and disabling will hide those fields
+            </span>
+        </div>
+    </div>
+    <div class="clr-row" *ngIf="formGroup.value['enableHA']">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4 clr-form-horizontal">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    NSX ALB CLUSTER IP
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify Cluster IP to be configured for enabling HA on NSX ALB Controller.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="clusterIp" placeholder="192.168.0.0"
+                       (blur)="onAviValidateClick()" (ngModelChange)="onAviValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Cluster IP is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    Cluster IP is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.WHITESPACE">
+                    Cluster has leading or trailing whitespaces!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+    <h5 i18n="cluster settings" aria-level="2">
+        NSX Advanced Load Balancer Password Configuration
+    </h5>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-password-container [attr.data-step-metadata]="formName">
+                <label i18n="password label" clr-control-label>
+                    NSX ALB PASSWORD
+                </label>
+                <input clrPassword formControlName="aviPassword" placeholder="Password"
+                       (blur)="onAviValidateClick()" (ngModelChange)="onAviValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="Password required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Password cannot be empty!
+                </clr-control-error>
+                <clr-control-error i18n="avi password valid msg"
+                                   *clrIfError="validatorEnum.VALID_AVI_PASSWORD">
+                    NSX ALB Password must  contain a combination of 3: Uppercase character, Lowercase character, Numeric or Special Character.
+                </clr-control-error>
+                <clr-control-error i18n="Password required msg" *clrIfError="validatorEnum.MIN_LEN">
+                    NSX ALB Password minimum length has to be 8!
+                </clr-control-error>
+            </clr-password-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-password-container [attr.data-step-metadata]="formName">
+                <label i18n="password label" clr-control-label>
+                    NSX ALB BACKUP PASSPHRASE
+                </label>
+                <input clrPassword formControlName="aviBackupPassphrase" placeholder="Password"
+                       (blur)="onAviValidateClick()" (ngModelChange)="onAviValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="Password required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Password cannot be empty!
+                </clr-control-error>
+                <clr-control-error i18n="avi password valid msg"
+                                   *clrIfError="validatorEnum.VALID_AVI_PASSWORD">
+                    NSX ALB Backup Passphrase must  contain a combination of 3: Uppercase character, Lowercase character, Numeric or Special Character.
+                </clr-control-error>
+                <clr-control-error i18n="Password required msg" *clrIfError="validatorEnum.MIN_LEN">
+                    NSX ALB Backup Passphrase minimum length has to be 8!
+                </clr-control-error>
+            </clr-password-container>
+        </div>
+    </div>
+
+    <h5 i18n="cluster settings" aria-level="2">
+        NSX Advanced Load Balancer Certificate Configuration
+    </h5>
+    <div class="clr-row">
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+<!--            <clr-input-container [attr.data-step-metadata]="formName">-->
+<!--                <label class="hidden" i18n="load balancer template label">-->
+<!--                    NSX ALB LICENSE KEY (OPTIONAL)-->
+<!--                    <clr-tooltip>-->
+<!--                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>-->
+<!--                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>-->
+<!--                            <span>-->
+<!--                                Optionally specify license key for NSX ALB Controller.-->
+<!--                            </span>-->
+<!--                        </clr-tooltip-content>-->
+<!--                    </clr-tooltip>-->
+<!--                </label>-->
+<!--                <input clrInput formControlName="aviLicenseKey" placeholder="License Key" />-->
+<!--                &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+<!--                <clr-control-helper></clr-control-helper>-->
+<!--                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">-->
+<!--                    Cert Path has whitespaces on ends!-->
+<!--                </clr-control-error>-->
+<!--            </clr-input-container>-->
+<!--        </div>-->
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    NSX ALB CERT PATH (OPTIONAL)
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Optionally specify certificate path (loaded to Bootstrap VM) for NSX ALB Controller.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="aviCertPath" placeholder="/root/cert.pem" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Cert Path has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    NSX ALB CERT KEY PATH (OPTIONAL)
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Optionally specify certificate key path (loaded to Bootstrap VM) for NSX ALB Controller.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="aviCertKeyPath" placeholder="/root/key.pem" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Cert-key Path has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+    <br>
+    <h4 i18n="cluster settings" aria-level="2">
+        NSX ALB Management Network Setting
+    </h4>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    GATEWAY CIDR
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                        <span>
+                            Please specify the Gateway CIDR to be configured for NSX ALB Management Network
+                        </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="aviMgmtGatewayIp" placeholder="192.168.0.0/24"
+                       (blur)="onAviValidateClick()" (ngModelChange)="onAviValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Gateway CIDR for NSX ALB Management Network is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    Gateway CIDR for NSX ALB Management Network is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.WHITESPACE">
+                    Gateway CIDR for NSX ALB Management Network has leading or trailing whitespaces!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    DHCP START RANGE
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                        <span>
+                            Please specify DHCP start range to be configured for NSX ALB Management Network
+                        </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="aviMgmtDhcpStartRange" placeholder="192.168.0.1"
+                       (blur)="onAviValidateClick()" (ngModelChange)="onAviValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    DHCP start range for NSX ALB Management Network is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    DHCP start range for NSX ALB Management Network is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.WHITESPACE">
+                    DHCP start range for NSX ALB Management Network has leading or trailing whitespaces!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    DHCP END RANGE
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                        <span>
+                            Please specify DHCP end range to be configured for NSX ALB Management Network
+                        </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="aviMgmtDhcpEndRange" placeholder="192.168.0.100"
+                       (blur)="onAviValidateClick()" (ngModelChange)="onAviValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    DHCP end range for NSX ALB Management Network is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    DHCP end range for NSX ALB Management Network is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.WHITESPACE">
+                    DHCP end range for NSX ALB Management Network has leading or trailing whitespaces!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+
+    <br>
+    <h4 i18n="cluster settings" aria-level="2">
+        TKG Cluster VIP Network Setting
+    </h4>
+
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    GATEWAY CIDR
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify Gateway CIDR to be configured for TKG Cluster VIP Network
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="aviClusterVipGatewayIp" placeholder="192.168.0.0/24"
+                       (blur)="onAviValidateClick()" (ngModelChange)="onAviValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Gateway CIDR for TKG Cluster VIP Network is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    Gateway CIDR for TKG Cluster VIP Network is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.WHITESPACE">
+                    Gateway CIDR for TKG Cluster VIP Network has leading or trailing whitespaces!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    DHCP START RANGE
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                        <span>
+                            Please specify DHCP start range to be configured for TKG Cluster VIP Network
+                        </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="aviClusterVipStartRange" placeholder="192.168.0.1"
+                       (blur)="onAviValidateClick()" (ngModelChange)="onAviValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    DHCP start range for TKG Cluster VIP Network is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    DHCP start range for TKG Cluster VIP Network is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.WHITESPACE">
+                    DHCP start range for TKG Cluster VIP Network has leading or trailing whitespaces!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    DHCP END RANGE
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify DHCP end range to be configured for TKG Cluster VIP Network
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="aviClusterVipEndRange" placeholder="192.168.0.100"
+                       ((blur)="onAviValidateClick()" (ngModelChange)="onAviValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    DHCP end range for TKG Cluster VIP Network is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    DHCP end range for TKG Cluster VIP Network is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.WHITESPACE">
+                    DHCP end range for TKG Cluster VIP Network has leading or trailing whitespaces!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    SE START RANGE
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify Service IP start range to be configured for TKG Cluster VIP Network
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="aviClusterVipSeStartRange" placeholder="192.168.0.1"
+                       (blur)="onAviValidateClick()" (ngModelChange)="onAviValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Service IP start range for TKG Cluster VIP Network is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    Service IP start range for TKG Cluster VIP Network is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.WHITESPACE">
+                    Service IP start range for TKG Cluster VIP Network has leading or trailing whitespaces!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    SE END RANGE
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify Service IP end range to be configured for TKG Cluster VIP Network
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="aviClusterVipSeEndRange" placeholder="192.168.0.100"
+                       (blur)="onAviValidateClick()" (ngModelChange)="onAviValidateClick()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Service IP end range for TKG Cluster VIP Network is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    Service IP end range for TKG Cluster VIP Network is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.WHITESPACE">
+                    Service IP end range for TKG Cluster VIP Network has leading or trailing whitespaces!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,1 @@
+deb [trusted=yes] https://$BUCKET_NAME.s3.amazonaws.com/os/tkg-bootstrap/ bootstrap main

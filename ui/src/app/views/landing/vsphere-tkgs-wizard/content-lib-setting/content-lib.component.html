@@ -1,0 +1,33 @@
+<form [formGroup]="formGroup">
+    <h3 aria-level="2"> Setup Content Library</h3>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    CONTENT LIBRARY
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                The subscribed content library that contains the VM images for deploying the nodes of Tanzu Kubernetes Clusters.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="subscribedContentLib" formControlName="subscribedContentLib">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let lib of subscribedContentLibs">
+                        <option [value]="lib">
+                            {{lib}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="cluster name required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Content Library is required!
+                </clr-control-error>
+            </clr-select-container>
+        </div>
+    </div>
+</form>

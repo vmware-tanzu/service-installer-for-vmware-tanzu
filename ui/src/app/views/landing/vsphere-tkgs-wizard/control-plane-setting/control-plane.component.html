@@ -1,0 +1,35 @@
+<form [formGroup]="formGroup">
+    <h3 aria-level="2"> Resource Allocation for Control Plane VMs</h3>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    RESOURCE ALLOCATION
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Allocate capacity for the Kubernetes Control Plane VMs.
+                                The amount of resources you allocate to the control plane VMS determines
+                                the amount of Kubernetes workloads the cluster can support.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="controlPlaneSize" formControlName="controlPlaneSize">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let size of nodeTypes">
+                        <option [value]="size.id">
+                            {{size.name}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="cluster name required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Resource Allocation is required!
+                </clr-control-error>
+            </clr-select-container>
+</div>
+    </div>
+</form>

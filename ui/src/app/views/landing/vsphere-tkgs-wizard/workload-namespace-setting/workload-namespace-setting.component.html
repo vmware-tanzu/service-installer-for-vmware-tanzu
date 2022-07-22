@@ -1,0 +1,262 @@
+<form [formGroup]="formGroup" >
+    <div *ngIf="this.apiClient.wrkSegmentError" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <div class="newline">
+                    <span class="alert-text">
+                        {{ segmentErrorMsg }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <h4 i18n="cluster settings" aria-level="2">
+        Workload Network Settings
+    </h4>
+
+    <div class="clr-row">
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+<!--            <br>-->
+<!--            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4 btn-container">-->
+<!--                <button class="btn btn-primary"-->
+<!--                        i18n="return to wizard for edit button"-->
+<!--                        status="neutral"-->
+<!--                        (click)="useExistingWorkloadNetwork()">-->
+<!--                    USE EXISTING WORKLOAD NETWORK-->
+<!--                </button>-->
+<!--            </div>-->
+<!--        </div>-->
+    </div>
+<!--    *ngIf="this.apiClient.showOld"-->
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    WORKLOAD NETWORK NAME
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Display name of the primary Workload Network
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="networkName" formControlName="networkName" (ngModelChange)="modifyFieldValidators()">
+                    <!--                        (ngModelChange)="onTkgMgmtValidateClick()" (blur)="onTkgMgmtValidateClick()"-->
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let segmentName of this.apiClient.tkgsWorkloadNetwork">
+                        <option [value]="segmentName">
+                            {{segmentName}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Workload Network Name is required!
+                </clr-control-error>
+            </clr-select-container>
+        </div>
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4" *ngIf="!this.apiClient.createNewSegment">-->
+<!--            <br>-->
+<!--            <div class="clr-col-12 btn-container">-->
+<!--                <button class="btn btn-primary"-->
+<!--                        i18n="return to wizard for edit button"-->
+<!--                        status="neutral"-->
+<!--                        (click)="addNewWorkloadNetwork()">-->
+<!--                    CREATE NEW WORKLOAD NETWORK-->
+<!--                </button>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4" *ngIf="this.apiClient.createNewSegment">-->
+<!--            <br>-->
+<!--            <div class="clr-col-12 btn-container">-->
+<!--                <button class="btn btn-primary"-->
+<!--                        i18n="return to wizard for edit button"-->
+<!--                        status="neutral"-->
+<!--                        (click)="useExistingWorkloadNetwork()">-->
+<!--                    EXISTING WORKLOAD NETWORK-->
+<!--                </button>-->
+<!--            </div>-->
+<!--        </div>-->
+    </div>
+    <ng-container *ngIf="this.formGroup.value['networkName']==='CREATE NEW'">
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        WORKLOAD NETWORK NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please specify workload segment name to be created.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="newNetworkName" placeholder="Segment Name"
+                            (blur)="validateWrkNetwork()" (ngModelChange)="validateWrkNetwork()"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Workload Network Name is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                       *clrIfError="validatorEnum.WHITESPACE">
+                        Workload Network name has whitespaces on the ends!
+                    </clr-control-error>
+                    <clr-control-error i18n="cluster name valid msg"
+                                       *clrIfError="validatorEnum.VALID_CLUSTER_NAME">
+                        Workload network name must start and end with a letter or number, and can contain only
+                        lowercase letters, numbers, and hyphens.
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="datacenter label">
+                        NETWORK PORTGROUP NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Display name of the primary Workload Network
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <select clrSelect name="portGroup" formControlName="portGroup"
+                            (blur)="validateWrkNetwork()" (ngModelChange)="validateWrkNetwork()">
+                        <!--                        (ngModelChange)="onTkgMgmtValidateClick()" (blur)="onTkgMgmtValidateClick()"-->
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let portGroup of this.apiClient.networks">
+                            <option [value]="portGroup">
+                                {{portGroup}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg"
+                                       *clrIfError="validatorEnum.REQUIRED">
+                        Selecting a portgroup is required!
+                    </clr-control-error>
+                </clr-select-container>
+            </div>
+        </div>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        GATEWAY CIDR
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    The gateway of the Supervisor control plane VMs' management network.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="gatewayAddress" placeholder="192.168.0.1/24"
+                           (blur)="validateWrkNetwork()" (ngModelChange)="validateWrkNetwork()"/>
+                    <!--                       (ngModelChange)="onTkgMgmtValidateClick()" (blur)="onTkgMgmtValidateClick()"-->
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Gateway CIDR is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="gateway address format msg"
+                                       *clrIfError="validatorEnum.VALID_IP">
+                        Gateway CIDR is invalid!
+                    </clr-control-error>
+                    <clr-control-error i18n="cluster service cidr required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Gateway CIDR has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        START RANGE
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please specify the IP Start Range for Workload Network.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="startAddress" placeholder="192.168.0.1"
+                           (blur)="validateWrkNetwork()" (ngModelChange)="validateWrkNetwork()"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Start Range is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                       *clrIfError="validatorEnum.VALID_IP">
+                        Start Range is invalid!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Start Range has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        END RANGE
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please specify the IP End Range for Workload Network.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="endAddress" placeholder="192.168.0.1"
+                           (blur)="validateWrkNetwork()" (ngModelChange)="validateWrkNetwork()"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                        End Range is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                       *clrIfError="validatorEnum.VALID_IP">
+                        End Range is invalid!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        End Range has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+        </div>
+    </ng-container>
+</form>

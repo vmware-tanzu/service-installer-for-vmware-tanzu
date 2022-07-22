@@ -1,0 +1,125 @@
+<div class="clr-row mb-20">
+    <div class="clr-col-12">
+        <clr-icon shape="arrow" dir="left" size="50" class="is-info back-link"
+                  role="button"
+                  tabindex="0"
+                  aria-label="back"
+                  (click)="navigate(APP_ROUTES.LANDING)"
+                  keyboardListener
+        ></clr-icon>
+        <h4 i18n="wizard title" aria-level="1">
+            <div class="aws-ec2-icon-30"></div>
+            Configure Tanzu Kubernetes Grid management, shared service, and workload clusters on VMC with JSON file
+        </h4>
+    </div>
+</div>
+
+<!--<div class="clr-row mb-20">-->
+<!--        <div class="clr-col-12">-->
+<!--            <div class="clr-row">-->
+<!--                <h5 i18n="wizard title" aria-level="1">-->
+<!--                    Upload Input JSON file to configure Tanzu Management, Shared and Workload Clusters.-->
+<!--                </h5>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<div class="clr-row">
+    <div class="clr-col-lg-4 clr-col-sm-6 clr-col-12">
+        <div class="card provider">
+            <div class="card-block">
+                <div class="card-title">
+                    Configure and generate JSON
+                </div>
+                <div class="card-media-block wrap">
+                    <clr-icon shape="download" size="50" class="is-info"
+                              tabindex="0"
+                              aria-label="next"
+                              keyboardListener>
+                    </clr-icon>
+                    <p class="card-text">
+                        Configure parameters and generate a fresh input JSON file.
+                    </p>
+                </div>
+                <div class="card-footer">
+                    <button
+                            class="btn btn-primary"
+                            id="btn-deploy-vsphere-2"
+                            (click)="navigateToWizardWithoutUpload()"
+                            [attr.aria-label]="'deploy on vmware vsphere'">
+                        Proceed
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="clr-col-lg-4 clr-col-sm-6 clr-col-12">
+        <div class="card provider">
+            <div class="card-block">
+                <div class="card-title">
+                    Upload and re-configure JSON
+                </div>
+                <div class="card-media-block wrap">
+                    <clr-icon shape="upload" size="50" class="is-info"
+                              tabindex="0"
+                              aria-label="next"
+                              keyboardListener>
+                    </clr-icon>
+                    <p class="card-text">
+                        Upload and configure service installer settings using Input JSON file
+                    </p>
+                </div>
+                <div class="card-footer">
+                    <!--                    <button-->
+                    <!--                            class="btn btn-primary"-->
+                    <!--                            id="btn-deploy-vsphere"-->
+                    <!--                            [attr.aria-label]="'deploy on vmware vsphere'"-->
+                    <!--                            for="inputFile">-->
+                    <!--                        Upload-->
+                    <!--                        <input id="inputFile" type="file" accept=".json"-->
+                    <!--                               #attachments-->
+                    <!--                               (change)="uploadFile($event)">-->
+                    <!--                    </button>-->
+                    <label class="btn btn-primary"
+                           id="btn-deploy-vsphere"
+                           [attr.aria-label]="'deploy on vmware vsphere'"
+                           i18n="deploy cluster configuration btn"
+                           for="inputFile">
+                        Upload
+                        <input id="inputFile" type="file" accept=".json"
+                               #attachments
+                               (change)="uploadFile($event)">
+                    </label>
+                </div>
+                <div class="card-footer" *ngIf="fileUploaded">
+                    <label class="panel"
+                           i18n="deploy cluster configuration btn"
+                    >{{fileName}}
+                    </label>
+                    <clr-icon shape="close" size="20" class="is-info"
+                              role="button"
+                              tabindex="0"
+                              aria-label="next"
+                              keyboardListener
+                              (click)="removeFile()"
+                    ></clr-icon>
+                </div>
+                <div class="card-footer" *ngIf="fileUploaded">
+                    <button
+                            class="btn btn-primary"
+                            id="btn-deploy-vsphere-1"
+                            (click)="navigateToWizard(PROVIDERS.VMC)"
+                            [disabled]="!readFile"
+                            [attr.aria-label]="'deploy on vmware vsphere'">
+                        Proceed
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="clr-col-12 clr-col-sm-12 clr-col-md-12 clr-col-lg-12 clr-col-xl-12 clr-justify-content-center">
+        <span *ngIf="showLoginLoader"
+              class="spinner spinner-lg test-spinner clr-col-3 clr-col-3 clr-col-sm-3 clr-col-md-3 clr-col-lg-3 clr-col-xl-3">
+        Loading...
+        </span>
+</div>

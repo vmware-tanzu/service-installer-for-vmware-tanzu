@@ -1,0 +1,24 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: tkgm-bringup-day0-
+spec:
+  pipelineRef:
+    name: day0-pipeline
+  params:
+    - name: imagename
+      value: #@ data.values.imagename
+    - name: giturl
+      value: #@ "https://" + data.values.git.host + "/" + data.values.git.repository
+    - name: branch
+      value: #@ data.values.git.branch
+    - name: imagepullpolicy
+      value: #@ data.values.imagepullpolicy
+  workspaces:
+    - name: pipeline-shared-data
+      persistentVolumeClaim:
+        claimName: tekton-day0
+  serviceAccountName: git-bot
+

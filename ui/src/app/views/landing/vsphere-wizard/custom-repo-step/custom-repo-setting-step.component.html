@@ -1,0 +1,130 @@
+<form [formGroup]="formGroup">
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <br>
+    <h4 i18n="Proxy Settings" class="sub-title" aria-level="2">
+        Docker Image Custom Repository Settings
+    </h4>
+    <div class="clr-row">
+        <div class="clr-col-12">
+            <clr-toggle-container [attr.data-step-metadata]="formName">
+                <clr-toggle-wrapper>
+                    <input
+                            type="checkbox"
+                            clrToggle
+                            id="customRepoSetting"
+                            name="customRepoSetting"
+                            formControlName="customRepoSetting"
+                            (change)="toggleCustomRepoSetting()"
+                            aria-describedby="tmcSettings-helper"/>
+                    <label>Specify docker image custom repository details</label>
+                </clr-toggle-wrapper>
+            </clr-toggle-container>
+            <span id="tmcSettings-helper-1" class="display-none">
+                    Configuring Custom Repository settings exposes additional field and disabling will hide those fields
+            </span>
+        </div>
+    </div>
+<!--    <ng-container *ngIf="formGroup.value['customRepoSetting'] || airgapped">-->
+    <ng-container *ngIf="formGroup.value['customRepoSetting']">
+        <div class="alert alert-info" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="info-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text" i18n="vsphere wizard step info notification">
+                        Turn off Public CA Cert if self-signed certificate is to be used
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="http proxy url label" clr-control-label>
+                        REPOSITORY IMAGE URL
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please specify Repository Image URL to configure custom repository settings
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput name="repoImage" formControlName="repoImage" placeholder="https://repo-image-url" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Repository Image cannot be empty!
+                    </clr-control-error>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Repository Image has whitespaces on the ends!
+                    </clr-control-error>
+                    <clr-control-error i18n="http(s) required msg" *clrIfError="validatorEnum.HTTP_OR_HTTPS">
+                        http:// or https:// prefix is missing
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-toggle-container [attr.data-step-metadata]="formName">
+                    <clr-toggle-wrapper>
+                        <input
+                                type="checkbox"
+                                clrToggle
+                                id="publicCaCert"
+                                name="publicCaCert"
+                                formControlName="publicCaCert"
+                                (change)="setPublicCertValue()"
+                                aria-describedby="tmcSettings-helper"/>
+                        <label>Public CA Certificate</label>
+                    </clr-toggle-wrapper>
+                </clr-toggle-container>
+                <span id="tmcSettings-helper" class="display-none">
+                    Use Public CA certificate setting for custom repository
+                </span>
+            </div>
+        </div>
+<!--        <div class="clr-row">-->
+<!--            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+<!--                <clr-input-container [attr.data-step-metadata]="formName">-->
+<!--                    <label i18n="http proxy username label" clr-control-label>-->
+<!--                        USERNAME (OPTIONAL)-->
+<!--                    </label>-->
+<!--                    <input clrInput name="repoUsername" formControlName="repoUsername" placeholder="Username" />-->
+<!--                    &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+<!--                    <clr-control-helper></clr-control-helper>-->
+<!--                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">-->
+<!--                        Username has whitespaces on the ends!-->
+<!--                    </clr-control-error>-->
+<!--                </clr-input-container>-->
+<!--            </div>-->
+<!--            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+<!--                <clr-password-container [attr.data-step-metadata]="formName">-->
+<!--                    <label i18n="http proxy password label" clr-control-label>-->
+<!--                        PASSWORD (OPTIONAL)-->
+<!--                    </label>-->
+<!--                    <input clrPassword name="repoPassword" formControlName="repoPassword" placeholder="Password" />-->
+<!--                    &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+<!--                    <clr-control-helper></clr-control-helper>-->
+<!--                </clr-password-container>-->
+<!--            </div>-->
+<!--        </div>-->
+    </ng-container>
+</form>

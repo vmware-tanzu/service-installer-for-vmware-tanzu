@@ -1,0 +1,63 @@
+@import '../../../../sass/properties.scss';
+
+:host ::ng-deep button.clr-accordion-header-button {
+  font-size: 14px;
+  padding: 9px 18px;
+  color: #474747;
+  .clr-accordion-complete-icon {
+    color: #4C773C;
+  }
+}
+//
+input[type="file"] {
+  opacity: 0;
+  width: 0.1px;
+  height: 0.1px;
+  position: absolute;
+}
+
+.tab4 {
+  tab-size: 8;
+}
+
+clr-icon.back-link {
+  margin-right: 6px;
+  cursor: pointer;
+  position: relative;
+  top: 10px;
+  float:left;
+}
+clr-icon.next-link {
+  margin-left: 6px;
+  cursor: pointer;
+  position: relative;
+  top: 10px;
+  float: right;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+.vsphere-icon-30 {
+  position: relative;
+  top: -2px;
+}
+
+clr-step-title {
+    position:left;
+    float:left;
+}
+clr-step-description {
+    position:right;
+    float:right;
+}
+
+@media (max-width: $small) {
+  .btn-container {
+    text-align: center;
+    .deploy-btn, .edit-btn {
+      width: 100%;
+    }
+  }
+}

@@ -1,0 +1,10 @@
+#@data/values-schema
+---
+git:
+  host: <FQDN/IP OF GIT>
+  repository: <GITREPO> #foo/master
+  branch: <BRANCH> 
+  username: <USER WITH GIT ACCESS FOR THE REPO> #foo
+  password: <GIT PAT>
+imagename: <IMAGE PATH OF SERVICE INSTALLER> #service_installer_tekton:v141 #registry:/library/service_installer_tekton:v141
+imagepullpolicy: Never

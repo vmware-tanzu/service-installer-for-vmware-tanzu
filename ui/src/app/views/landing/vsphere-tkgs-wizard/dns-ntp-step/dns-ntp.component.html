@@ -1,0 +1,105 @@
+<form [formGroup]="formGroup">
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <h4 i18n="cluster settings" aria-level="2">
+        DNS and NTP Settings
+    </h4>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    DNS SERVER/S
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify DNS Server value, comma separated if more than one
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="dnsServer" placeholder="192.168.0.1, 192.168.0.5" autocomplete="off" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    DNS Server/s is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.VALID_IP">
+                    DNS Server/s is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    DNS Server/s has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    DNS SEARCH DOMAIN
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify DNS Search Domain value, comma separated if more than one
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="searchDomain" placeholder="Search Domain" autocomplete="off" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Search Domain is required!
+                </clr-control-error>
+<!--                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.VALID_IP">-->
+<!--                    DNS Server/s is invalid!-->
+<!--                </clr-control-error>-->
+                <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Search Domain has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    NTP SERVER/S
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Please specify NTP Server value, comma separated if more than one
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="ntpServer" placeholder="192.168.0.1, 192.168.0.5" autocomplete="off" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    NTP Server details is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.VALID_IP_OR_FQDN">
+                    NTP Server details are invalid!
+                </clr-control-error>
+                <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    NTP Server/s has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+</form>

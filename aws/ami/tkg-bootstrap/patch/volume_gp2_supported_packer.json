@@ -1,0 +1,104 @@
+{
+  "variables": {
+    "ami_groups": "",
+    "ami_regions": "",
+    "ami_users": "",
+    "aws_access_key": "",
+    "aws_profile": "",
+    "aws_region": "",
+    "aws_secret_key": "",
+    "builder_instance_type": "t3.small",
+    "disable_public_repos": "false",
+    "encrypted": "false",
+    "extra_repos": "",
+    "bin_url": "",
+    "package_url": "",
+    "tanzu_bundle_url": "",
+    "iam_instance_profile": "",
+    "iops": "3000",
+    "kms_key_id": "",
+    "ssh_username": "ubuntu",
+    "subnet_id": "",
+    "throughput": "125",
+    "tkg_version": "v1.5.1",
+    "tkr_version": "v1.22.5",
+    "registry": "projects.registry.vmware.com",
+    "volume_size": "8",
+    "vpc_id": ""
+  },
+  "builders": [
+    {
+      "access_key": "{{user `aws_access_key`}}",
+      "ami_description": "TKG bootstrap ami for TKG {{user `tkg_version`}}",
+      "ami_groups": "{{user `ami_groups`}}",
+      "ami_name": "tkg-{{user `tkg_version`}}-{{user `tkr_version` | clean_resource_name}}-bootstrap-{{user `build_name`}}-{{timestamp}}",
+      "ami_regions": "{{user `ami_regions`}}",
+      "ami_users": "{{user `ami_users`}}",
+      "encrypt_boot": "{{user `encrypted`}}",
+      "iam_instance_profile": "{{user `iam_instance_profile`}}",
+      "instance_type": "{{user `builder_instance_type`}}",
+      "kms_key_id": "{{user `kms_key_id`}}",
+      "launch_block_device_mappings": [
+        {
+          "delete_on_termination": true,
+          "device_name": "{{ user `root_device_name` }}",
+          "iops": "{{ user `iops`}}",
+          "volume_type": "gp2"
+        }
+      ],
+      "aws_polling" : {
+        "delay_seconds": 60,
+        "max_attempts": 120
+      },
+      "name": "aws-tkg-bootstrap-builder",
+      "region": "{{ user `aws_region` }}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "source_ami_filter": {
+        "filters": {
+          "architecture": "x86_64",
+          "name": "{{user `ami_filter_name`}}",
+          "root-device-type": "ebs",
+          "virtualization-type": "hvm"
+        },
+        "most_recent": true,
+        "owners": "{{user `ami_filter_owners`}}"
+      },
+      "ssh_username": "{{user `ssh_username`}}",
+      "subnet_id": "{{ user `subnet_id` }}",
+      "type": "amazon-ebs",
+      "vpc_id": "{{ user `vpc_id` }}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "while [ ! -f /var/lib/cloud/instance/boot-finished ]; do echo 'Waiting for cloud-init...'; sleep 1; done"
+      ]
+    },
+    {
+      "ansible_env_vars": [
+        "ANSIBLE_SSH_ARGS='{{user `existing_ansible_ssh_args`}} -o IdentitiesOnly=yes'"
+      ],
+      "extra_arguments": [
+	"--extra-vars",
+	"registry={{user `registry`}}",
+        "--extra-vars",
+        "ssh_username={{user `ssh_username`}}",
+        "--extra-vars",
+        "{{user `ansible_common_vars`}}",
+        "--extra-vars",
+        "{{user `ansible_extra_vars`}}"
+      ],
+      "playbook_file": "./playbook.yml",
+      "type": "ansible"
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "manifest",
+      "output": "manifest.json",
+      "strip_path": true
+    }
+  ]
+}

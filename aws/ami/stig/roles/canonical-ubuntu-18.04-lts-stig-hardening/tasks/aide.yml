@@ -1,0 +1,37 @@
+- name: "packages: install aide"
+  package:
+    name:
+    - aide
+    - aide-common
+    state: present
+  when:
+    install_aide
+    
+- name: "packages: aide init"
+  shell: if test -x /usr/sbin/aideinit; then aideinit; else aide -i; fi
+  when:
+    install_aide
+
+- name: "aide: aide.conf exists"
+  stat:
+    path: "/etc/aide/aide.conf"
+  register: aide_conf
+
+- name: "aide: set audit tools"
+  lineinfile:
+    path: "/etc/aide/aide.conf"
+    line: "{{ item }} p+i+n+u+g+s+b+acl+xattrs+sha512"
+    state: present
+    insertafter: EOF
+  when:
+    - aide_conf.stat.exists | bool
+
+  with_items: "{{ audit_tools }}"
+
+- name: "aide: SILENTREPORTS"
+  lineinfile:
+    dest: /etc/default/aide
+    regexp: '^[#\s]*SILENTREPORTS'
+    line: 'SILENTREPORTS=no'
+  when:
+    - aide_conf.stat.exists | bool

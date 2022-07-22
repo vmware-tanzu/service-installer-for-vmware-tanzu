@@ -1,0 +1,641 @@
+<form [formGroup]="formGroup" >
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <h4 i18n="cluster settings" aria-level="2">
+        TKGS vSphere Namespace Settings
+    </h4>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    VSPHERE NAMESPACE NAME
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Enter a name for the namespace. The name must be in a DNS-compliant format
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="namespaceName" formControlName="namespaceName"
+                        (blur)="modifyFieldValidators()" (ngModelChange)="modifyFieldValidators()">
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let namespaceName of this.apiClient.allNamespaces">
+                        <option [value]="namespaceName">
+                            {{namespaceName}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Namespace name is required!
+                </clr-control-error>
+            </clr-select-container>
+        </div>
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4" *ngIf="this.apiClient.existingNamespace">-->
+<!--            <br>-->
+<!--            <div class="clr-col-12 btn-container">-->
+<!--                <button class="btn btn-primary"-->
+<!--                        i18n="return to wizard for edit button"-->
+<!--                        status="neutral"-->
+<!--                        (click)="addNewNamespace()">-->
+<!--                    CREATE NEW NAMESPACE-->
+<!--                </button>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4" *ngIf="!this.apiClient.existingNamespace">-->
+<!--            <br>-->
+<!--            <div class="clr-col-12 btn-container">-->
+<!--                <button class="btn btn-primary"-->
+<!--                        i18n="return to wizard for edit button"-->
+<!--                        status="neutral"-->
+<!--                        (click)="useExistingNamespace()">-->
+<!--                    USE EXISTING NAMESPACE-->
+<!--                </button>-->
+<!--            </div>-->
+<!--        </div>-->
+    </div>
+    <ng-container *ngIf="this.formGroup.value['namespaceName']==='CREATE NEW'">
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        VSPHERE NAMESPACE NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Select an existing namespace for deploying workload cluster.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="newNamespaceName" placeholder="Namespace name" autocomplete="off"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Namespace name is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Namespace name has whitespaces on the ends!
+                    </clr-control-error>
+                    <clr-control-error i18n="cluster name valid msg"
+                                       *clrIfError="validatorEnum.VALID_CLUSTER_NAME">
+                        Namespace name must start and end with a letter or number, and can contain only
+                        lowercase letters, numbers, and hyphens.
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+    <!--            <div class="clr-form-control" [attr.data-step-metadata]="formName">-->
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        NAMESPACE DESCRIPTION (OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Enter a description for the Namespace
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="namespaceDescription" placeholder="Namespace Description" autocomplete="off" size="40"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="datacenter label">
+                        NAMESPACE CONTENT LIBRARY (OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Associate the Tanzu Kubernetes release content library with the namespace,
+                                    Service installer creates a Subscribed content library as part of the WCP enablement,
+                                    if this field is left blank the same Content Library will be used
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <select clrSelect name="contentLib" formControlName="contentLib">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let contentLib of this.apiClient.contentLibs">
+                            <option [value]="contentLib">
+                                {{contentLib}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                </clr-select-container>
+            </div>
+        </div>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-combobox-container [attr.data-step-metadata]="formName">
+                    <label i18n="datacenter label">
+                        VM CLASS
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please select 1 or more VM Classes for Namespace.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <clr-combobox name="vmClass" formControlName="vmClass" name="multiSelect"
+                                  clrMulti="true" required>
+                        <ng-container *clrOptionSelected="let selected ">
+                            {{selected}}
+                        </ng-container>
+                        <clr-options>
+                            <clr-option *clrOptionItems="let class of this.apiClient.namespaceVmClass" [clrValue]="class">
+                                {{class}}
+                            </clr-option>
+                        </clr-options>
+                    </clr-combobox>
+                </clr-combobox-container>
+            </div>
+        </div>
+        <br>
+        <h4 i18n="Proxy Settings" class="sub-title" aria-level="2">
+            Namespace Resource Specification
+        </h4>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        CPU LIMIT (MHz) (OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    The amount of CPU resources to reserve for the namespace (in MHz)
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="cpuLimit" placeholder="CPU LIMIT" autocomplete="off"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        CPU Limit has whitespaces on the ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        MEMORY LIMIT (MB) (OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    The amount of memory to reserve for the namespace (in MB)
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="memLimit" placeholder="Memory LIMIT" autocomplete="off"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Memory Limit has whitespaces on the ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        STORAGE LIMIT (MB) (OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                   The total amount of storage space to reserve for the namespace (in MB)
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="storageLimit" placeholder="Storage LIMIT" autocomplete="off"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Storage Limit has whitespaces on the ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+        </div>
+        <br>
+        <h4 i18n="Proxy Settings" class="sub-title" aria-level="2">
+            Namespace Storage Policy Settings
+        </h4>
+        <div class="clr-row">
+            <div *ngIf="this.apiClient.storagePolicy?.size; then hasStorageSpec"></div>
+            <ng-template #hasStorageSpec>
+                <ng-container *ngFor="let policy of this.apiClient.storagePolicy | keyvalue">
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-input-container [attr.data-step-metadata]="formName">
+                            <input clrInput [value]="policy.key"
+                                   [disabled]="true" placeholder="" autocomplete="off"/>
+                        </clr-input-container>
+                        <clr-control-helper></clr-control-helper>
+                    </div>
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <clr-input-container [attr.data-step-metadata]="formName">
+                            <input clrInput [value]="policy.value"
+                                   [disabled]="true" placeholder="" autocomplete="off"/>
+                        </clr-input-container>
+                        <clr-control-helper></clr-control-helper>
+                    </div>
+                    <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                        <button id="label-delete-{{policy.key}}"
+                                class="btn btn-sm btn-label btn-delete"
+                                role="button"
+                                aria-label="delete label"
+                                (click)="deletePolicy(policy.key)">
+                            <clr-icon shape="trash" size="14"></clr-icon>
+                        </button>
+                    </div>
+                    <br>
+                </ng-container>
+            </ng-template>
+        </div>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="datacenter label">
+                        STORAGE POLICY
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Name of Storage Policy.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <select clrSelect #newStoragePolicy name="newStoragePolicy" formControlName="newStoragePolicy"
+                            (change)="AddNewPolicy()">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let newStoragePolicy of this.apiClient.storagePolicies">
+                            <option [value]="newStoragePolicy">
+                                {{newStoragePolicy}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="cluster name required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Storage Policy is required!
+                    </clr-control-error>
+                </clr-select-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        STORAGE LIMIT (MB) (OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                   The total amount of storage space to reserve for the namespace (in MB)
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput #newStoragePolicyLimit formControlName="newStoragePolicyLimit" placeholder="" autocomplete="off"
+                           (change)="AddNewPolicy()"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Storage Limit has whitespaces on the ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <br>
+                <div class="clr-col-12 btn-container">
+                    <button class="btn btn-outline edit-btn"
+                            i18n="return to wizard for edit button"
+                            (click)="addStorageSpec(newStoragePolicy.value, newStoragePolicyLimit.value)">
+                        ADD
+                    </button>
+                </div>
+    <!--            <button class="btn btn-primary deploy-btn"-->
+    <!--                    (click)="addAccessSpec(domainName.value, role.value, userOrGroup.value, userVal.value)"-->
+    <!--                    i18n="deploy cluster configuration btn">-->
+    <!--                ADD-->
+    <!--            </button>-->
+    <!--            <button class="btn btn-sm btn-label"-->
+    <!--                    (click)="addAccessSpec(domainName.value, role.value, userOrGroup.value, userVal.value)"-->
+    <!--                    role="button" aria-label="add label">-->
+                    <!--                [disabled]="getDisabled()"-->
+    <!--                ADD-->
+    <!--            </button>-->
+            </div>
+        </div>
+        <div *ngIf="displayInfo" class="alert alert-info" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="info-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text" i18n="vsphere wizard step info notification">
+                        Press ADD to continue adding Storage Spec
+                    </span>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+<!--    <br>-->
+<!--    <h4 i18n="Proxy Settings" class="sub-title" aria-level="2">-->
+<!--        Namespace Access Settings-->
+<!--    </h4>-->
+<!--    <div class="clr-row">-->
+<!--        <div class="clr-col-6 clr-col-sm-3 clr-col-lg-2">-->
+<!--            <clr-select-container [attr.data-step-metadata]="formName">-->
+<!--                <label i18n="datacenter label">-->
+<!--                    DOMAIN NAME-->
+<!--                    <clr-tooltip>-->
+<!--                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>-->
+<!--                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>-->
+<!--                            <span>-->
+<!--                                Select an identity source-->
+<!--                            </span>-->
+<!--                        </clr-tooltip-content>-->
+<!--                    </clr-tooltip>-->
+<!--                </label>-->
+<!--                <select clrSelect #domainName name="domainName" formControlName="domainName">-->
+<!--                    &lt;!&ndash;                        (blur)="validateWrkNetwork()" (ngModelChange)="validateWrkNetwork()">&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        (ngModelChange)="onTkgMgmtValidateClick()" (blur)="onTkgMgmtValidateClick()"&ndash;&gt;-->
+<!--                    <option aria-label="blank" title="blank"></option>-->
+<!--                    <ng-container *ngFor="let domainName of domainNames">-->
+<!--                        <option [value]="domainName">-->
+<!--                            {{domainName}}-->
+<!--                        </option>-->
+<!--                    </ng-container>-->
+<!--                </select>-->
+<!--                &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+<!--                <clr-control-helper></clr-control-helper>-->
+<!--                <clr-control-error i18n="control plane endpoint required msg"-->
+<!--                                   *clrIfError="validatorEnum.REQUIRED">-->
+<!--                    Selecting a domain name is required!-->
+<!--                </clr-control-error>-->
+<!--            </clr-select-container>-->
+<!--        </div>-->
+<!--        <div class="clr-col-6 clr-col-sm-3 clr-col-lg-2">-->
+<!--            <clr-select-container [attr.data-step-metadata]="formName">-->
+<!--                <label i18n="datacenter label">-->
+<!--                    ROLE-->
+<!--                    <clr-tooltip>-->
+<!--                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>-->
+<!--                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>-->
+<!--                            <span>-->
+<!--                                Select a Role-->
+<!--                            </span>-->
+<!--                        </clr-tooltip-content>-->
+<!--                    </clr-tooltip>-->
+<!--                </label>-->
+<!--                <select clrSelect #role name="role" formControlName="role">-->
+<!--                    &lt;!&ndash;                        (blur)="validateWrkNetwork()" (ngModelChange)="validateWrkNetwork()">&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        (ngModelChange)="onTkgMgmtValidateClick()" (blur)="onTkgMgmtValidateClick()"&ndash;&gt;-->
+<!--                    <option aria-label="blank" title="blank"></option>-->
+<!--                    <ng-container *ngFor="let role of roles">-->
+<!--                        <option [value]="role">-->
+<!--                            {{role}}-->
+<!--                        </option>-->
+<!--                    </ng-container>-->
+<!--                </select>-->
+<!--                &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+<!--                <clr-control-helper></clr-control-helper>-->
+<!--                <clr-control-error i18n="control plane endpoint required msg"-->
+<!--                                   *clrIfError="validatorEnum.REQUIRED">-->
+<!--                    Selecting a Role is required!-->
+<!--                </clr-control-error>-->
+<!--            </clr-select-container>-->
+<!--        </div>-->
+<!--        <div class="clr-col-6 clr-col-sm-3 clr-col-lg-2">-->
+<!--            <clr-select-container [attr.data-step-metadata]="formName">-->
+<!--                <label i18n="datacenter label">-->
+<!--                    USER or GROUP-->
+<!--                    <clr-tooltip>-->
+<!--                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>-->
+<!--                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>-->
+<!--                            <span>-->
+<!--                                Select a user or a group-->
+<!--                            </span>-->
+<!--                        </clr-tooltip-content>-->
+<!--                    </clr-tooltip>-->
+<!--                </label>-->
+<!--                <select clrSelect #userOrGroup name="userOrGroup" formControlName="userOrGroup">-->
+<!--                    &lt;!&ndash;                        (blur)="validateWrkNetwork()" (ngModelChange)="validateWrkNetwork()">&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        (ngModelChange)="onTkgMgmtValidateClick()" (blur)="onTkgMgmtValidateClick()"&ndash;&gt;-->
+<!--                    <option aria-label="blank" title="blank"></option>-->
+<!--                    <ng-container *ngFor="let userOrGroup of userORgroup">-->
+<!--                        <option [value]="userOrGroup">-->
+<!--                            {{userOrGroup}}-->
+<!--                        </option>-->
+<!--                    </ng-container>-->
+<!--                </select>-->
+<!--                &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+<!--                <clr-control-helper></clr-control-helper>-->
+<!--                <clr-control-error i18n="control plane endpoint required msg"-->
+<!--                                   *clrIfError="validatorEnum.REQUIRED">-->
+<!--                    Specify either of User or Group is required!-->
+<!--                </clr-control-error>-->
+<!--            </clr-select-container>-->
+<!--        </div>-->
+<!--        <div class="clr-col-6 clr-col-sm-3 clr-col-lg-2">-->
+<!--            <clr-select-container [attr.data-step-metadata]="formName">-->
+<!--                <label i18n="datacenter label">-->
+<!--                    USER or GROUP LIST-->
+<!--                    <clr-tooltip>-->
+<!--                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>-->
+<!--                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>-->
+<!--                            <span>-->
+<!--                                Select a user or a group-->
+<!--                            </span>-->
+<!--                        </clr-tooltip-content>-->
+<!--                    </clr-tooltip>-->
+<!--                </label>-->
+<!--                <select clrSelect #userVal name="userVal" formControlName="userVal">-->
+<!--                    &lt;!&ndash;                        (blur)="validateWrkNetwork()" (ngModelChange)="validateWrkNetwork()">&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        (ngModelChange)="onTkgMgmtValidateClick()" (blur)="onTkgMgmtValidateClick()"&ndash;&gt;-->
+<!--                    <option aria-label="blank" title="blank"></option>-->
+<!--                    <ng-container *ngFor="let userVal of users">-->
+<!--                        <option [value]="userVal">-->
+<!--                            {{userVal}}-->
+<!--                        </option>-->
+<!--                    </ng-container>-->
+<!--                </select>-->
+<!--                &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+<!--                <clr-control-helper></clr-control-helper>-->
+<!--                <clr-control-error i18n="control plane endpoint required msg"-->
+<!--                                   *clrIfError="validatorEnum.REQUIRED">-->
+<!--                    Specify either of User or Group is required!-->
+<!--                </clr-control-error>-->
+<!--            </clr-select-container>-->
+<!--        </div>-->
+<!--        <div class="clr-col-6 clr-col-sm-3 clr-col-lg-2">-->
+<!--            <br>-->
+<!--            <div class="clr-col-12 btn-container">-->
+<!--                <button class="btn btn-outline edit-btn"-->
+<!--                        (click)="addAccessSpec(domainName.value, role.value, userOrGroup.value, userVal.value)"-->
+<!--                        i18n="return to wizard for edit button">-->
+<!--                    ADD-->
+<!--                </button>-->
+<!--            </div>-->
+<!--&lt;!&ndash;            <button class="btn btn-sm btn-label"&ndash;&gt;-->
+<!--&lt;!&ndash;                    (click)="addAccessSpec(domainName.value, role.value, userOrGroup.value, userVal.value)"&ndash;&gt;-->
+<!--&lt;!&ndash;                    role="button" aria-label="add label">&ndash;&gt;-->
+<!--&lt;!&ndash;                &lt;!&ndash;                [disabled]="getDisabled()"&ndash;&gt;&ndash;&gt;-->
+<!--&lt;!&ndash;                ADD&ndash;&gt;-->
+<!--&lt;!&ndash;            </button>&ndash;&gt;-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+<!--            <clr-input-container [attr.data-step-metadata]="formName">-->
+<!--                <label class="hidden" i18n="load balancer template label">-->
+<!--                    SERVICE CIDR-->
+<!--                    <clr-tooltip>-->
+<!--                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>-->
+<!--                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>-->
+<!--                            <span>-->
+<!--                                Enter a CIDR notation that determines the range of IP addresses-->
+<!--                                for Tanzu Kubernetes clusters and services that run inside the clusters.-->
+<!--                            </span>-->
+<!--                        </clr-tooltip-content>-->
+<!--                    </clr-tooltip>-->
+<!--                </label>-->
+<!--                <input clrInput formControlName="serviceCidr" placeholder="Default: 10.96.0.0/22"/>-->
+<!--                <clr-control-helper></clr-control-helper>-->
+<!--                <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">-->
+<!--                    Service CIDR for Workload Cluster is required!-->
+<!--                </clr-control-error>-->
+<!--                <clr-control-error i18n="gateway address format msg"-->
+<!--                                   *clrIfError="validatorEnum.VALID_IP">-->
+<!--                    Service CIDR for Workload Cluster is invalid!-->
+<!--                </clr-control-error>-->
+<!--                <clr-control-error i18n="gateway address format msg"-->
+<!--                                   *clrIfError="validatorEnum.WHITESPACE">-->
+<!--                    Service CIDR for Workload Cluster has whitespaces on ends!-->
+<!--                </clr-control-error>-->
+<!--            </clr-input-container>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--    <div class="clr-row">-->
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+<!--            <clr-input-container [attr.data-step-metadata]="formName">-->
+<!--                <label class="hidden" i18n="load balancer template label">-->
+<!--                    GATEWAY CIDR-->
+<!--                    <clr-tooltip>-->
+<!--                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>-->
+<!--                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>-->
+<!--                            <span>-->
+<!--                                The gateway of the Supervisor control plane VMs' management network.-->
+<!--                            </span>-->
+<!--                        </clr-tooltip-content>-->
+<!--                    </clr-tooltip>-->
+<!--                </label>-->
+<!--                <input clrInput formControlName="gatewayAddress" placeholder="192.168.0.1/24"-->
+<!--                       (blur)="validateWrkNetwork()" (ngModelChange)="validateWrkNetwork()"/>-->
+<!--                &lt;!&ndash;                       (ngModelChange)="onTkgMgmtValidateClick()" (blur)="onTkgMgmtValidateClick()"&ndash;&gt;-->
+<!--                &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+<!--                <clr-control-helper></clr-control-helper>-->
+<!--                <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">-->
+<!--                    Gateway CIDR is required!-->
+<!--                </clr-control-error>-->
+<!--                <clr-control-error i18n="gateway address format msg"-->
+<!--                                   *clrIfError="validatorEnum.VALID_IP">-->
+<!--                    Gateway CIDR is invalid!-->
+<!--                </clr-control-error>-->
+<!--                <clr-control-error i18n="cluster service cidr required msg" *clrIfError="validatorEnum.WHITESPACE">-->
+<!--                    Gateway CIDR has whitespaces on ends!-->
+<!--                </clr-control-error>-->
+<!--            </clr-input-container>-->
+<!--        </div>-->
+
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+<!--            <clr-input-container [attr.data-step-metadata]="formName">-->
+<!--                <label class="hidden" i18n="load balancer template label">-->
+<!--                    START RANGE-->
+<!--                    <clr-tooltip>-->
+<!--                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>-->
+<!--                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>-->
+<!--                            <span>-->
+<!--                                Please specify the IP Start Range for Workload Network.-->
+<!--                            </span>-->
+<!--                        </clr-tooltip-content>-->
+<!--                    </clr-tooltip>-->
+<!--                </label>-->
+<!--                <input clrInput formControlName="startAddress" placeholder="192.168.0.1"-->
+<!--                       (blur)="validateWrkNetwork()" (ngModelChange)="validateWrkNetwork()"/>-->
+<!--                &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+<!--                <clr-control-helper></clr-control-helper>-->
+<!--                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">-->
+<!--                    Start Range is required!-->
+<!--                </clr-control-error>-->
+<!--                <clr-control-error i18n="control plane endpoint format msg"-->
+<!--                                   *clrIfError="validatorEnum.VALID_IP">-->
+<!--                    Start Range is invalid!-->
+<!--                </clr-control-error>-->
+<!--                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">-->
+<!--                    Start Range has whitespaces on ends!-->
+<!--                </clr-control-error>-->
+<!--            </clr-input-container>-->
+<!--        </div>-->
+
+<!--        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">-->
+<!--            <clr-input-container [attr.data-step-metadata]="formName">-->
+<!--                <label class="hidden" i18n="load balancer template label">-->
+<!--                    END RANGE-->
+<!--                    <clr-tooltip>-->
+<!--                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>-->
+<!--                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>-->
+<!--                            <span>-->
+<!--                                Please specify the IP End Range for Workload Network.-->
+<!--                            </span>-->
+<!--                        </clr-tooltip-content>-->
+<!--                    </clr-tooltip>-->
+<!--                </label>-->
+<!--                <input clrInput formControlName="endAddress" placeholder="192.168.0.1"-->
+<!--                       (blur)="validateWrkNetwork()" (ngModelChange)="validateWrkNetwork()"/>-->
+<!--                &lt;!&ndash; Add a empty helper to avoid accessiblity aria-describeby issue &ndash;&gt;-->
+<!--                <clr-control-helper></clr-control-helper>-->
+<!--                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">-->
+<!--                    End Range is required!-->
+<!--                </clr-control-error>-->
+<!--                <clr-control-error i18n="control plane endpoint format msg"-->
+<!--                                   *clrIfError="validatorEnum.VALID_IP">-->
+<!--                    End Range is invalid!-->
+<!--                </clr-control-error>-->
+<!--                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">-->
+<!--                    End Range has whitespaces on ends!-->
+<!--                </clr-control-error>-->
+<!--            </clr-input-container>-->
+<!--        </div>-->
+
+<!--    </div>-->
+</form>

@@ -1,0 +1,310 @@
+<form [formGroup]="formGroup">
+    <h3 aria-level="2"> Set Default CNI</h3>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    DEFAULT CNI FOR TANZU KUBERNETES CLUSTERS
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                The selected CNI will be set as default CNI for the workload clusters, the value can be overridden during Namespace and Workload Cluster configuration step.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="defaultCNI" formControlName="defaultCNI">
+                    <ng-container *ngFor="let cni of this.apiClient.AllSupportedCNI">
+                        <option [value]="cni">
+                            {{cni}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+            </clr-select-container>
+        </div>
+    </div>
+
+    <h3 aria-level="2">Proxy Settings</h3>
+    <div class="clr-row">
+        <div class="clr-col-12">
+            <clr-toggle-container [attr.data-step-metadata]="formName">
+                <clr-toggle-wrapper>
+                    <input
+                        type="checkbox"
+                        clrToggle
+                        id="proxySettings"
+                        name="proxySettings"
+                        formControlName="proxySettings"
+                        (change)="toggleProxySetting()"
+                        aria-describedby="proxySettings-helper"/>
+                    <label>Default Proxy Settings for Tanzu Kubernetes Clusters</label>
+                </clr-toggle-wrapper>
+            </clr-toggle-container>
+            <span id="proxySettings-helper" class="display-none">
+                Enabling proxy settings exposes addition fields and disabling will hide those fields
+            </span>
+        </div>
+    </div>
+    <ng-container *ngIf="this.formGroup.get('proxySettings').value">
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="http proxy url label" clr-control-label>
+                        HTTP PROXY URL
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    HTTP proxy URL to be configured globally in the {{ clusterType }} cluster for accessing infrastructure
+                                    deployed behind the proxy.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput name="httpProxyUrl" formControlName="httpProxyUrl" placeholder="http://exampleUrl:PORT" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Http proxy url cannot be empty
+                    </clr-control-error>
+                    <clr-control-error i18n="http(s) required msg" *clrIfError="validatorEnum.HTTP_OR_HTTPS">
+                        http:// prefix is missing
+                    </clr-control-error>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Http proxy url has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="http proxy username label" clr-control-label>
+                        HTTP PROXY USERNAME (OPTIONAL)
+                    </label>
+                    <input clrInput name="httpProxyUsername" formControlName="httpProxyUsername" placeholder="Username" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Http Proxy Username has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-password-container [attr.data-step-metadata]="formName">
+                    <label i18n="http proxy password label" clr-control-label>
+                        HTTP PROXY PASSWORD (OPTIONAL)
+                    </label>
+                    <input clrPassword name="httpProxyPassword" formControlName="httpProxyPassword" placeholder="Password" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                </clr-password-container>
+            </div>
+        </div>
+        <div class="clr-row">
+            <div class="clr-col-12">
+                <div class="checkbox-wrapper" [attr.data-step-metadata]="formName">
+                    <clr-checkbox-wrapper>
+                        <input type="checkbox" clrCheckbox name="isSameAsHttp" formControlName="isSameAsHttp" (change)="
+                        toggleProxySetting()"/>
+                        <label>Use same configuration for https proxy</label>
+                    </clr-checkbox-wrapper>
+                </div>
+            </div>
+        </div>
+        <div class="clr-row" *ngIf="!formGroup.value.isSameAsHttp">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="https proxy url label" clr-control-label>
+                        HTTPS PROXY URL
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    HTTPS proxy URL to be configured globally in the {{ clusterType }} cluster for accessing infrastructure
+                                    deployed behind the proxy.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput name="httpsProxyUrl" formControlName="httpsProxyUrl" placeholder="https://exampleUrl:PORT" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="https proxy url required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Https proxy url cannot be empty
+                    </clr-control-error>
+                    <clr-control-error i18n="https required msg" *clrIfError="validatorEnum.HTTP_OR_HTTPS">
+                        https:// prefix is missing
+                    </clr-control-error>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Https Proxy URL has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="https proxy username label" clr-control-label>
+                        HTTPS PROXY USERNAME (OPTIONAL)
+                    </label>
+                    <input clrInput name="httpsProxyUsername" formControlName="httpsProxyUsername" placeholder="Username" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Https Proxy Username has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-password-container [attr.data-step-metadata]="formName">
+                    <label i18n="https proxy password label" clr-control-label>
+                        HTTPS PROXY PASSWORD (OPTIONAL)
+                    </label>
+                    <input clrPassword name="httpsProxyPassword" formControlName="httpsProxyPassword" placeholder="Password" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                </clr-password-container>
+            </div>
+        </div>
+        <div class="clr-row">
+            <div class="clr-col-4">
+                <clr-input-container [attr.data-step-metadata]="formName" class="word-break">
+                    <label i18n="no proxy label" clr-control-label>
+                        NO PROXY (OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span *ngIf="!enableNetworkName">
+                                    A comma separated list of network CIDRs or host names. Example: noproxy.yourdomain.com,192.168.0.0/24.
+                                </span>
+                                <span *ngIf="enableNetworkName">
+                                    A comma separated list of network CIDRs or host names. Example: noproxy.yourdomain.com,192.168.0.0/24.
+                                    It is recommended that you enter the VM CIDR range for the VM network selected above.
+                                    Failing to do so will result in traffic between api-server and kubelet being forwarded
+                                    to the proxy, impacting kubectl log commands.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput name="noProxy" formControlName="noProxy" placeholder="noproxy.yourdomain.com, 192.168.0.0/24" />
+                    <clr-control-helper *ngIf="fullNoProxy">
+                        <div class="title">FULL NO PROXY LIST</div>
+                        {{fullNoProxy}}
+                    </clr-control-helper>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        No Proxy has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <!-- Proxy Certificate -->
+            <div class="clr-col-12 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label for="proxyCert" class="clr-control-label" >
+                        PROXY CERTIFICATE PATH(OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Directory path of SIVT VM where proxyCert is located. This is required only if proxy is handling SSL termination and using Self signed Certificate
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput name="proxyCert" formControlName="proxyCert" placeholder="/root/cert"/>
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Proxy Certificate has whitespaces on the ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+        </div>
+    </ng-container>
+
+    <h3 aria-level="2">Trusted CA</h3>
+    <div class="clr-row">
+        <div *ngIf="this.apiClient.tkgsAdditionalCerts?.size; then hasCerts"></div>
+        <ng-template #hasCerts>
+            <ng-container *ngFor="let cert of this.apiClient.tkgsAdditionalCerts | keyvalue">
+                <div class="clr-col-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <input clrInput [value]="cert.value" [disabled]="true" placeholder="" autocomplete="off"/>
+                    </clr-input-container>
+                    <clr-control-helper></clr-control-helper>
+                </div>
+                <div class="clr-col-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <input clrInput [value]="cert.key" [disabled]="true" placeholder="" autocomplete="off"/>
+                    </clr-input-container>
+                    <clr-control-helper></clr-control-helper>
+                </div>
+                <div class="clr-col-4">
+                    <button id="label-delete-{{cert.key}}"
+                        class="btn btn-sm btn-label btn-delete"
+                        role="button"
+                        aria-label="delete label"
+                        (click)="deleteCert(cert.key)">
+                        <clr-icon shape="trash" size="12"></clr-icon>
+                    </button>
+                </div>
+            </ng-container>
+        </ng-template>
+   </div>
+
+   <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    PATH OR ENDPOINT
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Either specify the path of the SIVT VM where the certs are present or specify the endpoint, Endpoint should be reachable from the SIVT VM.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect #newCertType name="newCertType" formControlName="newCertType">
+                    <ng-container *ngFor="let type of this.apiClient.TkgsCertTypes">
+                        <option [value]="type">
+                            {{type}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+            </clr-select-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    {{newCertType.value}}
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                While specifying endpoints, please provide the port as well ex: https://url:PORT
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput #newCertValue formControlName="newCertValue" placeholder="path or endpoint" autocomplete="off"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Whitespace present on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-2">
+            <button id="label-delete-{{newCertValue.value}}"
+                class="btn btn-sm btn-label btn-delete"
+                role="button"
+                aria-label="Add label"
+                (click)="addCert(newCertType.value, newCertValue.value)">
+                <clr-icon shape="plus-circle" class="is-solid" size="16"></clr-icon>
+            </button>
+        </div>
+        
+    </div>
+</form>

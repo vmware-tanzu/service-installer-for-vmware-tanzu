@@ -1,0 +1,32 @@
+<!--<div class="modal" *ngIf="viewJson">-->
+<!--    <div class="modal-dialog modal-lg" role="dialog" aria-hidden="true">-->
+<!--        <div class="modal-title">-->
+<!--            <h3>-->
+<!--                Generated Input JSON-->
+<!--            </h3>-->
+<!--        </div>-->
+<!--        <div class="modal-content">-->
+<!--            <ngx-json-viewer [json]="payload"></ngx-json-viewer>-->
+<!--        </div>-->
+<!--        <div class="modal-footer">-->
+<!--            <button type="button" class="btn btn-outline" (click)="close()">Cancel</button>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
+
+<clr-modal [(clrModalOpen)]="viewJson" [clrModalClosable]="false">
+    <h3 class="modal-title">Generated Input JSON</h3>
+    <div class="modal-body">
+        <ngx-json-viewer [json]="payload"></ngx-json-viewer>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-primary continue-btn" (click)="continueBtnHandler()" keyboardListener>
+            <clr-icon shape="download" size="18"></clr-icon>
+            Download
+        </button>
+        <button type="button" class="btn btn-danger" (click)="close()">
+            <clr-icon shape="window-close" size="18"></clr-icon>
+            Close
+        </button>
+    </div>
+</clr-modal>

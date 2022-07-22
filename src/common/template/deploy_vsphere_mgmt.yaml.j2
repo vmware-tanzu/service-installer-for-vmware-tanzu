@@ -1,0 +1,107 @@
+#! ---------------------------------------------------------------------
+#! vSphere non proxy env configs
+#! ---------------------------------------------------------------------
+AVI_CONTROLLER_VERSION: {{ avi_version }}
+AVI_CA_DATA_B64: {{ avi_cert }}
+AVI_CLOUD_NAME: tkgvsphere-cloud01
+AVI_CONTROLLER: {{ ip }}
+AVI_DATA_NETWORK: {{ wpName }}
+AVI_DATA_NETWORK_CIDR: {{ wipIpNetmask }}
+AVI_ENABLE: 'true'
+AVI_LABELS: |
+    '{{ avi_label_key }}': '{{ avi_label_value }}'
+AVI_PASSWORD: <encoded:{{ config.tkgComponentSpec.aviComponents.aviPasswordBase64 }}>
+AVI_SERVICE_ENGINE_GROUP: tkgvsphere-tkgmgmt-group01
+AVI_USERNAME: admin
+CLUSTER_CIDR: {{ config.tkgComponentSpec.tkgMgmtComponents.tkgMgmtClusterCidr }}
+CLUSTER_NAME: {{ cluster_name }}
+CLUSTER_PLAN: {{ config.tkgComponentSpec.tkgMgmtComponents.tkgMgmtDeploymentType }}
+ENABLE_CEIP_PARTICIPATION: {{ ceip }}
+ENABLE_MHC: 'true'
+MHC_UNKNOWN_STATUS_TIMEOUT: 5m
+MHC_FALSE_STATUS_TIMEOUT: 12m
+INFRASTRUCTURE_PROVIDER: vsphere
+SERVICE_CIDR: {{ config.tkgComponentSpec.tkgMgmtComponents.tkgMgmtServiceCidr }}
+TKG_HTTP_PROXY_ENABLED: false
+DEPLOY_TKG_ON_VSPHERE7: 'true'
+VSPHERE_DATACENTER: {{ data_center }}
+VSPHERE_DATASTORE: {{ datastore_path }}
+VSPHERE_FOLDER: {{ vsphere_folder_path }}
+VSPHERE_NETWORK: {{ config.tkgComponentSpec.tkgMgmtComponents.tkgMgmtNetworkName }}
+VSPHERE_PASSWORD: <encoded:{{ vcenter_passwd }}>
+VSPHERE_RESOURCE_POOL: {{ vsphere_rp }}
+VSPHERE_SERVER: {{ vcenter_ip }}
+VSPHERE_SSH_AUTHORIZED_KEY: {{ ssh_key }}
+VSPHERE_USERNAME: {{ vcenter_username }}
+VSPHERE_INSECURE: 'true'
+AVI_CONTROL_PLANE_HA_PROVIDER: 'true'
+ENABLE_AUDIT_LOGGING: 'true'
+OS_ARCH: amd64
+OS_NAME: {{ osName }}
+OS_VERSION: {{ osVersion }}
+TKG_IP_FAMILY: ipv4
+AVI_MANAGEMENT_CLUSTER_VIP_NETWORK_NAME: {{ config.tkgComponentSpec.tkgClusterVipNetwork.tkgClusterVipNetworkName }}
+AVI_MANAGEMENT_CLUSTER_VIP_NETWORK_CIDR: {{ avi_cluster_vip_network_gateway_cidr }}
+{% if size == "custom" %}
+VSPHERE_CONTROL_PLANE_NUM_CPUS: {{control_plane_vcpu}}
+VSPHERE_CONTROL_PLANE_DISK_GIB: {{control_plane_disk_gb}}
+VSPHERE_CONTROL_PLANE_MEM_MIB: {{control_plane_mem_mb}}
+VSPHERE_WORKER_NUM_CPUS: {{control_plane_vcpu}}
+VSPHERE_WORKER_DISK_GIB: {{control_plane_disk_gb}}
+VSPHERE_WORKER_MEM_MIB: {{control_plane_mem_mb}}
+{% else %}
+WORKER_SIZE: {{ size_worker }}
+CONTROLPLANE_SIZE: {{ size_controlplane }}
+{% endif %}
+{% if identity_mgmt_type == "oidc" %}
+IDENTITY_MANAGEMENT_TYPE: {{identity_mgmt_type}}
+OIDC_IDENTITY_PROVIDER_CLIENT_ID: {{oidc_provider_client_id}}
+OIDC_IDENTITY_PROVIDER_CLIENT_SECRET: {{oidc_provider_client_secret}}
+OIDC_IDENTITY_PROVIDER_GROUPS_CLAIM: {{oidc_provider_groups_claim}}
+OIDC_IDENTITY_PROVIDER_ISSUER_URL: {{oidc_provider_issuer_url}}
+OIDC_IDENTITY_PROVIDER_SCOPES: {{oidc_provider_scopes}}
+OIDC_IDENTITY_PROVIDER_USERNAME_CLAIM: {{oidc_provider_username_claim}}
+{% elif identity_mgmt_type == "ldap" %}
+IDENTITY_MANAGEMENT_TYPE: {{identity_mgmt_type}}
+LDAP_BIND_DN: {{ ldap_bind_dn }}
+LDAP_BIND_PASSWORD: {{ ldap_endpoint_bind_pw }}
+LDAP_GROUP_SEARCH_BASE_DN: {{ ldap_grp_search_base_dn }}
+LDAP_GROUP_SEARCH_FILTER: {{ ldap_grp_search_filter }}
+LDAP_GROUP_SEARCH_GROUP_ATTRIBUTE: {{ ldap_grp_search_grp_attr }}
+LDAP_GROUP_SEARCH_NAME_ATTRIBUTE: {{ ldap_grp_search_name_attr }}
+LDAP_HOST: {{ ldap_endpoint_ip }}
+LDAP_ROOT_CA_DATA_B64: {{ ldap_root_ca_data_base64 }}
+LDAP_USER_SEARCH_BASE_DN: {{ ldap_user_search_base_dn }}
+LDAP_USER_SEARCH_EMAIL_ATTRIBUTE: 'DN'
+LDAP_USER_SEARCH_ID_ATTRIBUTE: 'DN'
+LDAP_USER_SEARCH_NAME_ATTRIBUTE: 'userPrincipalName'
+LDAP_USER_SEARCH_FILTER: {{ ldap_user_search_filter }}
+LDAP_USER_SEARCH_USERNAME: {{ ldap_user_search_uname }}
+{% else %}
+IDENTITY_MANAGEMENT_TYPE: none
+{% endif %}
+#! ---------------------------------------------------------------------
+#! vSphere proxy env configs
+#! ---------------------------------------------------------------------
+{% if config.envSpec.proxySpec.tkgMgmt.enableProxy == "true" %}
+TKG_HTTP_PROXY_ENABLED: 'true'
+TKG_HTTP_PROXY: {{ config.envSpec.proxySpec.tkgMgmt.httpProxy }}
+TKG_HTTPS_PROXY: {{ config.envSpec.proxySpec.tkgMgmt.httpsProxy }}
+TKG_NO_PROXY: {{ config.envSpec.proxySpec.tkgMgmt.noProxy }}
+{% if isProxyCert == "true" %}
+TKG_PROXY_CA_CERT: {{ proxyCert }}
+{% endif %}
+{% endif %}
+
+#! ---------------------------------------------------------------------
+#! vSphere airgapped env configs
+#! ---------------------------------------------------------------------
+{% if config.envSpec.customRepositorySpec.tkgCustomImageRepository %}
+TKG_CUSTOM_IMAGE_REPOSITORY: {{ air_gapped_repo }}
+{% if config.envSpec.customRepositorySpec.tkgCustomImageRepositoryPublicCaCert.lower() == "false" %}
+TKG_CUSTOM_IMAGE_REPOSITORY_SKIP_TLS_VERIFY: 'False'
+TKG_CUSTOM_IMAGE_REPOSITORY_CA_CERTIFICATE: {{ repo_certificate }}
+{% else %}
+TKG_CUSTOM_IMAGE_REPOSITORY_SKIP_TLS_VERIFY: 'true'
+{% endif %}
+{% endif %}

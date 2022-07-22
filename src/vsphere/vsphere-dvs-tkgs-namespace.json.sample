@@ -1,0 +1,154 @@
+{
+   "envSpec":{
+      "envType":"tkgs-ns",
+      "vcenterDetails":{
+         "vcenterAddress":"vcenter.lab.vmw",
+         "vcenterSsoUser":"administrator@vsphere.local",
+         "vcenterSsoPasswordBase64":"Vk13YXJlMSE=",
+         "vcenterDatacenter":"Tanzu-DC",
+         "vcenterCluster":"Tanzu-CL01"
+      },
+      "saasEndpoints":{
+         "tmcDetails":{
+            "tmcAvailability":"false",
+            "tmcRefreshToken":"t9TfXXXXJuMCq3",
+            "tmcSupervisorClusterName":"supervisor-cluster",
+            "tmcInstanceURL":"https://xxxx.tmc.com"
+         },
+         "tanzuObservabilityDetails":{
+            "tanzuObservabilityAvailability":"false",
+            "tanzuObservabilityUrl":"6777a3a8-XXXX-XXXX-XXXXX-797b20638660",
+            "tanzuObservabilityRefreshToken":"6777a3a8-XXXX-XXXX-XXXXX-797b20638660"
+         }
+      }
+   },
+   "tkgsComponentSpec":{
+      "tkgsWorkloadNetwork":{
+         "tkgsWorkloadNetworkName":"tkgs-workload",
+         "tkgsWorkloadPortgroupName":"",
+         "tkgsWorkloadNetworkGatewayCidr":"",
+         "tkgsWorkloadNetworkStartRange":"",
+         "tkgsWorkloadNetworkEndRange":"",
+         "tkgsWorkloadServiceCidr":""
+      },
+      "tkgsVsphereNamespaceSpec":{
+         "tkgsVsphereNamespaceName":"workload",
+         "tkgsVsphereNamespaceDescription":"",
+         "tkgsVsphereNamespaceContentLibrary":"",
+         "tkgsVsphereNamespaceVmClasses":[
+            "best-effort-2xlarge",
+            "best-effort-4xlarge",
+            "best-effort-large"
+         ],
+         "tkgsVsphereNamespaceResourceSpec":{
+            "cpuLimit":"10000",
+            "memoryLimit":"51200",
+            "storageRequestLimit":"102400"
+         },
+         "tkgsVsphereNamespaceStorageSpec":[
+            {
+               "storageLimit":"204800",
+               "storagePolicy":"vSAN Default Storage Policy"
+            }
+         ],
+         "tkgsVsphereWorkloadClusterSpec":{
+            "tkgsVsphereNamespaceName":"workload",
+            "cniName": "antrea"
+            "tkgsVsphereWorkloadClusterName":"workload-cls",
+            "tkgsVsphereWorkloadClusterVersion":"v1.21.6+vmware.1-tkg.1.b3d708a",
+            "controlPlaneVolumes": [
+                {
+                   "name":"",
+                   "mountPath": "",
+                   "storage": "",
+                   "storageClass": ""
+                }
+            ],
+            "workerVolumes": [
+                {
+                   "name":"",
+                   "mountPath": "",
+                   "storage": "",
+                   "storageClass": ""
+                }
+            ],
+            "allowedStorageClasses":[
+               "vSAN Default Storage Policy"
+            ],
+            "defaultStorageClass":"vSAN Default Storage Policy",
+            "nodeStorageClass":"vSAN Default Storage Policy",
+            "serviceCidrBlocks":"192.168.0.0/16",
+            "podCidrBlocks":"10.96.0.0/12",
+            "controlPlaneVmClass":"best-effort-large",
+            "workerVmClass":"best-effort-large",
+            "workerNodeCount":"3",
+            "enableControlPlaneHa":"true",
+            "tkgWorkloadTsmIntegration":"false",
+            "namespaceExclusions":{
+               "exactName":"",
+               "startsWith":""
+            },
+            "tkgsWorkloadClusterGroupName":"",
+            "tkgsWorkloadEnableDataProtection":"false",
+            "tkgWorkloadClusterCredential":"",
+            "tkgWorkloadClusterBackupLocation":""
+         }
+      },
+          "tkgServiceConfig": {
+              "proxySpec": {
+                  "enableProxy": "",
+                  "httpProxy": "",
+                  "httpsProxy": "",
+                  "noProxy": "",
+                  "proxyCert": ""
+              },
+              "defaultCNI": "",
+              "additionalTrustedCAs": {
+                  "paths": "",
+                  "endpointUrls": ""
+              }
+          }
+   },
+   "harborSpec":{
+      "enableHarborExtension":"true",
+      "harborFqdn":"harbor.tanzu.lab",
+      "harborPasswordBase64":"Vk13YXJlMSE=",
+      "harborCertPath":"/root/cert.pem",
+      "harborCertKeyPath":"/root/key.pem"
+   },
+   "tanzuExtensions":{
+      "enableExtensions":"true",
+      "tkgClustersName":"workload-cls",
+      "logging":{
+         "syslogEndpoint":{
+            "enableSyslogEndpoint":"false",
+            "syslogEndpointAddress":"",
+            "syslogEndpointPort":"",
+            "syslogEndpointMode":"",
+            "syslogEndpointFormat":""
+         },
+         "httpEndpoint":{
+            "enableHttpEndpoint":"false",
+            "httpEndpointAddress":"",
+            "httpEndpointPort":"",
+            "httpEndpointUri":"",
+            "httpEndpointHeaderKeyValue":"Authorization Bearer Axxxxxxxxxxxxxx"
+         },
+         "kafkaEndpoint":{
+            "enableKafkaEndpoint":"false",
+            "kafkaBrokerServiceName":"",
+            "kafkaTopicName":""
+         }
+      },
+      "monitoring":{
+         "enableLoggingExtension":"true",
+         "prometheusFqdn":"prometheus.tanzu.lab",
+         "prometheusCertPath":"/root/cert.pem",
+         "prometheusCertKeyPath":"/root/key.pem",
+         "grafanaFqdn":"grafana.tanzu.lab",
+         "grafanaCertPath":"/root/cert.pem",
+         "grafanaCertKeyPath":"/root/key.pem",
+         "grafanaPasswordBase64":"Vk13YXJlMSE="
+      }
+   }
+}

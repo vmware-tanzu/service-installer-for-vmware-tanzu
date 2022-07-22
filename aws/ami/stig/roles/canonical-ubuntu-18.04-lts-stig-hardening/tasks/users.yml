@@ -1,0 +1,14 @@
+- name: "users: lock root"
+  command: passwd -l root
+
+- name: "users: useradd INACTIVE"
+  lineinfile:
+    dest: /etc/default/useradd
+    regexp: '^[#\s]*INACTIVE'
+    line: 'INACTIVE=35'
+
+- name: "users: remove unused accounts"
+  user:
+    name: "{{ item }}"
+    state: absent
+  with_items: "{{ unused_accounts }}"

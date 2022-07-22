@@ -1,0 +1,228 @@
+<form [formGroup]="formGroup" >
+    <div *ngIf="this.apiClient.mgmtSegmentError" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <div class="newline">
+                    <span class="alert-text">
+                        {{ segmentErrorMsg }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <h4 i18n="cluster settings" aria-level="2">
+        Management Network Settings
+    </h4>
+
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    NETWORK SEGMENT NAME
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                vCenter Server, ESXi hosts, and NSX Manager need to be routable from this network.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="segmentName" formControlName="segmentName"
+                        (blur)="validateMgmtNetwork()" (ngModelChange)="validateMgmtNetwork()">
+                    <!--                        (ngModelChange)="onTkgMgmtValidateClick()" (blur)="onTkgMgmtValidateClick()"-->
+                    <option aria-label="blank" title="blank"></option>
+                    <ng-container *ngFor="let segmentName of this.apiClient.networks">
+                        <option [value]="segmentName">
+                            {{segmentName}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg"
+                                   *clrIfError="validatorEnum.REQUIRED">
+                    Selecting a segment name is required!
+                </clr-control-error>
+            </clr-select-container>
+        </div>
+
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    GATEWAY CIDR
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                The gateway of the Supervisor control plane VMs' management network.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="gatewayAddress" placeholder="192.168.0.1/24"
+                       (blur)="validateMgmtNetwork()" (ngModelChange)="validateMgmtNetwork()"/>
+                <!--                       (ngModelChange)="onTkgMgmtValidateClick()" (blur)="onTkgMgmtValidateClick()"-->
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="gateway address required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Gateway CIDR is required!
+                </clr-control-error>
+                <clr-control-error i18n="gateway address format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    Gateway CIDR is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="cluster service cidr required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Gateway CIDR has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+
+    </div>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    START IP ADDRESS
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                This is the first IP in a range of 5 IPs to assign to Supervisor control plane VMs' management network interfaces.
+                                1 IP is assigned to each of the 3 Supervisor control plane VMs in the cluster,
+                                1 IP is used for a floating IP, and 1 is reserved for use during upgrade.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="startAddress" placeholder="192.168.0.1"
+                       (blur)="validateMgmtNetwork()" (ngModelChange)="validateMgmtNetwork()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Start Address is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    Start Address is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Start Address has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-4" aria-live="assertive">
+            <button [clrLoading]="loadingState"
+                    [disabled]="getDisabled() || pingTest"
+                    (click)="pingTestMgmt()" i18n="connect btn"
+                    class="btn btn-primary btn-connect">
+                {{ pingTest ? "VALIDATED" : "PING TEST" }}
+            </button>
+        </div>
+    </div>
+    <br>
+    <h4 i18n="cluster settings" aria-level="2">
+        DNS and NTP Settings
+    </h4>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    DNS SERVER/S
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                List of DNS Server that can resolve domain names of management components.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="dnsServer" placeholder="192.168.0.1, 192.168.0.5" autocomplete="off" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.VALID_IP">
+                    DNS Server/s is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    DNS Server/s is required!
+                </clr-control-error>
+                <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    DNS Server/s has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    DNS SEARCH DOMAIN (OPTIONAL)
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                DNS Search Domains (optional)
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="searchDomain" placeholder="Search Domain" autocomplete="off" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Search Domain has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    NTP SERVER/S
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                A Network Time Protocol server available on the Management Network.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="ntpServer" placeholder="192.168.0.1, 192.168.0.5" autocomplete="off" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    NTP Server details is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.VALID_IP_OR_FQDN">
+                    NTP Server details are invalid!
+                </clr-control-error>
+                <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    NTP Server/s has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+</form>
