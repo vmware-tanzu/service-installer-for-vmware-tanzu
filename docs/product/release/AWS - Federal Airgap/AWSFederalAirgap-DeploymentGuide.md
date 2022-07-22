@@ -1,6 +1,6 @@
-# Deploying Tanzu for Kubernetes Operations on Federal Air-gapped AWS VPC Using Service Installer for VMware Tanzu
+# Deploying Tanzu Kubernetes Grid on Federal Air-gapped AWS VPC Using Service Installer for VMware Tanzu
 
-Service Installer for VMware Tanzu (SIVT) enables you to install Tanzu for Kubernetes Operations in a federal air-gapped (internet restricted) AWS VPC with the help of easily transportable binaries and TAR files and Terraform automation scripts. The deployed platform is STIG hardened and FIPS compliant.
+Service Installer for VMware Tanzu (SIVT) enables you to install Tanzu Kubernetes Grid in a federal air-gapped (internet restricted) AWS VPC with the help of easily transportable binaries and TAR files and Terraform automation scripts. The deployed platform is STIG hardened and FIPS compliant.
 
 **Note:** In this deployment procedure, a federal air-gapped environment refers to an internet-restricted environment that is compliant with standards such as FIPS and STIG.
 
