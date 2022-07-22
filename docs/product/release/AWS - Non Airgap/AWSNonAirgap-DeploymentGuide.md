@@ -168,6 +168,7 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
    **Compliant deployment:** By default, Service Installer for VMware Tanzu deploys FIPS compliant Tanzu Kubernetes Grid master and worker nodes. In this type of deployment, Service Installer for VMware Tanzu makes use of FIPS compliant and STIG hardened Ubuntu (18.04) base OS for Tanzu Kubernetes Grid cluster nodes, FIPS enabled Kubernetes overlay, and FIPS compliant Tanzu Kubernetes Grid images. To perform compliant deployment, perform the following steps:
    
     - For doing FIPS compliant deployment on Ubuntu, the installer needs Ubuntu advantage username and password. Export these using the following commands:
+
       ```
       export UBUNTU_ADVANTAGE_PASSWORD=<user:password>
       export UBUNTU_ADVANTAGE_PASSWORD_UPDATES=<user:password>

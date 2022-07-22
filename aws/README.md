@@ -9,6 +9,7 @@ Service Installer for VMware Tanzu (SIVT) enables users to install Tanzu for Kub
 - Non Air-gapped: [Tanzu for Kubernetes Operations Reference Design](https://docs.vmware.com/en/VMware-Tanzu/services/tanzu-reference-architecture/GUID-reference-designs-tko-on-aws.html).
 - Air-gapped: Reference architecture is yet to be published
 
+
 Service Installer for VMware Tanzu provides automation of Tanzu Kubernetes Grid deployment on the following two AWS environments:
 
 - Federal Air-gapped
