@@ -4,9 +4,10 @@
 -->
 # README
 
-Service Installer for VMware Tanzu (SIVT) enables users to install Tanzu for Kubernetes Operations on the AWS environment. This project helps build an architecture in AWS that corresponds to following reference architecture
-- Non-Airgap: [Tanzu for Kubernetes Operations Reference Design](https://docs.vmware.com/en/VMware-Tanzu/services/tanzu-reference-architecture/GUID-reference-designs-tko-on-aws.html).
-- Airgap: RA is yet to be published
+Service Installer for VMware Tanzu (SIVT) enables users to install Tanzu for Kubernetes Operations on the AWS environment. This project helps build an architecture in AWS that corresponds to the following reference architectures:
+
+- Non Air-gapped: [Tanzu for Kubernetes Operations Reference Design](https://docs.vmware.com/en/VMware-Tanzu/services/tanzu-reference-architecture/GUID-reference-designs-tko-on-aws.html).
+- Air-gapped: [Tanzu Kubernetes Grid on AWS Air-Gapped Reference Design](https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.5/air-gap-reference-architecture/GUID-reference-designs-tko-on-aws-airgap.html)
 
 Service Installer for VMware Tanzu provides automation of Tanzu Kubernetes Grid deployment on the following two AWS environments:
 
@@ -15,9 +16,9 @@ Service Installer for VMware Tanzu provides automation of Tanzu Kubernetes Grid 
 
 **Note:** In this documentation set, a federal air-gapped environment refers to an internet-restricted environment that is compliant with standards such as FIPS and STIG.
 
-## Tanzu for Kubernetes Operations Deployment on Federal Air-Gapped AWS
+## Tanzu Kubernetes Grid Deployment on Federal Air-Gapped AWS
 
-You can use Service Installer for VMware Tanzu for STIG hardened and FIPS compliant Tanzu for Kubernetes Operations deployment on a federal air-gapped (internet-restricted) AWS environment. Service Installer for VMware Tanzu provides Terraform automation scripts and dependent binaries in a TAR file that can be easily transferred to an air-gapped environment, which can be used to deploy Tanzu for Kubernetes Operations.
+You can use Service Installer for VMware Tanzu for STIG hardened and FIPS compliant Tanzu Kubernetes Grid deployment on a federal air-gapped (internet-restricted) AWS environment. Service Installer for VMware Tanzu provides Terraform automation scripts and dependent binaries in a TAR file that can be easily transferred to an air-gapped environment, which can be used to deploy Tanzu for Kubernetes Operations.
 
 For air-gapped deployment, Service Installer for VMware Tanzu supports CloudFormation stack configuration along with Harbor installation for loading dependencies.
 

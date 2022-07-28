@@ -28,6 +28,7 @@
 - Tarballs containing all the dependencies are made available to enable users to easily transfer all the required binaries to airgap environment
   - `service-installer-for-AWS-Tanzu-1.3.tar.gz` - Tarball containing all the automation scripts and deployment dependencies for non-airgap compliant and non-compliant deployments.
   - `service-installer-for-AWS-Tanzu-with-Dependency-1.3.tar.gz` - Tarball containing all the Tanzu Kubernetes Grid / Tanzu Kubernetes releases (TKR) FIPS binaries, Harbor, deployment dependencies, and automation scripts, to address following deployment usecases for airgap deployment
+
       - Automated Federal compliant deployment
       - Manual deployment (in case user wants to deploy by following the reference architecture and deployment guide)
 
@@ -35,9 +36,10 @@
 
 - Support for Tanzu Kubernetes Grid 1.5.4 along with AVI 21.1.4
 - Support for customisation of Tanzu Kubernetes Grid Service configuration
+
   - CNI - User can use either Antrea or Calico
-  - Support for Trusted CA certificate
-- Support for bring your own certificate (BYOC) / user certificate for Tanzu Kubernetes Grid proxy based deployments
+  - Support to add certificates to truststore
+- Support to set proxy certificates, required if the environment includes proxies, and if proxy server uses a self-signed certificate
 - Additional volume support for Tanzu Kubernetes Grid Service
 - Additional customisations for user-managed packages by exposing the YAML
 - Auto-completion of `arcas` commands feature
@@ -47,31 +49,32 @@
 
 ### Tekton Enhancements
 
-- Bringup of reference architecture based Tanzu Kubernetes Grid environment on vSphere TKGM 1.5.3 and 1.5.4
-- E2E Tanzu Kubernetes Grid deployment and configuration of AVI controller, management, shared services, and workload clusters, plugins, extensions
-- Rescale and resize Day-2 operations
-- Upcoming support of Tanzu Kubernetes Grid Service E2E deployment*
-- Upcoming support of Tanzu Kubernetes Grid Day-2 Upgrade support from 1.5.x to 1.5.4 with packages and extensions*
+ - Bringup of reference architecture based Tanzu Kubernetes Grid environment on vSphere - Tanzu Kubernetes Grid 1.5.3 and 1.5.4
+ - E2E Tanzu Kubernetes Grid deployment and configuration of AVI controller, management, shared services, and workload clusters, plugins, extensions
+ - Rescale and resize Day-2 operations
+ - Upcoming support of Tanzu Kubernetes Grid Service E2E deployment*
+ - Upcoming support of Tanzu Kubernetes Grid Day-2 Upgrade support from 1.5.x to 1.5.4 with packages and extensions*
 
 ## Resolved Issues
 
 - Datacenter, cluster, and datastores now support sub-folder structure.
 - Tanzu Service Mesh (TSM) and Tanzu Observability (TO) node size restrictions are made liberal now.
-- Work around steps for Contour issue on shared services cluster
+- Shared services cluster uses separate AKO deployment config (ADC), that resolves the workaround required for deploying Contour on shared services cluster
 - WCP enablement fails with DNS compliant errors
 - Shared services and workload cluster deployment failure in VMC on AWS environment when no parent resource pool is selected in the SIVT UI
 - Allow user to retain installed OVA and susbcribed content lib after SIVT cleanup is used
-- Arcas with TMC integration of vSphere supervisor cluster fails workload cluster creation: could not find VMClass for nodepool
+- Arcas with Tanzu Mission Control (TMC) integration of vSphere supervisor cluster fails workload cluster creation: could not find VMClass for nodepool
 - Add pre-check for valid avi-password-base64 and avi-backup-passphrase-base64 values
 
 
 ## Known Issues
 
 - Tanzu Kubernetes Grid Service proxy deployment is not supported in this release.
-- TKGm Management cluster creation with proxy is failing with unable to update no_proxy config on kube-api server. This is not a SIVT issue.
+- Tanzu Kubernetes Grid management cluster creation with proxy is failing with unable to update no_proxy config on kube-api server. This is not an SIVT issue.
 - TMC integration of management and workload clusters fails for AWS non air-gapped compliant deployment, due to a known issue in the TMC API.
 - Prometheus deployment fails if SaaS is enabled in non-airgap AWS deployment.
 - Harbor deployment fails both with and without SaaS in multi workload cluster configurations in non-airgap AWS deployment.
+- Tanzu Kubernetes Grid proxy deployment fails if a space is present in the no-proxy comma-separated list. Ensure that there is no space or newline character added before or after a comma in the no-proxy comma-separated list.
 - In case you are using proxy with self-signed or custom CA certificate, SIVT fails to pull the kind image while deploying Tanzu Kubernetes Grid management cluster in a vSphere VDS environment.</br>
    
    **Resolution:** Before initiating the deployment with SIVT, perform the following steps:
