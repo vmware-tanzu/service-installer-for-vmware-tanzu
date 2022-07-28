@@ -86,8 +86,9 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
    2. Create a Content Library and upload the NSX Advanced Load Balancer Controller OVA.
 
 **Note**: 
+
    - As part of automation for VMC deployment, SIVT uploads NSX Advanced Load Balancer Controller and base Kubernetes images to vCenter/ESXi after the necessary firewall rules are configured. All required firewall rules are configured by the SIVT automation code.
-   - If you intend to upload these images from the SIVT VM even before executing the `--vmc_pre_configuration` command, you may need to add the required ESXi Inbound rule in Management Gateway manually.
+   - If you intend to upload these images from the SIVT VM even before executing the `--vmc_pre_configuration` command, you may need to add the required ESXi Inbound rule in the Management Gateway manually.
 
 ## <a id=deploy-tkg> </a> Deploy Tanzu for Kubernetes Operations
 1. Log in to the Service Installer for VMware Tanzu VM over SSH.
