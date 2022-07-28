@@ -1,6 +1,6 @@
-# Deploying Tanzu for Kubernetes Operations on Federal Air-gapped AWS VPC Using Service Installer for VMware Tanzu
+# Deploying Tanzu Kubernetes Grid on Federal Air-gapped AWS VPC Using Service Installer for VMware Tanzu
 
-Service Installer for VMware Tanzu (SIVT) enables you to install Tanzu for Kubernetes Operations in a federal air-gapped (internet restricted) AWS VPC with the help of easily transportable binaries and TAR files and Terraform automation scripts. The deployed platform is STIG hardened and FIPS compliant.
+Service Installer for VMware Tanzu (SIVT) enables you to install Tanzu Kubernetes Grid in a federal air-gapped (internet restricted) AWS VPC with the help of easily transportable binaries and TAR files and Terraform automation scripts. The deployed platform is STIG hardened and FIPS compliant.
 
 **Note:** In this deployment procedure, a federal air-gapped environment refers to an internet-restricted environment that is compliant with standards such as FIPS and STIG.
 
@@ -12,7 +12,7 @@ Service Installer for VMware Tanzu deploys the following Tanzu components:
 
 This document provides the steps to deploy Tanzu Kubernetes Grid on air-gapped AWS environment using Service Installer for VMware Tanzu.
 
-## Prerequisites
+## <a id=prerequisites> </a> Prerequisites
 
 Before deploying Tanzu Kubernetes Grid on AWS using Service Installer for VMware Tanzu (SIVT), ensure that the following are set up.
 
@@ -92,6 +92,7 @@ Before deploying Tanzu Kubernetes Grid on AWS using Service Installer for VMware
   - terraform
 
   The following binaries are available as part of the TAR file and they get uploaded to S3 bucket in a prerequisite step. You do not need to install these binaries manually.
+  
   - kind
   - goss
   - CAPI Image builder
@@ -103,7 +104,7 @@ Before deploying Tanzu Kubernetes Grid on AWS using Service Installer for VMware
 
 - Bash shell support must be enabled as the shell scripts in the code use `/bin/bash`.
 
-## Deployment Steps
+## <a id=deployment-steps> </a> Deployment Steps
 
 **Note**: If you have completed all the steps in [Prerequisites](#prerequisites), skip to Step 3 as Step 1 and Step 2 of this section are covered in [Prerequisites](#prerequisites).
 
@@ -112,8 +113,7 @@ Before deploying Tanzu Kubernetes Grid on AWS using Service Installer for VMware
 1. Copy dependencies to the AWS S3 bucket by executing the following commands inside the Federal SIVT AWS git repository.
     ```sh
     export BUCKET_NAME=<S3 Bucket in airgapped env>
-    export DEPS_DIR=<Directory where dependencies are located> -> Should be set to 
-                                                                  `<your_directory>/airgap_deployment_binaries`
+    export DEPS_DIR=<Directory where dependencies are located> -> Should be set to `<your_directory>/airgap_deployment_binaries`
     
     make upload-deps
     ```
@@ -247,7 +247,7 @@ Before deploying Tanzu Kubernetes Grid on AWS using Service Installer for VMware
       make install-tkg-on-al2
       ```
 
-## Make Targets
+## <a id=make-targets> </a> Make Targets
 
 **Note:** Prerequisites mentioned in this table are applicable only if you are not using `make all` or if you are not following the step by step process.
 
@@ -255,9 +255,9 @@ Before deploying Tanzu Kubernetes Grid on AWS using Service Installer for VMware
   |--------|--------|--------|
   |all|End-to-End deployment using Ubuntu based STIG compliant OS|NA|
   |verify-all-inputs|Check all the inputs mentioned in [Deployment Steps](#deployment-steps) are set. Script mainly checks for mandatory variables|NA|
-  |vpc-endpoints-prechecks|Check if all the required endpoints mentioned in the [prerequisites](#prerequisites) section are attached to air-gapped VPC|Make sure all the mentioned endpoints are attached to VPC|
-  |cf|Make Cloud Formation if it doesn't exist along with roles, policies or profiles. Refer [AWS IAM components created by cf](#aws-iam-components-created-by-cf) section for more details|NA|
-  |install-harbor|If you are using a pre-created registry then refer to [Using an Existing Registry](#using-an-existing-registry) for details. Else, this step deploys Harbor on a new EC2 instance through Terraform. After the successful installation of Harbor, CA certificate is copied to the S3 bucket which is be used in the further steps.|Make sure IAM profile names `tkg-s3-viewer` and roles and policies are created according to the information in the [AWS IAM components created by cf](#aws-iam-components-created-by-cf) section|
+  |vpc-endpoints-prechecks|Check if all the required endpoints mentioned in the [Prerequisites](#prerequisites) section are attached to air-gapped VPC|Make sure all the mentioned endpoints are attached to VPC|
+  |cf|Make Cloud Formation if it doesn't exist along with roles, policies or profiles. Refer [AWS IAM Components Created by cf](#aws-iam-components-created-by-cf) section for more details|NA|
+  |install-harbor|If you are using a pre-created registry then refer to [Using an Existing Registry](#using-an-existing-registry) for details. Else, this step deploys Harbor on a new EC2 instance through Terraform. After the successful installation of Harbor, CA certificate is copied to the S3 bucket which is be used in the further steps.|Make sure IAM profile names `tkg-s3-viewer` and roles and policies are created according to the information in the [AWS IAM Components Created by cf](#aws-iam-components-created-by-cf) section|
   |check-for-ca-download|Checks and downloads the CA certificate generated by the `install-harbor` step. If the CA certificate is not available in S3, this step waits for a maximum of 1 hour.  The CA certificate gets copied to S3 after successful installation of Harbor.|If you are using pre-created registry then refer to [Using an Existing Registry](#using-an-existing-registry) for details. Else, run `make install-harbor` command before running this command.|
   |setup-docker|Sets up local Docker with the downloaded Harbor CA certificate| Make sure these steps are done:<br/>1. Harbor is up and running. <br/>2. `check-for-ca-download` is performed.|
   |tkg-bootstrap-ami-offline|Builds Ubuntu based bootstrap AMI| Make sure these steps are done:<br/>1. Make sure Harbor is up and running.<br/>2. `check-for-ca-download` and `setup-docker` are performed.|
@@ -271,11 +271,11 @@ The entire setup that is brought up by the automation code:
 
   ![Deployment using Harbor](images/AWS_Deploment_Using_Harbor.png)
 
-### AWS IAM Components Created by cf
+### <a id=aws-iam-components-created-by-cf> </a> AWS IAM Components Created by cf
 
 The `make cf` command creates the following instance profiles, roles, and policies. If you are manually creating instance profiles, roles, and policies, ensure that the following are created and they are given the same names as in this table.
 
-**Note:** For more information on role and their detailed actions, see the [cloud-formation-iamtemplate](https://gitlab.eng.vmware.com/core-build/sivt-aws-federal/-/blob/main/cloud-formation-iamtemplate) file.
+**Note:** For more information on role and their detailed actions, see the [cloud-formation-iamtemplate](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/aws/cloud-formation-iamtemplate) file.
 
 |Profile|Roles|Policies|
 |-------|-----|--------|
@@ -285,7 +285,7 @@ The `make cf` command creates the following instance profiles, roles, and polici
 |tkg-s3-viewer|tkg-s3-role|tkg-airgapped-bucket|
 |tkg-bootstrap|tkg-bootstrap|tkg-airgapped-bucket<br/>nodes.tkg.cloud.vmware.com<br/>controllers.tkg.cloud.vmware.com<br/>control-plane.tkg.cloud.vmware.com|
 
-## Customizing Harbor
+## <a id=customizing-harbor> </a> Customizing Harbor
 By default, Harbor is installed on an Amazon 2 AMI because it needs the Amazon CLI to pull the dependencies from the Tanzu Kubernetes Grid dependencies bucket and it also requires the ability to install Docker in an air-gapped environment.
 
   - These environment variables can be set to change Harbor's default behavior:
@@ -308,29 +308,29 @@ By default, Harbor is installed on an Amazon 2 AMI because it needs the Amazon C
       export TF_VAR_cert_ca_path=#Path to ca certificate on harbor ami
       ```
 
-## Customizing AMIs
+## <a id=customizing-amis> </a> Customizing AMIs
 
 This section describes the process of customizing the Ubuntu AMIs created in the deployment. The AMIs are created using the VPC ID and subnet ID of your air-gapped VPC.
 
-  - **Disable FIPS**: To disable FIPS, set `install_fips` to `no` in the [STIG roles' main.yml](https://gitlab.eng.vmware.com/core-build/canonical-ubuntu-18.04-lts-stig-hardening/-/blob/master/vars/main.yml) file.
+  - **Disable FIPS**: To disable FIPS, set `install_fips` to `no` in the [STIG roles' main.yml](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/aws/ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/vars/main.yml) file.
 
-  - **Add CA certificate in the trust store**: To add CA certificates to the AMI, copy the CAs in `PEM` format to the [STIG roles' files/ca](https://gitlab.eng.vmware.com/core-build/canonical-ubuntu-18.04-lts-stig-hardening/-/tree/master/files/ca) folder.
+  - **Add CA certificate in the trust store**: To add CA certificates to the AMI, copy the CAs in `PEM` format to the [STIG roles' files/ca](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/files/ca) folder.
 
-## Customizing Tanzu Kubernetes Grid
+## <a id=customizing-tanzu-kubernetes-grid> </a> Customizing Tanzu Kubernetes Grid
 
 All configurable options and their default values can be seen in the
-[terraform/startup.sh](https://gitlab.eng.vmware.com/core-build/sivt-aws-federal/-/tree/main/terraform) file. The variables must be edited in this file for them to take effect because Terraform is not configured to take all of them as input.
+[terraform/startup*.sh](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/terraform) files. The variables must be edited in this file for them to take effect because Terraform is not configured to take all of them as input.
 
 For a description of all variables, see the [Variables](#variables) section.
 
-## Accessing Your Harbor Instance
+## <a id=accessing-your-harbor-instance> </a> Accessing Your Harbor Instance
 
   - Once Terrafrom finishes applying the resources, if VPC peering with another VPC is set, you should be able to SSH into your Harbor instance. To do this, modify the security group on an EC2 instance within the non-airgapped VPC in the peering connection, to allow it to SSH over to the bootstrap.
   - On the bootstrap instance, you can run `sudo tail -f /var/log/cloud-init-output.log` to track the progress of your Harbor installation and subsequent loading of Tanzu Kubernetes Grid images.
 
-## Accessing Your Tanzu Kubernetes Grid Cluster
+## <a id=accessing-your-tanzu-kubernetes-grid-cluster> </a> Accessing Your Tanzu Kubernetes Grid Cluster
 
-  - For setting up VPC peering that will allow SSH access to your Harbor instance and bootstrap instance, see [Accessing Your Harbor Instance](#Accessing-Your-Harbor-Instance).
+  - For setting up VPC peering that will allow SSH access to your Harbor instance and bootstrap instance, see [Accessing Your Harbor Instance](#accessing-your-harbor-instance).
 
   - To track the progress of the Tanzu Kubernetes Grid installation, you can run the following command on the bootstrap instance:  
       ```
@@ -338,7 +338,7 @@ For a description of all variables, see the [Variables](#variables) section.
       ```
   - Once you see a message about the security group of your bootstrap being modified, it implies that the script has finished executing. You can now run `kubectl get pods -A` to see all the pods running on your management cluster. Additionally, if you run `kubectl get nodes`, you can use an IP address of one of the cluster nodes and SSH to it from the bootstrap node using the SSH key that you provided to Terraform.
 
-## Updating the Harbor Admin Password
+## <a id=updating-the-harbor-admin-password> </a> Updating the Harbor Admin Password
 
 The default Harbor admin password is in `air-gapped/airgapped.env` on the bootstrap host under `HARBOR_ADMIN_PWD`. It is set as a Terraform variable.
 
@@ -355,7 +355,7 @@ curl -XPUT -H 'Content-Type: application/json' -u admin:$HARBOR_ADMIN_PWD "https
 ```
 
 
-## Clean Up the Deployment
+## <a id=clean-up-the-deployment> </a> Clean Up the Deployment
  
   - To delete the Tanzu Kubernetes Grid cluster, run the following command on the bootstrap node.
 
@@ -388,9 +388,10 @@ curl -XPUT -H 'Content-Type: application/json' -u admin:$HARBOR_ADMIN_PWD "https
 
   **Note:** AMIs and load balancers created as part of the deployment must be deleted manually. 
 
-## Variables
+## <a id=variables> </a> Variables
 
-The `terraform/startup.sh` file contains the following configurable options that you can set within the file.
+The `terraform/startup*.sh` files contain the following configurable options that you can set within the file.
+
 |Name|Default|Description
 |---|---|---|
 |AMI_ID|tkg_ami_id variable from Terraform|The AMI ID to deploy |
@@ -428,7 +429,7 @@ The `terraform/startup.sh` file contains the following configurable options that
 |LDAP_USER_SEARCH_BASE_DN|unset|The point from which to start the LDAP search. For example, `"OU=Users,OU=domain,DC=io"`|
 |LDAP_GROUP_SEARCH_BASE_DN|unset|The point from which to start the LDAP search. For example, `"OU=Groups,OU=domain,DC=io"`|
 
-## Using an Existing Registry
+## <a id=using-an-existing-registry> </a> Using an Existing Registry
 
 You can use an existing registry by doing the following steps.
 
@@ -458,7 +459,7 @@ You can use an existing registry by doing the following steps.
     - `ami/tkg-bootstrap/roles/bootstrap/files/ca/` 
     - `ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/files/ca`
 
-1. **Additional Environment Variables:** If you are not running `make all` or `make install-harbor` for Harbor installation and making use of the existing Harbor registry, then the following variables need to be set in addition to the variables mentioned in the [Required Environment Variables](#required-environment-variables) section. These variables are needed for running `make check-for-ca-download`, `make install`, and `make install-tkg-on-al2` commands.
+1. **Additional Environment Variables:** If you are not running `make all` or `make install-harbor` for Harbor installation and making use of the existing Harbor registry, then the following variables need to be set in addition to the variables mentioned in the [Variables](#variables) section. These variables are needed for running `make check-for-ca-download`, `make install`, and `make install-tkg-on-al2` commands.
     ```sh
     export REGISTRY=<DNS Name of your image registry>
     export USE_EXISTING_REGISTRY=true
@@ -468,7 +469,7 @@ You can use an existing registry by doing the following steps.
 
 ![Existing registry](images/AWS_Deploment_Using_Existing_Registry.png)
 
-## Troubleshooting Tips
+## <a id=troubleshooting-tips> </a> Troubleshooting Tips
 If your cluster does not come up, try the following steps.
 
   - Export your KUBECONFIG to the one provided for your bootstrap kind cluster when Tanzu Kubernetes Grid starts.
