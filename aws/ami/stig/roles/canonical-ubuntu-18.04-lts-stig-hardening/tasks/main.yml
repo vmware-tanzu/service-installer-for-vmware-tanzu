@@ -1,0 +1,25 @@
+---
+- import_tasks: packages.yml
+- import_tasks: users.yml
+- import_tasks: profile.yml
+- import_tasks: apt.yml
+- import_tasks: auditd-config.yml
+- import_tasks: audit-rules.yml
+- import_tasks: ca-certs.yml
+- import_tasks: logindefs.yml
+- import_tasks: pwquality.yml
+- import_tasks: sshd-config.yml
+- import_tasks: sysctl.yml
+- import_tasks: audisp.yml
+- import_tasks: pam.yml
+- import_tasks: grub.yml
+- import_tasks: chrony.yml
+- import_tasks: aide.yml
+- import_tasks: modprobe.yml
+- import_tasks: banner.yml
+- import_tasks: systemd.yml
+- import_tasks: limits_conf.yml
+- import_tasks: rsyslogd.yml
+- import_tasks: apparmor.yml
+- import_tasks: fips.yml
+- import_tasks: file-perms.yml

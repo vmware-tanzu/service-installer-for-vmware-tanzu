@@ -1,0 +1,15 @@
+publication:
+    RootMapFile: toc.md
+    OutputFileName: tanzu-service-installer
+    PublicationName: VMware Service Installer for VMware Tanzu
+    ProductName: VMware Tanzu Service Installer
+    ProductVersion: 1.4
+    PublicationVersion:
+    PublicationVersionComments:
+    Language: en
+    PublicationGuid: tanzu-service-installer
+    PublicationKeywords:
+    BatchProcessingInstruction:
+    PDFLink:
+    WordLink:
+    PublicationAuthor: srinivasme@vmware.com

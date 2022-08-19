@@ -1,0 +1,156 @@
+#!/usr/bin/env ansible-playbook
+- hosts: localhost
+  gather_facts: no
+  connection: local
+  tasks:
+  - set_fact:
+      build_system: "{{ (lookup('env', 'CI_PROJECT_NAMESPACE') == 'core-build') | ternary('ob', 'sb') }}"
+      system_name: "{{ (lookup('env', 'CI_PROJECT_NAMESPACE') == 'core-build') | ternary('bora', 'sb') }}"
+      git_user: "{{ lookup('env', 'GITLAB_USER_LOGIN') | default('build-systems') }}"
+      product: "{{ product | default(project_name | default(lookup('env', 'CI_PROJECT_NAME'))) }}"
+      project_name: "{{ project_name | default(lookup('env', 'CI_PROJECT_NAME')) }}"
+      branch: "{{ branch |  default(lookup('env', 'CI_BUILD_REF_NAME')) }}"
+      project_namespace: "{{ lookup('env', 'CI_PROJECT_NAMESPACE') }}"
+      email: "{{ lookup('env', 'GITLAB_USER_EMAIL') }}"
+      output_file: '{{ output_file | default("build-info.json") }}'
+      notify: "{{ lookup('env', 'NOTIFY') | default('false') }}"
+  
+  - set_fact:
+      project_namespace: "{{ lookup('env', 'PROJECT_NAMESPACE') | default(lookup('env', 'CI_PROJECT_NAMESPACE')) }}"
+    when: namespace_override is defined and namespace_override | bool and lookup('env', 'PROJECT_NAMESPACE') != ''
+
+  - name: Trigger Official Build
+    block:
+    - set_fact:
+        changeset: "{{ lookup('pipe', 'git ls-remote git@gitlab.eng.vmware.com:'+project_namespace+'/'+ project_name +'.git ' + branch).split('\t')[0]}}"
+        build_cmd: |
+          /bldmnt/apps/webapps/queueweb/bin/qweb -v enqueue \
+          --username {{ git_user }} --product {{ product }} --branch {{ branch }} \
+          --buildtype {{ build_type | default("release") }} --changeset latest
+
+    - name: Get build number, if it has duplicate
+      uri:
+        url: http://buildapi.eng.vmware.com/{{ build_system }}/build/?_format=json&changeset={{ changeset }}
+        method: GET
+        status_code: 201, 200
+        body_format: json
+        validate_certs: '{{ validate_certs | default(true) }}'
+      register: duplicate_builds
+
+    - set_fact:
+        build_no: '{{ duplicate_builds.json._list[0].id }}'
+      when: duplicate_builds.json._list.0 is defined
+    
+    - name: Trigger new build
+      set_fact:
+        build_no: '{{ lookup("pipe", build_cmd).split("\n")[-1] | trim }}'
+      when: duplicate_builds.json._list.0 is not defined
+
+    when: build_system == "ob"
+
+  - name: Trigger Sandbox Build
+    block:
+    - set_fact:
+        changeset: "{{ lookup('pipe', 'git ls-remote git@gitlab.eng.vmware.com:'+project_namespace+'/'+ project_name +'.git ' + branch).split('\t')[0]}}"
+        get_cln_cmd: >-
+          /build/apps/bin/gobuild target lastchange {{ product }} --branch={{ branch }}  
+          --bootstrap "{{ product }}=git-eng:{{ project_namespace }}/{{ project_name }}.git;%(branch);"
+        build_cmd: |-
+          /build/apps/bin/gobuild sandbox queue {{ product }} --branch={{ branch }} --changeset=False \
+          --email={{ email }} --user={{ git_user }} --accept-defaults --buildtype=beta --output=json \
+          --bootstrap "{{ product }}=git-eng:{{ project_namespace }}/{{ project_name }}.git;%(branch);"
+      
+    - name: Add build components
+      block:
+      - set_fact:
+          build_components: "{{ build_components | default('') + ' ' + item.key +'=sb-'+ item.value | string }}"
+        loop: '{{ component_builds | dict2items }}'
+        when: component_builds is defined
+
+      - set_fact:
+          build_cmd: "{{ build_cmd + ' --component-builds ' + build_components | trim | replace(' ', ',')}}"
+        when: component_builds is defined
+    
+    # Sudo was the cause of cln incorrect issue. So no need to wait
+    # - name: Wait till latest cln is updated
+    #   shell: '{{ get_cln_cmd }}'
+    #   args:
+    #     executable: /bin/bash
+    #   environment: 
+    #     CI_PROJECT_NAMESPACE: '{{ project_namespace }}'
+    #     CI_PROJECT_NAME: '{{ project_name }}'
+    #   register: latest_cln
+    #   until: latest_cln is defined and changeset == latest_cln.stdout_lines[0]
+    #   retries: 10
+    #   delay: 5
+
+    - name: Trigger new build
+      set_fact:
+        build_no: '{{ lookup("pipe", build_cmd).split("\n")[-1] | from_json | json_query("builds[0].build_id") }}'
+    
+    when: build_system == "sb"
+
+  - name: Build link
+    debug:
+      msg: 'http://buildweb.eng.vmware.com/{{ build_system }}/{{ build_no }}'
+
+  - set_fact:
+      running_status: ['unknown','queued','starting','building-components','wait-for-resources','requesting-resources','running','storing']
+      completed_status: ['succeeded','failed','dependency-error','cyclic-dependency-error','version-error','script-error','lease-error','sync-error','patch-error','download-error','store-error','compile-error','virus-detected','not-needed','invalid','cancelled','interrupted','dossier-error','publish-error']
+      success_status: ['succeeded', 'not-needed']
+      failure_statuses: ['failed','dependency-error','cyclic-dependency-error','version-error','script-error','lease-error','sync-error','patch-error','download-error','store-error','compile-error','virus-detected','invalid','cancelled','interrupted','dossier-error','publish-error']
+
+  - name: Wait for build completion
+    uri:
+      url: http://buildapi.eng.vmware.com/{{ build_system }}/build/?id={{ build_no }}&_format=json
+      method: GET
+      status_code: 201, 200
+      body_format: json
+      validate_certs: '{{ validate_certs | default(true) }}'
+    register: status
+    until: status.json._list.0.buildstate is defined and (status.json._list.0.buildstate in completed_status)
+    retries: 200
+    delay: 100
+  
+  - fail:
+      msg: 'Build Failed with - {{ status.json._list.0.buildstate }}'
+    when: status.json._list.0.buildstate in failure_statuses
+    # (not status.json._list.0.ondisk or status.json._list.0.expired or status.json._list.0.exit_code != 0)
+  
+  - name: Get latest build number, if it has duplicate and build status id not needed
+    block:
+    - uri:
+        url: http://buildapi.eng.vmware.com/{{ build_system }}/build/?_format=json&buildstate=succeeded&changeset={{ status.json._list.0.changeset }}
+        method: GET
+        status_code: 201, 200
+        body_format: json
+        validate_certs: '{{ validate_certs | default(true) }}'
+      register: status_dup
+      until: status_dup.json._list.0.buildstate is defined
+      retries: 200
+      delay: 100
+
+    - set_fact:
+        build_no: '{{ status_dup.json._list[0].id }}'
+    when: status.json._list.0.buildstate == 'not-needed'
+
+  - name: Save build number to file
+    block:
+    - name: Touch file If file doesn't exist
+      shell: echo "{}" >> {{ output_file }}
+      args:
+        executable: /bin/bash
+        creates: '{{ output_file }}'
+    - set_fact:
+        build_info: "{{ lookup('file', output_file) | from_json | combine({'builds': {product: build_no}}, recursive=true) }}"
+        build_url: 'https://buildweb.eng.vmware.com/{{ build_system }}/{{ build_no }}/'
+        deliverable_url: 'http://build-squid.eng.vmware.com/build/mts/release/{{ system_name }}-{{ build_no }}/publish/'
+    - set_fact:
+        build_info: "{{ build_info | combine({'build_urls': {product: build_url}}, recursive=true) }}"
+    - set_fact:
+        build_info: "{{ build_info | combine({'deliverable_urls': {product: deliverable_url}}, recursive=true) }}"
+    
+    - raw: "printf '{{ build_info | to_nice_json }}' > {{ output_file }}"
+
+  - debug:
+      msg: '{{ build_url }}'

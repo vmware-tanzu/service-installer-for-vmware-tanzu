@@ -1,0 +1,38 @@
+apiVersion: config.tanzu.vmware.com/v1alpha1
+clientOptions:
+  cli:
+    discoverySources:
+    - oci:
+        image: projects.registry.vmware.com/tkg/packages/standalone/standalone-plugins:v0.11.6-1-g90440e2b_vmware.1
+        name: default
+    edition: tkg
+    repositories:
+    - gcpPluginRepository:
+        bucketName: tanzu-cli-tkg
+        name: core
+    unstableVersionSelector: none
+  features:
+    cluster:
+      custom-nameservers: "false"
+      dual-stack-ipv4-primary: "false"
+      dual-stack-ipv6-primary: "false"
+    global:
+      context-aware-cli-for-plugins: "true"
+    management-cluster:
+      custom-nameservers: "false"
+      dual-stack-ipv4-primary: "false"
+      dual-stack-ipv6-primary: "false"
+      export-from-confirm: "true"
+      import: "false"
+      network-separation-beta: "false"
+      standalone-cluster-mode: "false"
+current: tejas-clstr-mgmt01
+kind: ClientConfig
+metadata:
+  creationTimestamp: null
+servers:
+- managementClusterOpts:
+    context: tejas-clstr-mgmt01-admin@tejas-clstr-mgmt01
+    path: /root/.kube-tkg/config
+  name: tejas-clstr-mgmt01
+  type: managementcluster

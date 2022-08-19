@@ -1,0 +1,10 @@
+{
+  "ansible_user_vars": "snap_url=https://{{env `BUCKET_NAME`}}.s3.amazonaws.com/snaps/snaps.tar.gz",
+  "pause_image": "{{env `REGISTRY` }}/tkg/pause:{{env `PAUSE_TAG`}}",
+  "containerd_url": "https://{{env `BUCKET_NAME`}}.s3.amazonaws.com/tkr/tkr-{{env `TKR_VERSION`}}/node/kubernetes/containerd.tar.gz",
+  "kubernetes_http_source": "https://{{env `BUCKET_NAME`}}.s3.amazonaws.com/tkr/tkr-{{env `TKR_VERSION`}}/node/kubernetes",
+  "kubernetes_cni_http_source": "https://{{env `BUCKET_NAME`}}.s3.amazonaws.com/tkr/tkr-{{env `TKR_VERSION`}}/node/kubernetes",
+  "kubernetes_cni_semver": "{{env `KUBERNETES_CNI_SEMVER`}}",
+  "kubernetes_semver": "{{env `KUBERNETES_SEMVER`}}",
+  "goss_url" :"https://{{env `BUCKET_NAME`}}.s3.amazonaws.com/goss-linux-amd64"
+}

@@ -1,0 +1,12 @@
+- name: "ca-certs: DoD CA"
+  copy:
+    src: '{{ item }}'
+    dest: '{{ ca_path[ansible_os_family]}}'
+    owner: root
+    group: root
+    mode: 0644
+  with_fileglob:
+    - files/ca/*.crt
+  notify:
+    - update trusted ca debian
+    - update trusted ca redhat

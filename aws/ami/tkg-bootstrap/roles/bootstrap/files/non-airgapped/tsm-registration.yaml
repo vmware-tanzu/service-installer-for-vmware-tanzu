@@ -1,0 +1,20 @@
+{
+  "full_name":
+    {
+      "provisionerName": "default",
+      "managementClusterName": "${MANAGEMENT_CLUSTER_NAME}",
+      "clusterName": "${WORK_CLUSTER_NAME}",
+      "name": "tanzu-service-mesh",
+    },
+  "spec":
+    {
+      "configurations":
+        {
+          "enableNamespaceExclusions": true,
+          "namespaceExclusions":
+            [
+              { "match": "no-tsm-example", "type": "EXACT" },
+            ],
+        },
+    },
+}
