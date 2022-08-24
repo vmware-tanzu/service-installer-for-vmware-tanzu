@@ -163,7 +163,7 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
 
 ## Load Pre-bundled Harbor with Tanzu Kubernetes Grid Dependencies
 
-Service Installer VMware Tanzu (SIVT) is also available with pre-bundled Harbor along with the Tanzu Kubernetes Grid dependecies packaged. This helps the end users to bring up Harbor and load the Tanzu Kubernetes Grid dependencies.
+Service Installer VMware Tanzu (SIVT) is also available with pre-bundled Harbor along with the Tanzu Kubernetes Grid dependencies packaged. This helps the end users to bring up Harbor and load the Tanzu Kubernetes Grid dependencies.
 
 To do this, run the following steps.
 

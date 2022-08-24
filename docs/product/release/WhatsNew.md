@@ -5,11 +5,11 @@
 - OVH engagement deliverables,  
   - Bundle and pre-load Harbor in SIVT ova.
   - Support NSX ALB deployment in No-Orchestrator mode in OVH Cloud.
-- Enable proxy support for TKGs and TKGm
+- Enable proxy support for TKGm
 - Gracefully shutdown and bring up TKGs clusters to prepare for DC maintenance.
 - AWS - Added support to do aws-rigion specific deployment in an AWS account. Now we can have multiple deployments within same AWS account for testing purpose.
-- Support for Tanzu Kubernetes Grid Service E2E deployment
-- Support for Tanzu Kubernetes Grid Day-2 Upgrade support from 1.5.x to 1.5.4 with packages and extensions
+- Tekton: Support for Tanzu Kubernetes Grid Service E2E deployment
+- Tekton: Support for Tanzu Kubernetes Grid Day-2 Upgrade support from 1.5.x to 1.5.4 with packages and extensions
 
 ## Resolved Issues
 - Scoping the AWS roles/policies/profiles to the Aws-Zone than global. This should help to do multiple deployments in different zones of an AWS account.
@@ -33,7 +33,7 @@
         ```
 - TKG deployment with NSX-t networking fails with "Failed to configure vcf list index out of range". 
    **Resolution:** This is happening only when we disable the shared service cluster in UI/config file and proceed with mgmt/workload cluster deployment.
-   If the shared service cluster is enabled and all the configuraiton details are provided, then deployment proceeds.
+   If the shared service cluster is enabled and all the configuration details are provided, then deployment proceeds.
 
 ## Download
 
