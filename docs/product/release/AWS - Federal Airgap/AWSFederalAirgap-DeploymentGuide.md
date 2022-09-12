@@ -12,7 +12,7 @@ Service Installer for VMware Tanzu deploys the following Tanzu components:
 
 This document provides the steps to deploy Tanzu Kubernetes Grid on air-gapped AWS environment using Service Installer for VMware Tanzu.
 
-## Prerequisites
+## <a id=prerequisites> </a> Prerequisites
 
 Before deploying Tanzu Kubernetes Grid on AWS using Service Installer for VMware Tanzu (SIVT), ensure that the following are set up.
 
@@ -55,7 +55,7 @@ Before deploying Tanzu Kubernetes Grid on AWS using Service Installer for VMware
 
 - The required binaries are uploaded to the S3 bucket.
   
-    1. Download the TAR file `service-installer-for-AWS-Tanzu-with-Dependency-1.3.1.tar.gz` from the [VMware Marketplace](https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true). It contains Tanzu Kubernetes Grid or Tanzu Kubernetes releases (TKRs) binaries, Harbor, deployment dependencies, and automation source code. This TAR file can be used for the following deployment use cases in an air-gapped environment
+    1. Download the TAR file `service-installer-for-AWS-Tanzu-with-Dependency-1.3.1.tar.gz` from the [VMware Marketplace](https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true). It contains Tanzu Kubernetes Grid or Tanzu Kubernetes releases (TKr) binaries, Harbor, deployment dependencies, and automation source code. This TAR file can be used for the following deployment use cases in an air-gapped environment
 
           - To deploy Tanzu Kubernetes Grid using automation
           - To deploy Tanzu Kubernetes Grid manually by following reference architecture and Deployment guide
@@ -104,7 +104,7 @@ Before deploying Tanzu Kubernetes Grid on AWS using Service Installer for VMware
 
 - Bash shell support must be enabled as the shell scripts in the code use `/bin/bash`.
 
-## Deployment Steps
+## <a id=deployment-steps> </a> Deployment Steps
 
 **Note**: If you have completed all the steps in [Prerequisites](#prerequisites), skip to Step 3 as Step 1 and Step 2 of this section are covered in [Prerequisites](#prerequisites).
 
@@ -248,7 +248,7 @@ Before deploying Tanzu Kubernetes Grid on AWS using Service Installer for VMware
       make install-tkg-on-al2
       ```
 
-## Make Targets
+## <a id=make-targets> </a> Make Targets
 
 **Note:** Prerequisites mentioned in this table are applicable only if you are not using `make all` or if you are not following the step by step process.
 
@@ -272,15 +272,15 @@ The entire setup that is brought up by the automation code:
 
   ![Deployment using Harbor](images/AWS_Deploment_Using_Harbor.png)
 
-### AWS IAM Components Created by cf
+### <a id=aws-iam-components-created-by-cf> </a> AWS IAM Components Created by cf
 
 The installer creates IAM resources by dividing them into two CloudFormation stacks. 
-* Tanzu Kubernetes Grid (TKG) Stack(tanzu-cloud-formation-iamtemplate): Creates IAM resources(role, policies and instance profiles) needed by Tanzu cluster deployment.
-* Service Installer for VMware Tanzu (SIVT) stack(sivt-cloud-formation-iamtemplate): Creates IAM resources(role, policies and instance profiles) needed for automation code for further deployment.
+* Tanzu Kubernetes Grid (TKG) Stack (tanzu-cloud-formation-iamtemplate): Creates IAM resources(role, policies and instance profiles) needed by Tanzu cluster deployment.
+* Service Installer for VMware Tanzu (SIVT) stack (sivt-cloud-formation-iamtemplate): Creates IAM resources(role, policies and instance profiles) needed for automation code for further deployment.
 
 The `make cf` command creates these stacks one by one starting with the Tanzu Kubernetes Grid stack. If you are manually creating instance profiles, roles, and policies, ensure that the following are created and they are given the same names as in this table.
 
-**Note:** For more information on role and their detailed actions, see the [tanzu-cloud-formation-iamtemplate](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/tanzu-cloud-formation-iamtemplate.yaml) [sivt-cloud-formation-iamtemplate](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/sivt-cloud-formation-iamtemplate.yaml) file
+**Note:** For more information on role and their detailed actions, see the [tanzu-cloud-formation-iamtemplate](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/tanzu-cloud-formation-iamtemplate.yaml) and [sivt-cloud-formation-iamtemplate](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/sivt-cloud-formation-iamtemplate.yaml) files.
 
 |Profile|Roles|Policies|Stack type |
 |-------|-----|--------|------------|
@@ -290,9 +290,10 @@ The `make cf` command creates these stacks one by one starting with the Tanzu Ku
 |tkg-s3-viewer|tkg-s3-role|tkg-airgapped-bucket| SIVT
 |tkg-bootstrap|tkg-bootstrap|tkg-airgapped-bucket<br/>nodes.tkg.cloud.vmware.com<br/>controllers.tkg.cloud.vmware.com<br/>control-plane.tkg.cloud.vmware.com| SIVT
 
-**Note:** SIVT IAM resources (role, policies and instance profiles) are prepended with the AWS Region specified by the user. For example, us-east-1-tkg-bootstrap
+**Note:** SIVT IAM resources (role, policies and instance profiles) are prepended with the AWS Region specified by the user. For example, `us-east-1-tkg-bootstrap`
 
-## Customizing Harbor
+## <a id=customizing-harbor> </a> Customizing Harbor
+
 By default, Harbor is installed on an Amazon 2 AMI because it needs the Amazon CLI to pull the dependencies from the Tanzu Kubernetes Grid dependencies bucket and it also requires the ability to install Docker in an air-gapped environment.
 
   - These environment variables can be set to change Harbor's default behavior:
@@ -315,27 +316,27 @@ By default, Harbor is installed on an Amazon 2 AMI because it needs the Amazon C
       export TF_VAR_cert_ca_path=#Path to ca certificate on harbor ami
       ```
 
-## Customizing AMIs
+## <a id=customizing-amis> </a> Customizing AMIs
 
 This section describes the process of customizing the Ubuntu AMIs created in the deployment. The AMIs are created using the VPC ID and subnet ID of your air-gapped VPC.
 
-  - **Disable FIPS**: To disable FIPS, set `install_fips` to `no` in the [STIG roles' main.yml](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/aws/ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/vars/main.yml) file.
+  - **Deactivate FIPS**: To deactivate FIPS, set `install_fips` to `no` in the [STIG roles' main.yml](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/aws/ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/vars/main.yml) file.
 
   - **Add CA certificate in the trust store**: To add CA certificates to the AMI, copy the CAs in `PEM` format to the [STIG roles' files/ca](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/files/ca) folder.
 
-## Customizing Tanzu Kubernetes Grid
+## <a id=customizing-tanzu-kubernetes-grid> </a> Customizing Tanzu Kubernetes Grid
 
 All configurable options and their default values can be seen in the
 [terraform/startup.sh](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/terraform) file. The variables must be edited in this file for them to take effect because Terraform is not configured to take all of them as input.
 
 For a description of all variables, see the [Variables](#variables) section.
 
-## Accessing Your Harbor Instance
+## <a id=accessing-your-harbor-instance> </a> Accessing Your Harbor Instance
 
   - Once Terrafrom finishes applying the resources, if VPC peering with another VPC is set, you should be able to SSH into your Harbor instance. To do this, modify the security group on an EC2 instance within the non-airgapped VPC in the peering connection, to allow it to SSH over to the bootstrap.
   - On the bootstrap instance, you can run `sudo tail -f /var/log/cloud-init-output.log` to track the progress of your Harbor installation and subsequent loading of Tanzu Kubernetes Grid images.
 
-## Accessing Your Tanzu Kubernetes Grid Cluster
+## <a id=accessing-your-tanzu-kubernetes-grid-cluster> </a> Accessing Your Tanzu Kubernetes Grid Cluster
 
   - For setting up VPC peering that will allow SSH access to your Harbor instance and bootstrap instance, see [Accessing Your Harbor Instance](#Accessing-Your-Harbor-Instance).
 
@@ -345,7 +346,7 @@ For a description of all variables, see the [Variables](#variables) section.
       ```
   - Once you see a message about the security group of your bootstrap being modified, it implies that the script has finished executing. You can now run `kubectl get pods -A` to see all the pods running on your management cluster. Additionally, if you run `kubectl get nodes`, you can use an IP address of one of the cluster nodes and SSH to it from the bootstrap node using the SSH key that you provided to Terraform.
 
-## Updating the Harbor Admin Password
+## <a id=updating-the-harbor-admin-password> </a> Updating the Harbor Admin Password
 
 The default Harbor admin password is in `air-gapped/airgapped.env` on the bootstrap host under `HARBOR_ADMIN_PWD`. It is set as a Terraform variable.
 
@@ -362,7 +363,7 @@ curl -XPUT -H 'Content-Type: application/json' -u admin:$HARBOR_ADMIN_PWD "https
 ```
 
 
-## Clean Up the Deployment
+## <a id=clean-up-the-deployment> </a> Clean Up the Deployment
  
   - To delete the Tanzu Kubernetes Grid cluster, run the following command on the bootstrap node.
 
@@ -395,7 +396,7 @@ curl -XPUT -H 'Content-Type: application/json' -u admin:$HARBOR_ADMIN_PWD "https
 
   **Note:** AMIs and load balancers created as part of the deployment must be deleted manually. 
 
-## Variables
+## <a id=variables> </a> Variables
 
 The `terraform/startup.sh` file contains the following configurable options that you can set within the file.
 |Name|Default|Description
@@ -410,11 +411,11 @@ The `terraform/startup.sh` file contains the following configurable options that
 |REGISTRY_IP|IP of the harbor instance| IP Address of the Docker registry. Modify only if you are using your own registry.|
 |TKG_CUSTOM_IMAGE_REPOSITORY|$REGISTRY/tkg| The full Docker registry project path to use for TKG images|
 |CLUSTER_PLAN|dev|The cluster plan for Tanzu Kubernetes Grid|
-|ENABLE_AUDIT_LOGGING|true|Enable to disable auditing on Kubernetes|
+|ENABLE_AUDIT_LOGGING|true|Activate or deactivate auditing on Kubernetes|
 |TKG_CUSTOM_COMPATABILITY_PATH|fips/tkg-compatability|The compatibility path to use. Set to "" for non FIPS deployment|
 |COMPLIANCE|stig|The compliance standard to follow. Set to stig, cis, or none|
-|ENABLE_SERVING_CERTS|false|Enable or disable serving certificates on Kubernetes|
-|PROTECT_KERNEL_DEFAULTS|true|Enable to disable `--protect-kernel-defaults` on kubelet. Set to `true` only for AMIs that allow it|
+|ENABLE_SERVING_CERTS|false|Activate or deactivate serving certificates on Kubernetes|
+|PROTECT_KERNEL_DEFAULTS|true|Activate or deactivate `--protect-kernel-defaults` on kubelet. Set to `true` only for AMIs that allow it|
 |AWS_VPC_ID|VPC ID of bootstrap|The VPC ID to deploy Tanzu Kubernetes Grid|
 |AWS_PRIVATE_SUBNET_ID|When cluster plan is dev, set to subnet ID of bootstrap|Used for cluster plan dev. The private subnet ID to deploy Tanzu Kubernetes Grid|
 |AWS_NODE_AZ_1|unset|Required for Prod clusters; set node availability zone 1|
@@ -435,7 +436,7 @@ The `terraform/startup.sh` file contains the following configurable options that
 |LDAP_USER_SEARCH_BASE_DN|unset|The point from which to start the LDAP search. For example, `"OU=Users,OU=domain,DC=io"`|
 |LDAP_GROUP_SEARCH_BASE_DN|unset|The point from which to start the LDAP search. For example, `"OU=Groups,OU=domain,DC=io"`|
 
-## Using an Existing Registry
+## <a id=using-an-existing-registry> </a> Using an Existing Registry
 
 You can use an existing registry by doing the following steps.
 
@@ -475,7 +476,8 @@ You can use an existing registry by doing the following steps.
 
 ![Existing registry](images/AWS_Deploment_Using_Existing_Registry.png)
 
-## Troubleshooting Tips
+## <a id=troubleshooting-tips> </a> Troubleshooting Tips
+
 If your cluster does not come up, try the following steps.
 
   - Export your KUBECONFIG to the one provided for your bootstrap kind cluster when Tanzu Kubernetes Grid starts.

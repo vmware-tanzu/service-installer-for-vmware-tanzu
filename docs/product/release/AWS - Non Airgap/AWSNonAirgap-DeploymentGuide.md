@@ -24,7 +24,7 @@ Service Installer for VMware Tanzu deploys the following components:
 
 This document provides the steps to deploy Tanzu Kubernetes Grid on AWS environment using Service Installer for VMware Tanzu.
 
-## Prerequisites
+## <a id=prerequisites> </a> Prerequisites
 
 Before deploying Tanzu Kubernetes Grid on AWS using Service Installer for VMware Tanzu (SIVT), ensure that the following are set up.
 
@@ -82,7 +82,7 @@ Before deploying Tanzu Kubernetes Grid on AWS using Service Installer for VMware
 
 - By default, AWS allows only 5 Elastic IP addresses per region. Hence, make sure AWS region that you are using has at least 2 free Elastic IP addresses.
 
-### Prerequisites for Using Existing VPCs
+### <a id=prerequisites-for-using-existing-vpcs> </a> Prerequisites for Using Existing VPCs
 
 These prerequisites are applicable only if you use manually pre-created VPC for the deployment. Make sure that the following steps are completed before running `make` commands to initiate the deployment.
 
@@ -132,7 +132,7 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
 
 1. Save the file and continue with the deployment.
 
-## Deployment Steps
+## <a id=deployment-steps> </a> Deployment Steps
 
 **Note**: If you have completed all the steps in [Prerequisites](#prerequisites), skip to Step 3 as Step 1 and Step 2 of this section are covered in [Prerequisites](#prerequisites).
 
@@ -165,16 +165,16 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
     ```
 1. Specify the deployment type. 
    
-   **Compliant deployment:** By default, Service Installer for VMware Tanzu deploys FIPS compliant Tanzu Kubernetes Grid master and worker nodes. In this type of deployment, Service Installer for VMware Tanzu makes use of FIPS compliant and STIG hardened Ubuntu (18.04) base OS for Tanzu Kubernetes Grid cluster nodes, FIPS enabled Kubernetes overlay, and FIPS compliant Tanzu Kubernetes Grid images. To perform compliant deployment, perform following steps
-    - For doing FIPS compliance deployment on ubuntu, automation needs ubuntu advantage username and password. Export these using following commands
+   **Compliant deployment:** By default, Service Installer for VMware Tanzu deploys FIPS compliant Tanzu Kubernetes Grid control plane node and worker nodes. In this type of deployment, Service Installer for VMware Tanzu makes use of FIPS compliant and STIG hardened Ubuntu (18.04) base OS for Tanzu Kubernetes Grid cluster nodes, FIPS enabled Kubernetes overlay, and FIPS compliant Tanzu Kubernetes Grid images. To perform compliant deployment, perform following steps:
+    - For doing FIPS compliance deployment on Ubuntu, the installer needs Ubuntu advantage username and password. Export these using the following commands:
       ```
       export UBUNTU_ADVANTAGE_PASSWORD=<user:password>
       export UBUNTU_ADVANTAGE_PASSWORD_UPDATES=<user:password>
       ```
-    - If ubuntu advantage username and password are not available, then disable FIPS enablement for ubuntu by setting `install_fips` variable to `no` in file `<your_directory>/deployment_binaries/sivt-aws-federal/ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/vars/main.yml`. This will disable FIPS at OS level.
+    - If Ubuntu advantage username and password are not available, then deactivate FIPS enablement for Ubuntu by setting `install_fips` variable to `no` in file `<your_directory>/deployment_binaries/sivt-aws-federal/ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/vars/main.yml`. This deactivates FIPS at the OS level.
 
 
-   **Non-compliant deployment:** If you are looking for deployment with vanilla Tanzu Kubernetes Grid master and worker nodes, set the `COMPLIANT_DEPLOYMENT` variable to `false` by running the following command on your Jumpbox VM. Once this variable is set, Service Installer for VMware Tanzu makes use of vanilla Tanzu Kubernetes Grid images for installation.
+   **Non-compliant deployment:** If you are looking for deployment with vanilla Tanzu Kubernetes Grid control plane node and worker nodes, set the `COMPLIANT_DEPLOYMENT` variable to `false` by running the following command on your Jumpbox VM. Once this variable is set, Service Installer for VMware Tanzu makes use of vanilla Tanzu Kubernetes Grid images for installation.
 
       ```sh
       export COMPLIANT_DEPLOYMENT=false
@@ -188,7 +188,7 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
     HARBOR_PASSWORD="harbor123"
     ```
   
-1. Use the following commands if you want to overwrite these values.
+2. Use the following commands if you want to overwrite these values.
     ```sh
     export TF_VAR_harbor_host_name=<Hostname for Harbor>
     export TF_VAR_prometheus_host_name=<Hostname for Prometheus>
@@ -196,7 +196,7 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
     export TF_VAR_harbor_extension_password=<Password for Harbor>
     ```
 
-1. Install Tanzu Kubernetes Grid extensions.
+3. Install Tanzu Kubernetes Grid extensions.
     
     By default, the script installs cert_manager and Contour as part of the default installation. For installing other extensions, set the following variables to `true`.
 
@@ -210,10 +210,10 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
     The installer resolves the prerequisites for extension deployments. For example: Grafana needs cert-manager, Contour, and Prometheus. The scripts install cert-manager, Contour, and Prometheus before Grafana installation if `GRAFANA_DEPLOYMENT` is set to `true`.
 
     **Known Issues with Extensions:**
-    1. Prometheus deployment fails if SaaS is enabled.
-    2. Harbor deployment fails both with and without SaaS in multi workload cluster configurations.
+    - Prometheus deployment fails if SaaS is enabled.
+    - Harbor deployment fails both with and without SaaS in multi workload cluster configurations.
 
-1. Enable Pinniped on management and workload clusters.
+4. Enable Pinniped on management and workload clusters.
     
     By default, Pinniped is set to false. For enabling Pinniped on management and workload clusters, set the following variables:
 
@@ -242,8 +242,8 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
 
     For more information on these variables, see [Tanzu CLI Configuration File Variable Reference](https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.5/vmware-tanzu-kubernetes-grid-15/GUID-tanzu-config-reference.html).
 
-1. Configure integration with SaaS offerings.
-    - To register master and workload cluster to Tanzu Mission Control (TMC), provide TMC refresh token by running the following command.
+5. Configure integration with SaaS offerings.
+    - To register management and workload clusters to Tanzu Mission Control (TMC), provide TMC refresh token by running the following command.
       ```sh
       export TMC_API_TOKEN=<TMC API token>
       ```
@@ -264,12 +264,12 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
       ```
       **Note:** Tanzu Service Mesh integration requires worker node to have atleast 4 CPUs. If you specify `SKIP_TSM=false`, the installer deploys worker node with instance type `m5.xlarge`.
 
-1. Install Tanzu Kubernetes Grid.
+6. Install Tanzu Kubernetes Grid.
     
     **Note:** 
     1. Once you extract the TAR file downloaded as part of [Prerequisites](#prerequisites), make sure that you are in `<your_directory>/deployment_binaries/sivt-aws-federal/` folder while running `make` commands.
       
-      1. To enable or disable STIG and FIPS compliance, see step 4 of this deployment procedure.
+      1. To activate or deactivate STIG and FIPS compliance, see step 4 of this deployment procedure.
     
     To get the list of all the make command targets run the following command.
     ```sh
@@ -330,7 +330,7 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
       make install-ubuntu-non-airgap
       ```
 
-## Make Targets
+## <a id=make-targets> </a> Make Targets
 
 **Note:** Prerequisites mentioned in this table are applicable only if you are not using `make all` or if you are not following the step by step process.
 
@@ -350,7 +350,7 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
 
   ![TKG Installation](images/TKG_Installation.jpg)
 
-### VPC Creation
+### <a id=vpc-creation> </a> VPC Creation
 
 If you opt for VPC creation with Service Installer for VMware Tanzu using either `non-airgapped-deployment-with-vpc` or `create-non-airgapped-multi-vpc-infra` make target, the installer creates the following networking components:
 
@@ -363,16 +363,16 @@ The following diagram depicts single VPC and associated networking created by th
  
 ![VPC created](images/VPC_creation.jpg)
 
-### AWS IAM Components Created by cf
+### <a id=aws-iam-components-created-by-cf> </a> AWS IAM Components Created by cf
 
 The installer creates IAM resources by dividing them into two CloudFormation stacks.
-* Tanzu Kubernetes Grid (TKG) Stack(tanzu-cloud-formation-iamtemplate): Creates IAM resources (role, policies and instance profiles) needed by Tanzu cluster deployment.
-* Service Installer for VMware Tanzu (SIVT) Stack(sivt-cloud-formation-iamtemplate): Creates IAM resources (role, policies and instance profiles) needed for automation code for further deployment.
+* Tanzu Kubernetes Grid (TKG) Stack (tanzu-cloud-formation-iamtemplate): Creates IAM resources (role, policies and instance profiles) needed by Tanzu cluster deployment.
+* Service Installer for VMware Tanzu (SIVT) Stack (sivt-cloud-formation-iamtemplate): Creates IAM resources (role, policies and instance profiles) needed for automation code for further deployment.
 
 
 The `make cf` command creates these stacks one by one starting with the TKG stack. The installer checks for IAM resources and CloudFormation. If any of the resources exist, you get an error message. You can ignore the error message if the resources are already set correctly as mentioned in the following templates.
 
-**Note:** For more information on role and their detailed actions, see the [tanzu-cloud-formation-iamtemplate](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/tanzu-cloud-formation-iamtemplate.yaml) [sivt-cloud-formation-iamtemplate](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/sivt-cloud-formation-iamtemplate.yaml) file.
+**Note:** For more information on role and their detailed actions, see the [tanzu-cloud-formation-iamtemplate](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/tanzu-cloud-formation-iamtemplate.yaml) and [sivt-cloud-formation-iamtemplate](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/sivt-cloud-formation-iamtemplate.yaml) files.
 
 |Profile|Roles|Policies|Stack type |
 |-------|-----|--------|------------|
@@ -382,9 +382,9 @@ The `make cf` command creates these stacks one by one starting with the TKG stac
 |tkg-s3-viewer|tkg-s3-role|tkg-airgapped-bucket| SIVT
 |tkg-bootstrap|tkg-bootstrap|tkg-airgapped-bucket<br/>nodes.tkg.cloud.vmware.com<br/>controllers.tkg.cloud.vmware.com<br/>control-plane.tkg.cloud.vmware.com| SIVT
 
-**Note:** SIVT IAM resources (role, policies and instance profiles) are prepended with the AWS Region specified by the user. For example, us-east-1-tkg-bootstrap 
+**Note:** SIVT IAM resources (role, policies and instance profiles) are prepended with the AWS Region specified by the user. For example, `us-east-1-tkg-bootstrap`
 
-## Customizing Tanzu Kubernetes Grid
+## <a id=customizing-tanzu-kubernetes-grid> </a> Customizing Tanzu Kubernetes Grid
 
 All configurable options and their default values can be seen in the
 [terraform/startup.sh](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/terraform) file. The variables must be edited in this file for them to take effect because Terraform is not configured to take all of them as input.
@@ -392,7 +392,7 @@ All configurable options and their default values can be seen in the
 For a description of all variables, see the [Variables](#variables) section.
 
 
-## Accessing Your Tanzu Kubernetes Grid Cluster
+## <a id=accessing-your-tanzu-kubernetes-grid-cluster> </a> Accessing Your Tanzu Kubernetes Grid Cluster
 
   - You can run the following command on the bootstrap instance to track the progress of the Tanzu Kubernetes Grid installation. 
       ```
@@ -401,7 +401,7 @@ For a description of all variables, see the [Variables](#variables) section.
   - Once you see a message about the security group of your bootstrap being modified, it implies that the script has finished executing. You can now run `kubectl get pods -A` to see all the pods running on your management cluster. Additionally, if you run `kubectl get nodes`, you can use an IP address of one of the cluster nodes and SSH to it from the bootstrap node using the SSH key that you provided to Terraform.
 
 
-## Clean Up the Deployment
+## <a id=clean-up-the-deployment> </a> Clean Up the Deployment
 
   - To delete the Tanzu Kubernetes Grid cluster, run the following command on the bootstrap node.
 
@@ -432,7 +432,7 @@ For a description of all variables, see the [Variables](#variables) section.
 
   **Note:** AMIs and load balancers created as part of the deployment must be deleted manually.
 
-## Variables
+## <a id=variables> </a> Variables
 
 The `terraform/startup.sh` file contains the following configurable options that you can set within the file.
 
@@ -446,11 +446,11 @@ The `terraform/startup.sh` file contains the following configurable options that
 |AWS_SSH_KEY_NAME|Pulls from tfvars| The SSH key to use for TKG cluster; must be RSA for STIG|
 |AWS_REGION|Pulls from tfvars| The AWS region to deploy Tanzu Kubernetes Grid|
 |CLUSTER_PLAN|dev|The cluster plan for Tanzu Kubernetes Grid|
-|ENABLE_AUDIT_LOGGING|true|Enable to disable auditing on Kubernetes|
+|ENABLE_AUDIT_LOGGING|true|Activate or deactivate auditing on Kubernetes|
 |TKG_CUSTOM_COMPATABILITY_PATH|fips/tkg-compatability|The compatibility path to use; set to "" for non FIPS deployment|
 |COMPLIANT_DEPLOYMENT|true|Set to false for non-compliant deployment|
-|ENABLE_SERVING_CERTS|false|Enable or disable serving certificates on Kubernetes|
-|PROTECT_KERNEL_DEFAULTS|true|Enable to disable `--protect-kernel-defaults` on kubelet. Set to `true` only for AMIs that allow it|
+|ENABLE_SERVING_CERTS|false|Activate or deactivate serving certificates on Kubernetes|
+|PROTECT_KERNEL_DEFAULTS|true|Activate or deactivate `--protect-kernel-defaults` on kubelet. Set to `true` only for AMIs that allow it|
 |AWS_NODE_AZ_1|unset|Required for Prod clusters, set node availability zone 1|
 |AWS_NODE_AZ_2|unset|Required for Prod clusters, set node availability zone 2|
 |AWS_PRIVATE_SUBNET_ID_1|unset|Required for Prod clusters private subnet 1|
@@ -478,7 +478,7 @@ The `terraform/startup.sh` file contains the following configurable options that
 |TO_TOKEN|unset|To enable Tanzu Observability(TO) for workload cluster provide the TO token|
 |TO_URL|unset|To enable Tanzu Observability(TO) for workload cluster provide the TO URL|
 
-## Troubleshooting Tips
+## <a id=troubleshooting-tips> </a> Troubleshooting Tips
 
 - If your cluster does not come up, try the following steps.
 

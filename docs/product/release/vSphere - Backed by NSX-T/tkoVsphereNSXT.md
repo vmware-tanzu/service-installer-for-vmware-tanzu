@@ -120,7 +120,7 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
    | --wcp_bringup                    | Once the WCP service is shutdown, it can be restarted through bringup option. All the Supervisor and Workload cluster VMs will get powered on
    | --load_tanzu_image_to_harbor     | This will help to load the TKG dependencies to Harbor which is pre-bundled with SIVT
 
-8. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the `vsphere-nsxt-tkgm.json` file, to enable or disable,
+8. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the `vsphere-nsxt-tkgm.json` file, to activate or deactivate:
 
    - Tanzu Mission Control and to use the Tanzu Mission Control CLI and API, enter `"tmcAvailability": "true/false"`.
    - Tanzu Service Mesh, enter `"ttkgWorkloadTsmIntegrationn": "true/false"`.
@@ -130,18 +130,18 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
 
 9. If you are using a proxy, in the `vsphere-nsxt-tkgm.json` file, configure the details in the proxy field corresponding to the cluster.
 
-    For example, to enable or disable proxies on the management cluster, use `tkgMgmt: {"enableProxy": "true"}` in the `vsphere-nsxt-tkgm.json` file.
+    For example, to activate or deactivate proxies on the management cluster, use `tkgMgmt: {"enableProxy": "true"}` in the `vsphere-nsxt-tkgm.json` file.
 
-10. Enable or disable Tanzu Kubernetes Grid extensions. For example, in the `vsphere-nsxt-tkgm.json` file, to enable or disable,
+10. Activate or deactivate Tanzu Kubernetes Grid extensions. For example, in the `vsphere-nsxt-tkgm.json` file, to activate or deactivate:
 
     -  Prometheus and Grafana, enter `"enableExtensions": "true/false"`.
     -  Harbor, enter `"enableHarborExtension": "true/false"`.
 
 **Note:**
 
-- Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
-- If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
-- If Tanzu Mission Control is enabled only Photon is supported.
+- Tanzu Mission Control is required to activate Tanzu Service Mesh and Tanzu Observability.
+- If Tanzu Observability is activated, Prometheus and Grafana are not supported.
+- If Tanzu Mission Control is activated, only Photon is supported.
 
 
 ## Load Pre-bundled Harbor with Tanzu Kubernetes Grid Dependencies
