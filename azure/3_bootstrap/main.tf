@@ -107,7 +107,9 @@ resource "tls_private_key" "this" {
 resource "null_resource" "az_eula_2004" {
   provisioner "local-exec" {
     # The plan listed here can change with updates to CAPZ or Tanzu CLI - review your Azure Activity Log to check if there are errors related to VM creation
-    command = "az vm image terms accept --publisher vmware-inc --offer tkg-capi --plan k8s-1dot22dot9-ubuntu-2004 --subscription ${var.sub_id}"
+    # TKG 1.5.3: command = "az vm image terms accept --publisher vmware-inc --offer tkg-capi --plan k8s-1dot22dot9-ubuntu-2004 --subscription ${var.sub_id}"
+    # TKG 1.6:
+    command = "az vm image terms accept --publisher vmware-inc --offer tkg-capi-2022-06-24 --plan k8s-1dot23dot8-ubuntu-2004 --subscription ${var.sub_id}"
   }
 }
 
