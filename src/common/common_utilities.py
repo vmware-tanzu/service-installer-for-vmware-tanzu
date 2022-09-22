@@ -7199,7 +7199,7 @@ def getAviIpFqdnDnsMapping(avi_controller_fqdn_ip_dict, dns_server):
     try:
         for dns in dns_server:
             for avi_fqdn, avi_ip in avi_controller_fqdn_ip_dict.items():
-                listOfCmd = ["dig", dns, avi_fqdn, "+short"]
+                listOfCmd = ["dig", f"@{dns}", avi_fqdn, "+short"]
                 fqdn_ip_map = runShellCommandAndReturnOutputAsList(listOfCmd)
                 current_app.logger.info(fqdn_ip_map)
                 for ip in fqdn_ip_map[0]:
