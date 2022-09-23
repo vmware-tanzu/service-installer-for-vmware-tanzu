@@ -24,7 +24,7 @@ Before you deploy Tanzu for Kubernetes Operations using Service Installer for VM
    - A Cloud Services Portal API token is required to pull all required images from VMware Marketplace. To generate an API token, log in to the CSP portal and select your organization. Go to **Marketplace Service > My Account > API Tokens > Generate a Token**.
    - If Marketplace is not available in the environment,
 
-        1. Download the NSX Advanced Load Balancer OVA from [MarketPlace](https://marketplace.cloud.vmware.com/services/details/nsx-advanced-load-balancer-1?slug=true).
+        1. Download the NSX Advanced Load Balancer OVA from [VMware Vault](https://vault.vmware.com/group/nsx/avi-networks-technical-resources).
         2. Create a Content Library and upload NSX Advanced Load Balancer Controller OVA (20.1.6 for vSphere 7.0 Update2 and 20.1.7 for vSphere 7.0 Update3).
 
 ## Airgapped Considerations
