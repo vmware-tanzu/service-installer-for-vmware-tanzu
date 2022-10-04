@@ -6,7 +6,7 @@ This deployment references the design provided in [VMware Tanzu for Kubernetes O
 ## Network Design
 The following diagram represents the network design required for deploying Tanzu for Kubernetes Operations on VMware Cloud on AWS using Service Installer for VMware Tanzu.
 
-![VMC Network Design](./images/VMC_Network_Design.png)
+![Network design for TKO deployment on VMC on AWS ](./images/VMC_Network_Design.png)
 
 ## Prerequisites
 Before deploying Tanzu for Kubernetes Operations on VMware Cloud on AWS using Service Installer for VMware Tanzu, ensure the following:
@@ -86,8 +86,9 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
    2. Create a Content Library and upload the NSX Advanced Load Balancer Controller OVA.
 
 **Note**: 
+
    - As part of automation for VMC deployment, SIVT uploads NSX Advanced Load Balancer Controller and base Kubernetes images to vCenter/ESXi after the necessary firewall rules are configured. All required firewall rules are configured by the SIVT automation code.
-   - If you intend to upload these images from the SIVT VM even before executing the `--vmc_pre_configuration` command, you may need to add the required ESXi Inbound rule in Management Gateway manually.
+   - If you intend to upload these images from the SIVT VM even before executing the `--vmc_pre_configuration` command, you may need to add the required ESXi Inbound rule in the Management Gateway manually.
 
 ## <a id=deploy-tkg> </a> Deploy Tanzu for Kubernetes Operations
 1. Log in to the Service Installer for VMware Tanzu VM over SSH.
@@ -142,21 +143,21 @@ Download the NSX Advanced Load Balancer Controller and base Kubernetes images.
 
 9. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the `vmc-tkgm.json` file,
 
-    - to enable or disable Tanzu Mission Control, enter `"tanzuObservabilityAvailability": "true/false"`.
-    - to enable or disable Tanzu Service Mesh, enter `"tkgWorkloadTsmIntegration": "true/false"`.
-    - to enable or disable Tanzu Observability, enter `"tanzuObservabilityAvailability": "true/false"`.
+    - to activate or deactivate Tanzu Mission Control, enter `"tanzuObservabilityAvailability": "true/false"`.
+    - to activate or deactivate Tanzu Service Mesh, enter `"tkgWorkloadTsmIntegration": "true/false"`.
+    - to activate or deactivate Tanzu Observability, enter `"tanzuObservabilityAvailability": "true/false"`.
 
     **Note:** If you edit the JSON manually, ensure that the values you enter are in quotes.
 
-10. Enable or disable Tanzu Kubernetes Grid extensions. For example,
-    - to enable or disable Prometheus and Grafana, enter `"enableExtensions": "true/false"`.
-    - to enable or disable Harbor, enter `"enableHarborExtension": "true/false"`.
+10. Activate or deactivate Tanzu Kubernetes Grid extensions. For example,
+    - to activate or deactivate Prometheus and Grafana, enter `"enableExtensions": "true/false"`.
+    - to activate or deactivate Harbor, enter `"enableHarborExtension": "true/false"`.
 
 **Note:**
 
-- Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
-- If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
-- When Tanzu Mission Control is enabled only Photon is supported.
+- Tanzu Mission Control is required to activate Tanzu Service Mesh and Tanzu Observability.
+- If Tanzu Observability is activated, Prometheus and Grafana are not supported.
+- When Tanzu Mission Control is activated only Photon is supported.
 
 ## Update a Running Extension Deployment
 

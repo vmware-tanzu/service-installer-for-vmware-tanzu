@@ -7,7 +7,7 @@ This deployment references the design provided in [VMware Tanzu for Kubernetes O
 ## Network Design
 The following diagram represents the network design required for deploying Tanzu for Kubernetes Operations on vSphere with NSX-T using Service Installer for VMware Tanzu.
 
-![VCF_Network_Design](./images/VCF_Network_Design.png)
+![Network design for TKO deployment on vSphere with NSX-T](./images/VCF_Network_Design.png)
 
 ## Prerequisites
 Before you install Service Installer for VMware Tanzu, ensure the following:
@@ -83,22 +83,22 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
 
    **Note:** Service Installer uses the certificate for NSX Advanced Load Balancer, Harbor, Prometheus, and Grafana. Ensure that the certificate and private key are in PEM format and are not encrypted. Encrypted certificate files are not supported. If you do not upload a certificate, Service Installer generates a self-signed certificate.
 
-3. Enter the following in a browser window to access the Service Installer user interface:
+4. Enter the following in a browser window to access the Service Installer user interface:
 
     `http://<IP of Service Installer VM>:8888/`
 
-4. Enter the required details to generate the input file.
+5. Enter the required details to generate the input file.
 
    After you have entered the required details, the Service Installer UI provides an option to review the values and download the input file in JSON format.
 
    The values are saved in a file `vsphere-nsxt-tkgm.json` located at `/opt/vmware/arcas/src`. See the [sample JSON file](#sample-input-file) file for reference.
 
-5. Execute the following command to initiate the deployment.
+6. Execute the following command to initiate the deployment.
    ```
    arcas --env vcf --file /path/to/vsphere-nsxt-tkgm.json  --vcf_pre_configuration --avi_configuration  --tkg_mgmt_configuration --shared_service_configuration --workload_preconfig --workload_deploy --deploy_extensions
    ```
 
-6. Use the following command to cleanup the deployment.
+7. Use the following command to cleanup the deployment.
     ```
     arcas --env vcf --file /path/to/vsphere-nsxt-tkgm.json --cleanup
     ```
@@ -117,7 +117,7 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
    | --cleanup | cleanup the deployment performed by SIVT and start from scratch |
    | --verbose | Enables verbose logging |
 
-1. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the `vsphere-nsxt-tkgm.json` file, to enable or disable,
+8. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the `vsphere-nsxt-tkgm.json` file, to activate or deactivate:
 
    - Tanzu Mission Control and to use the Tanzu Mission Control CLI and API, enter `"tmcAvailability": "true/false"`.
    - Tanzu Service Mesh, enter `"ttkgWorkloadTsmIntegrationn": "true/false"`.
@@ -125,20 +125,20 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
 
     **Note:** If you edit the JSON manually, ensure that you enter the values in quotes.
 
-1. If you are using a proxy, in the `vsphere-nsxt-tkgm.json` file, configure the details in the proxy field corresponding to the cluster.
+9. If you are using a proxy, in the `vsphere-nsxt-tkgm.json` file, configure the details in the proxy field corresponding to the cluster.
 
-    For example, to enable or disable proxies on the management cluster, use `tkgMgmt: {"enableProxy": "true"}` in the `vsphere-nsxt-tkgm.json` file.
+    For example, to activate or deactivate proxies on the management cluster, use `tkgMgmt: {"enableProxy": "true"}` in the `vsphere-nsxt-tkgm.json` file.
 
-1. Enable or disable Tanzu Kubernetes Grid extensions. For example, in the `vsphere-nsxt-tkgm.json` file, to enable or disable,
+10. Activate or deactivate Tanzu Kubernetes Grid extensions. For example, in the `vsphere-nsxt-tkgm.json` file, to activate or deactivate:
 
    -  Prometheus and Grafana, enter `"enableExtensions": "true/false"`.
    -  Harbor, enter `"enableHarborExtension": "true/false"`.
 
 **Note:**
 
-- Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
-- If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
-- If Tanzu Mission Control is enabled only Photon is supported.
+- Tanzu Mission Control is required to activate Tanzu Service Mesh and Tanzu Observability.
+- If Tanzu Observability is activated, Prometheus and Grafana are not supported.
+- If Tanzu Mission Control is activated, only Photon is supported.
 
 ## Update a Running Extension Deployment
 
