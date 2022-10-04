@@ -312,6 +312,7 @@ By default, Harbor is installed on an Amazon 2 AMI because it needs the Amazon C
 
 This section describes the process of customizing the Ubuntu AMIs created in the deployment. The AMIs are created using the VPC ID and subnet ID of your air-gapped VPC.
 
+
   - **Deactivate FIPS**: To deactivate FIPS, set `install_fips` to `no` in the [STIG roles' main.yml](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/aws/ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/vars/main.yml) file.
 
   - **Add CA certificate in the trust store**: To add CA certificates to the AMI, copy the CAs in `PEM` format to the [STIG roles' files/ca](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/files/ca) folder.

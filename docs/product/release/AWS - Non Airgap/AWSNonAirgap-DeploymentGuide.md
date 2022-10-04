@@ -174,7 +174,6 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
       ```
     - If Ubuntu advantage username and password are not available, then deactivate FIPS enablement for Ubuntu by setting `install_fips` variable to `no` in file `<your_directory>/deployment_binaries/sivt-aws-federal/ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/vars/main.yml`. This deactivates FIPS at the OS level.
 
-
    **Non-compliant deployment:** If you are looking for deployment with vanilla Tanzu Kubernetes Grid control plane node and worker nodes, set the `COMPLIANT_DEPLOYMENT` variable to `false` by running the following command on your Jumpbox VM. Once this variable is set, Service Installer for VMware Tanzu makes use of vanilla Tanzu Kubernetes Grid images for installation.
 
       ```sh
