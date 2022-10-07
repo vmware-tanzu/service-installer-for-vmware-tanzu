@@ -312,7 +312,8 @@ By default, Harbor is installed on an Amazon 2 AMI because it needs the Amazon C
 
 This section describes the process of customizing the Ubuntu AMIs created in the deployment. The AMIs are created using the VPC ID and subnet ID of your air-gapped VPC.
 
-  - **Disable FIPS**: To disable FIPS, set `install_fips` to `no` in the [STIG roles' main.yml](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/aws/ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/vars/main.yml) file.
+
+  - **Deactivate FIPS**: To deactivate FIPS, set `install_fips` to `no` in the [STIG roles' main.yml](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/aws/ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/vars/main.yml) file.
 
   - **Add CA certificate in the trust store**: To add CA certificates to the AMI, copy the CAs in `PEM` format to the [STIG roles' files/ca](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/main/aws/ami/stig/roles/canonical-ubuntu-18.04-lts-stig-hardening/files/ca) folder.
 
@@ -404,11 +405,11 @@ The `terraform/startup*.sh` files contain the following configurable options tha
 |REGISTRY_IP|IP of the harbor instance| IP Address of the Docker registry. Modify only if you are using your own registry.|
 |TKG_CUSTOM_IMAGE_REPOSITORY|$REGISTRY/tkg| The full Docker registry project path to use for TKG images|
 |CLUSTER_PLAN|dev|The cluster plan for Tanzu Kubernetes Grid|
-|ENABLE_AUDIT_LOGGING|true|Enable to disable auditing on Kubernetes|
+|ENABLE_AUDIT_LOGGING|true|Activate or deactivate auditing on Kubernetes|
 |TKG_CUSTOM_COMPATABILITY_PATH|fips/tkg-compatability|The compatibility path to use. Set to "" for non FIPS deployment|
 |COMPLIANCE|stig|The compliance standard to follow. Set to stig, cis, or none|
-|ENABLE_SERVING_CERTS|false|Enable or disable serving certificates on Kubernetes|
-|PROTECT_KERNEL_DEFAULTS|true|Enable to disable `--protect-kernel-defaults` on kubelet. Set to `true` only for AMIs that allow it|
+|ENABLE_SERVING_CERTS|false|Activate or deactivate serving certificates on Kubernetes|
+|PROTECT_KERNEL_DEFAULTS|true|Activate or deactivate `--protect-kernel-defaults` on kubelet. Set to `true` only for AMIs that allow it|
 |AWS_VPC_ID|VPC ID of bootstrap|The VPC ID to deploy Tanzu Kubernetes Grid|
 |AWS_PRIVATE_SUBNET_ID|When cluster plan is dev, set to subnet ID of bootstrap|Used for cluster plan dev. The private subnet ID to deploy Tanzu Kubernetes Grid|
 |AWS_NODE_AZ_1|unset|Required for Prod clusters; set node availability zone 1|

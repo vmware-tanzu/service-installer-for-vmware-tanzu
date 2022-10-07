@@ -6,7 +6,7 @@ This deployment uses Tanzu Kubernetes Grid and references the design provided in
 ## Network Design
 The following diagram represents the network design required for installing and running Service Installer for VMware Tanzu on vSphere with vSphere Distributed Switch.
 
-![vSphere_Network_design](./images/vSphere_Network_design.png)
+![Network design for TKO deployment on vSphere with VDS](./images/vSphere_Network_design.png)
 
 ## Prerequisites
 Before you deploy Tanzu for Kubernetes Operations using Service Installer for VMware Tanzu, ensure the following:
@@ -143,31 +143,31 @@ Consider the following when deploying VMware Tanzu for Kubernetes Operations usi
    --cleanup                            | cleanup the deployment performed by SIVT and start from scratch |
    --verbose                            | Enable verbose logging.          |
 
-2. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the JSON file:
+10. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the JSON file:
 
-    - to enable or disable Tanzu Mission Control and to use the Tanzu Mission Control CLI and API enter `"tmcAvailability": "true/false"`.
-    - to enable or disable Tanzu Service Mesh, enter `"tkgWorkloadTsmIntegration": "true/false"`.
-    - to enable or disable Tanzu Observability, enter `"tanzuObservabilityAvailability": "true/false"`.
+     - to activate or deactivate Tanzu Mission Control and to use the Tanzu Mission Control CLI and API enter `"tmcAvailability": "true/false"`.
+     - to activate or deactivate Tanzu Service Mesh, enter `"tkgWorkloadTsmIntegration": "true/false"`.
+     - to activate or deactivate Tanzu Observability, enter `"tanzuObservabilityAvailability": "true/false"`.
 
-3. If you are using a proxy, configure the proxy details in the proxy field corresponding to the cluster.
+11. If you are using a proxy, configure the proxy details in the proxy field corresponding to the cluster.
 
-    For example, to enable or disable proxy on the management cluster, use `tkgMgmt: {"enable-proxy": "true"}` in the JSON file.
+     For example, to activate or deactivate proxy on the management cluster, use `tkgMgmt: {"enable-proxy": "true"}` in the JSON file.
 
-4. Enable or disable Tanzu Kubernetes Grid extensions. For example,
-    - to enable or disable Prometheus and Grafana, enter `"enableExtensions": "true/false"`.
-    - to enable or disable Harbor, enter `"enableHarborExtension": "true/false"`.   
+12. Activate or deactivate Tanzu Kubernetes Grid extensions. For example,
+     - to activate or deactivate Prometheus and Grafana, enter `"enableExtensions": "true/false"`.
+     - to activate or deactivate Harbor, enter `"enableHarborExtension": "true/false"`.
 
 **Note:**
-- Tanzu Mission Control is required to enable Tanzu Service Mesh and Tanzu Observability.
-- If Tanzu Observability is enabled, Prometheus and Grafana are not supported.
-- When Tanzu Mission Control is enabled only Photon is supported.
 
+- Tanzu Mission Control is required to activate Tanzu Service Mesh and Tanzu Observability.
+- If Tanzu Observability is activated, Prometheus and Grafana are not supported.
+- When Tanzu Mission Control is activated only Photon is supported.
 
 ## Update a Running Extension Deployment
 
 To make changes to the configuration of a running package after deployment, update your deployed package:
 
-1. Obtain the installed package version and namespace details using the following command. 
+1. Obtain the installed package version and namespace details using the following command.
    ```
    tanzu package available list -A
    ```

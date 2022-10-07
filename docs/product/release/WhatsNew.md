@@ -85,6 +85,10 @@
         cat proxy-cert.pem >> /etc/pki/tls/certs/ca-bundle.crt
         systemctl restart docker
         ```
+- Tanzu Kubernetes Grid deployment with NSX-T networking fails with `Failed to configure vcf list index out of range`.
+   
+   **Resolution:** This issue occurs only when you deactivate the shared services cluster in UI or the config file and proceed with management or workload cluster deployment.
+   If the shared services cluster is activated and all the configuration details are provided, then deployment proceeds.
 
 ## Download
 

@@ -6,7 +6,7 @@ This deployment uses Tanzu Kubernetes Grid Service and references the design pro
 ## Network Design
 The following diagram represents the network design required for installing and running Service Installer for VMware Tanzu on vSphere with Tanzu and vSphere Distributed Switch (VDS).
 
-![TKGS Network Layout](./images/TKGS_Network_Layout.png)
+![Network design for TKO deployment on vSphere with Tanzu and VDS](./images/TKGS_Network_Layout.png)
 
 ## Prerequisites
 Before you deploy Tanzu for Kubernetes Operations using Service Installer for VMware Tanzu, ensure the following:
@@ -85,7 +85,7 @@ NSX ALB Service Engine Management IP     | NSX ALB Controller Nodes            |
 
     See the [sample JSON files](#sample-input-file) file for reference.
 
-10. Execute the following command to initiate the deployment.
+10. Run the following command to initiate the deployment.
 
     **To Enable Workload Control Plane**
 
@@ -102,7 +102,7 @@ NSX ALB Service Engine Management IP     | NSX ALB Controller Nodes            |
     ```
     arcas --env vsphere --file /path/to/vsphere-dvs-tkgs-wcp.json --cleanup
     ```
-    **Note:** For vSphere with Tanzu, provide a Workload Control Plane (WCP) deployment file to do the clean up. Disable the Workload Control Plane (WCP) on the cluster to clean.
+    **Note:** For vSphere with Tanzu, provide a Workload Control Plane (WCP) deployment file to do the clean up. Deactivate the Workload Control Plane (WCP) on the cluster to clean.
 
     The following table describes the parameters.
 
@@ -118,7 +118,7 @@ NSX ALB Service Engine Management IP     | NSX ALB Controller Nodes            |
     |--verbose | Log Verbosity |
 
 
-11. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the JSON file, to enable or disable,
+11. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the JSON file, to activate or deactivate:
 
     - Tanzu Mission Control and to use the Tanzu Mission Control CLI and API, enter `"tmcAvailability": "true/false"`.
     - Tanzu Service Mesh, enter `"tkgWorkloadTsmIntegration": "true/false"`.
@@ -126,7 +126,7 @@ NSX ALB Service Engine Management IP     | NSX ALB Controller Nodes            |
     - Tanzu Observability, enter `"tanzuObservabilityAvailability": "true/false"`.
 
 
-12. Enable or disable Tanzu Kubernetes Grid extensions. For example, to enable or disable,
+12. Activate or deactivate Tanzu Kubernetes Grid extensions. For example, to activate or deactivate:
 
     - Prometheus and Grafana, enter `"enableExtensions": "true/false"`.
     - Harbor, enter `"enableHarborExtension": "true/false"`.  
