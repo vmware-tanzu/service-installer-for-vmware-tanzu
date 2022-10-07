@@ -7,7 +7,7 @@ This deployment references the design provided in [VMware Tanzu for Kubernetes O
 ## Network Design
 The following diagram represents the network design required for deploying Tanzu for Kubernetes Operations on vSphere with NSX-T using Service Installer for VMware Tanzu.
 
-![VCF_Network_Design](./images/VCF_Network_Design.png)
+![Network Design for TKO on vSphere with NSX-T networking](./images/VCF_Network_Design.png)
 
 ## Prerequisites
 Before you install Service Installer for VMware Tanzu, ensure the following:
@@ -117,7 +117,7 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
    | --cleanup | cleanup the deployment performed by SIVT and start from scratch |
    | --verbose | Enables verbose logging |
 
-1. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the `vsphere-nsxt-tkgm.json` file, to enable or disable,
+1. Do the following to integrate with SaaS services such as Tanzu Mission Control, Tanzu Service Mesh, and Tanzu Observability. In the `vsphere-nsxt-tkgm.json` file, to activate or deactivate,
 
    - Tanzu Mission Control and to use the Tanzu Mission Control CLI and API, enter `"tmcAvailability": "true/false"`.
    - Tanzu Service Mesh, enter `"ttkgWorkloadTsmIntegrationn": "true/false"`.
@@ -127,9 +127,9 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
 
 1. If you are using a proxy, in the `vsphere-nsxt-tkgm.json` file, configure the details in the proxy field corresponding to the cluster.
 
-    For example, to enable or disable proxies on the management cluster, use `tkgMgmt: {"enableProxy": "true"}` in the `vsphere-nsxt-tkgm.json` file.
+    For example, to activate or deactivate proxies on the management cluster, use `tkgMgmt: {"enableProxy": "true"}` in the `vsphere-nsxt-tkgm.json` file.
 
-1. Enable or disable Tanzu Kubernetes Grid extensions. For example, in the `vsphere-nsxt-tkgm.json` file, to enable or disable,
+1. Activate or deactivate Tanzu Kubernetes Grid extensions. For example, in the `vsphere-nsxt-tkgm.json` file, to activate or deactivate,
 
    -  Prometheus and Grafana, enter `"enableExtensions": "true/false"`.
    -  Harbor, enter `"enableHarborExtension": "true/false"`.
