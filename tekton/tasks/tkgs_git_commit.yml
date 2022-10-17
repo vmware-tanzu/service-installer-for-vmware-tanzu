@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: tkgs-git-commit-task
+spec:
+  workspaces:
+    - name: task-shared-data
+  params:
+    - name: imagename
+      description: the operand image
+    - name: branch
+      description: the branch to clone from
+      default: alpha
+    - name: imagepullpolicy
+      description: imagepullpolicy for operand image("Always", "IfNotPresent", "Never")
+  steps:
+    - name: run-git-commit
+      image: $(params.imagename)
+      imagePullPolicy: $(params.imagepullpolicy)
+      script: |
+        cd /workspace/task-shared-data
+        set -x
+        dst_dir=`pwd`
+

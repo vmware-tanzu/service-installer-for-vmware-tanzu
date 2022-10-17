@@ -1,0 +1,130 @@
+install_fips: yes
+install_aide: yes
+install_chrony: yes
+install_protect_kernel_defaults: yes
+offline_install: "{{ lookup('env','OFFLINE_INSTALL') == 'yes' }}"
+UBUNTU_ADVANTAGE_PASSWORD: "{{ lookup('env','UBUNTU_ADVANTAGE_PASSWORD') }}"
+UBUNTU_ADVANTAGE_PASSWORD_UPDATES: "{{ lookup('env','UBUNTU_ADVANTAGE_PASSWORD_UPDATES') }}"
+auditd_space_left: 19900
+install_packages:
+- apparmor
+- apparmor-profiles
+- apparmor-utils
+- audispd-plugins
+- auditd
+- ca-certificates
+- chrony
+- libpam-apparmor
+- libpam-pkcs11
+- libpam-pwquality
+- libpwquality-common
+- opensc-pkcs11
+- openssh-client
+- openssh-server
+- ufw
+- unattended-upgrades
+- vlock
+remove_packages:
+- at
+- avahi-daemon
+- dovecot-core
+- chromium-browser
+- lxd
+- postfix
+- pollinate
+- rsync
+- screen
+- telnet
+- telnetd
+- tftpd
+login_banner: |
+  You are accessing a U.S. Government (USG) Information System (IS) that is
+  provided for USG-authorized use only.
+  By using this IS (which includes any device attached to this IS), you consent
+  to the following conditions:
+  -The USG routinely intercepts and monitors communications on this IS for
+  purposes including, but not limited to, penetration testing, COMSEC monitoring,
+  network operations and defense, personnel misconduct (PM), law enforcement
+  (LE), and counterintelligence (CI) investigations.
+  -At any time, the USG may inspect and seize data stored on this IS.
+  -Communications using, or data stored on, this IS are not private, are subject
+  to routine monitoring, interception, and search, and may be disclosed or used
+  for any USG-authorized purpose.
+  -This IS includes security measures (e.g., authentication and access controls)
+  to protect USG interests--not for your personal benefit or privacy.
+  -Notwithstanding the above, using this IS does not constitute consent to PM, LE
+  or CI investigative searching or monitoring of the content of privileged
+  communications, or work product, related to personal representation or services
+  by attorneys, psychotherapists, or clergy, and their assistants. Such
+  communications and work product are private and confidential. See User
+  Agreement for details.
+limits_maxlogins: 9
+autologout_timeout: 900
+pam_fail_delay: 4
+sudo_users:
+- ubuntu
+audit_tools:
+- /sbin/audispd
+- /sbin/auditctl
+- /sbin/auditd
+- /sbin/augenrules
+- /sbin/aureport
+- /sbin/ausearch
+- /sbin/autrace
+chrony_time_sources:
+- 169.254.169.254
+audit_sp_remote_server: 192.0.0.1
+diabled_apparmor_profile:
+- /etc/apparmor.d/apache2.d/phpsysinfo
+- /etc/apparmor.d/bin.ping
+- /etc/apparmor.d/sbin.klogd
+- /etc/apparmor.d/sbin.syslog-ng
+- /etc/apparmor.d/sbin.syslogd
+- /etc/apparmor.d/usr.bin.chromium-browser
+- /etc/apparmor.d/usr.bin.man
+- /etc/apparmor.d/usr.lib.dovecot.anvil
+- /etc/apparmor.d/usr.lib.dovecot.auth
+- /etc/apparmor.d/usr.lib.dovecot.config
+- /etc/apparmor.d/usr.lib.dovecot.deliver
+- /etc/apparmor.d/usr.lib.dovecot.dict
+- /etc/apparmor.d/usr.lib.dovecot.dovecot-auth
+- /etc/apparmor.d/usr.lib.dovecot.dovecot-lda
+- /etc/apparmor.d/usr.lib.dovecot.imap
+- /etc/apparmor.d/usr.lib.dovecot.imap-login
+- /etc/apparmor.d/usr.lib.dovecot.lmtp
+- /etc/apparmor.d/usr.lib.dovecot.log
+- /etc/apparmor.d/usr.lib.dovecot.managesieve
+- /etc/apparmor.d/usr.lib.dovecot.managesieve-login
+- /etc/apparmor.d/usr.lib.dovecot.pop3
+- /etc/apparmor.d/usr.lib.dovecot.pop3-login
+- /etc/apparmor.d/usr.lib.dovecot.ssl-params
+- /etc/apparmor.d/usr.sbin.avahi-daemon
+- /etc/apparmor.d/usr.sbin.dnsmasq
+- /etc/apparmor.d/usr.sbin.dovecot
+- /etc/apparmor.d/usr.sbin.identd
+- /etc/apparmor.d/usr.sbin.mdnsd
+- /etc/apparmor.d/usr.sbin.nmbd
+- /etc/apparmor.d/usr.sbin.nscd
+- /etc/apparmor.d/usr.sbin.rsyslogd
+- /etc/apparmor.d/usr.sbin.smbd
+- /etc/apparmor.d/usr.sbin.smbldap-useradd
+- /etc/apparmor.d/usr.sbin.tcpdump
+- /etc/apparmor.d/usr.sbin.traceroute
+
+unused_accounts:
+- backup
+- dnsmasq
+- games
+- gnats
+- irc
+- list
+- lp
+- lxd
+- mail
+- man
+- news
+- nobody
+- postfix
+- sys
+- uucp
+- www-data

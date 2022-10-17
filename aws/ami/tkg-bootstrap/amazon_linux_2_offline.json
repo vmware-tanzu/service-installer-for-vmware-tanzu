@@ -1,0 +1,13 @@
+{
+  "ami_groups": "",
+  "ami_regions": "",
+  "aws_region": "",
+  "snapshot_groups": "",
+  "vpc_id": "{{env `VPC_ID`}}",
+  "subnet_id": "{{env `SUBNET_ID`}}",
+  "tkg_version": "{{env `TKG_VERSION`}}",
+  "tkr_version": "{{env `TKR_VERSION`}}",
+  "registry": "{{env `REGISTRY`}}",
+  "disable_public_repos": "true",
+  "non_airgapped": "false"
+}
