@@ -40,7 +40,11 @@ def load_run_config(root_dir):
     state: State = FileHelper.load_state(state_file_path)
     desired_state: DesiredState = FileHelper.load_desired_state(os.path.join(root_dir,
                                                                              Paths.DESIRED_STATE_PATH))
-    user_cred: UserCredentials = FileHelper.load_values_yaml(Paths.VALUES_YAML_PATH)
+    if root_dir == ".":
+        user_cred: UserCredentials = FileHelper.load_values_yaml(Paths.VALUES_YAML_PATH.split("/")[1])
+    else:
+        user_cred: UserCredentials = FileHelper.load_values_yaml(Paths.VALUES_YAML_PATH)
+    
     support_matrix = yaml.safe_load(FileHelper.read_resource(Paths.SUPPORT_MATRIX_FILE))
     run_config = RunConfig(root_dir=root_dir, state=state, desired_state=desired_state,
                            support_matrix=support_matrix,

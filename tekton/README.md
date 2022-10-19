@@ -61,6 +61,7 @@ Tekton pipeline execution requires the following:
             ./launch.sh --build_docker_image
             ```
 
+         Note: Please login to docker using credentials manually, else may face issues related to rate limiting error
          This will generate a Docker image named as `sivt_tekton:tkn` using the existing dockerfile.
 
     3. Open `cluster_resources/kind-init-config.yaml` and provide a free port for the nginx service to use.

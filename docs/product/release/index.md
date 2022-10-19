@@ -2,11 +2,12 @@
 
 Service Installer for VMware Tanzu automates the deployment of the reference designs for Tanzu for Kubernetes Operations on the following platforms:
 
-- Tanzu Kubernetes Grid on VMware Cloud
-- Tanzu Kubernetes Grid on vSphere with NSX-T
-- Tanzu Kubernetes Grid on vSphere running vSphere Distributed Switch (VDS)
-- vSphere with Tanzu running vSphere Distributed Switch (VDS)
-- Tanzu Kubernetes Grid on AWS (air-gapped and Internet-connected)
+- Tanzu Kubernetes Grid on vSphere backed by VDS (Internet-connected, air-gapped, proxy-based, and no-orchestration)
+- vSphere with Tanzu backed by VDS (Internet-connected and proxy-based)
+- Tanzu Kubernetes Grid on vSphere backed by NSX-T (Internet-connected, air-gapped, and proxy-based)
+- Tanzu Kubernetes Grid on VMware Cloud on AWS (VMC)
+- Tanzu Kubernetes Grid on AWS (Federal Air-gapped)
+- Tanzu Kubernetes Grid on AWS (Internet-connected - with or without FIPS and STIG compliance)
 - Tanzu Kubernetes Grid on Azure
 
 Service Installer simplifies the deployment of a Kubernetes environment. It uses best practices for deploying and configuring the required Tanzu for Kubernetes Operations components, such as:
