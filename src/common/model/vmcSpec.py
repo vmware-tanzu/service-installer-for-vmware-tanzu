@@ -46,6 +46,10 @@ class AviMgmtNetworkSpec(BaseModel):
     aviMgmtDhcpStartRange: str
     aviMgmtDhcpEndRange: str
 
+class AviSeMgmtNetworkSpec(BaseModel):
+    aviSeMgmtGatewayCidr: str
+    aviSeMgmtDhcpStartRange: str
+    aviSeMgmtDhcpEndRange: str
 
 class AviComponentSpec(BaseModel):
     aviPasswordBase64: str
@@ -126,6 +130,7 @@ class HarborSpec(BaseModel):
 
 class ComponentSpec(BaseModel):
     aviMgmtNetworkSpec: AviMgmtNetworkSpec
+    aviSeMgmtNetworkSpec: AviSeMgmtNetworkSpec
     aviComponentSpec: AviComponentSpec
     tkgClusterVipNetwork: TkgClusterVipNetwork
     tkgMgmtSpec: TkgMgmtSpec

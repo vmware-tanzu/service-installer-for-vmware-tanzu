@@ -1837,7 +1837,7 @@ def replaceNetworkValues(ip, aviAuthToken, clusterUUid, file_name):
         replaceSe(file_name, "PropertyMapping", key, "Key", "Value", value)
     if Tkg_version.TKG_VERSION == "1.6":
         dictionary_network = {
-            "Management": SegmentsName.DISPLAY_NAME_AVI_MANAGEMENT,
+            "Management": SegmentsName.DISPLAY_NAME_AVI_SE_MANAGEMENT,
             "Data Network 1": SegmentsName.DISPLAY_NAME_AVI_DATA_SEGMENT,
             "Data Network 2": tkg_management,
             "Data Network 3": SegmentsName.DISPLAY_NAME_TKG_SharedService_Segment,
@@ -1851,7 +1851,7 @@ def replaceNetworkValues(ip, aviAuthToken, clusterUUid, file_name):
         }
     else:
         dictionary_network = {
-            "Management": SegmentsName.DISPLAY_NAME_AVI_MANAGEMENT,
+            "Management": SegmentsName.DISPLAY_NAME_AVI_SE_MANAGEMENT,
             "Data Network 1": SegmentsName.DISPLAY_NAME_AVI_DATA_SEGMENT,
             "Data Network 2": tkg_management,
             "Data Network 3": SegmentsName.DISPLAY_NAME_TKG_SharedService_Segment,

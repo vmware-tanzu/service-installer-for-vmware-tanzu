@@ -32,6 +32,7 @@ class Type:
 
 class SegmentsName:
     DISPLAY_NAME_AVI_MANAGEMENT = "tkgvmc-avi-mgmt-segment"
+    DISPLAY_NAME_AVI_SE_MANAGEMENT = "tkgvmc-avi-se-mgmt-segment"
     DISPLAY_NAME_CLUSTER_VIP = "tkgvmc-clustervip-segment01"
     DISPLAY_NAME_TKG_WORKLOAD = "tkgvmc-workload-segment01"
     DISPLAY_NAME_TKG_WORKLOAD_DATA_SEGMENT = "tkgvmc-workload-data-segment01"
@@ -58,6 +59,7 @@ class EnvType:
 
 class GroupNameCgw:
     DISPLAY_NAME_AVI_Management_Network_Group_CGW = "tkgvmc-avimgmt"
+    DISPLAY_NAME_AVI_SE_Management_Network_Group_CGW = "tkgvmc-avi-se-mgmt"
     DISPLAY_NAME_CLUSTER_VIP_NETWORK_Group_CGW = "tkgvmc-tkgclustervip"
     DISPLAY_NAME_TKG_Management_Network_Group_CGW = "tkgvmc-tkgmgmt"
     DISPLAY_NAME_TKG_Workload_Networks_Group_CGW = "tkgvmc-tkg-workload"

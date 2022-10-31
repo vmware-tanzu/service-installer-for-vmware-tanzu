@@ -30,7 +30,14 @@ class NsxtWorkflow:
             "dhcp_start": self.spec.componentSpec.aviMgmtNetworkSpec.aviMgmtDhcpStartRange,
             "dhcp_end": self.spec.componentSpec.aviMgmtNetworkSpec.aviMgmtDhcpEndRange
         }
-        # This segment is pre-created. We just add it here so we get the object path
+        
+        segments[SegmentsName.DISPLAY_NAME_AVI_SE_MANAGEMENT] = {
+            "gateway_cidr": self.spec.componentSpec.aviSeMgmtNetworkSpec.aviSeMgmtGatewayCidr,
+            "dhcp_start": self.spec.componentSpec.aviSeMgmtNetworkSpec.aviSeMgmtDhcpStartRange,
+            "dhcp_end": self.spec.componentSpec.aviSeMgmtNetworkSpec.aviSeMgmtDhcpEndRange
+        }
+  
+        #This segment is pre-created. We just add it here so we get the object path
         segments[self.spec.componentSpec.tkgMgmtSpec.tkgMgmtNetworkName] = {
             "gateway_cidr": self.spec.componentSpec.tkgMgmtSpec.tkgMgmtGatewayCidr,
             "dhcp_start": "",
@@ -95,6 +102,8 @@ class NsxtWorkflow:
         groups = dict()
         groups[GroupNameCgw.DISPLAY_NAME_AVI_Management_Network_Group_CGW] = NsxTPayload.PATH_EXPRESSION.format(
             paths=json.dumps([segment_paths[SegmentsName.DISPLAY_NAME_AVI_MANAGEMENT]]))
+        groups[GroupNameCgw.DISPLAY_NAME_AVI_SE_Management_Network_Group_CGW] = NsxTPayload.PATH_EXPRESSION.format(
+            paths=json.dumps([segment_paths[SegmentsName.DISPLAY_NAME_AVI_SE_MANAGEMENT]]))
         groups[self.spec.componentSpec.tkgMgmtSpec.tkgMgmtNetworkName] = NsxTPayload.PATH_EXPRESSION.format(
             paths=json.dumps([segment_paths[self.spec.componentSpec.tkgMgmtSpec.tkgMgmtNetworkName]]))
         groups[GroupNameCgw.DISPLAY_NAME_TKG_Management_Network_Group_CGW] = NsxTPayload.PATH_EXPRESSION.format(
