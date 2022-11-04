@@ -10,6 +10,7 @@
 - Custom certificates for Tanzu Kubernetes Grid can now be imported through Service Installer.
 - Support for proxy-based deployments on Tanzu with VMware VDS environments. 
 - Support for providing configured subscribed content library for Tanzu on VMware deployments through Service Installer UI.
+- TAP automation for AWS platform is integrated into SIVT.
 - Harbor enhancements: 
    - Removed dependency on DHCP for Service Installer build with Harbor. DHCP is no longer a mandatory requirement.
 - Tekton enhancements: 
