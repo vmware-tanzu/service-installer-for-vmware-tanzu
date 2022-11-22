@@ -18,10 +18,7 @@ Tekton pipeline execution requires the following:
   - **Note:** SIVT OVA can also be used as Linux VM with `kind` preloaded.
   - SIVT OVA can be downloaded from: https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true
 - Service Installer Tekton Docker file:
-  - Download existing Service Installer Tekton tar file using Docker login from: http://sc-dbc2131.eng.vmware.com/smuthukumar/SERVICE_INSTALLER_IMAGES/service_installer_tekton_v154b.tar
-
-    OR
-  - Generate own Docker image using existing dockerfile in repo. For more information, see the following sections.
+  - Generate own Docker image using existing dockerfile in repo. For more information, see the 'Tekton pipeline environment preparation'.
 - Private GitLab or GitHub repo
 
 ## Tekton Pipeline Execution
