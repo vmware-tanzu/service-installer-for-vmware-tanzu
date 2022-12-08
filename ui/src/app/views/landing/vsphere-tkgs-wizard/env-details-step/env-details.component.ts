@@ -249,7 +249,7 @@ export class EnvDetailsComponent extends StepFormDirective implements OnInit {
             } else {
                 this.connected = false;
                 this.loadingState = ClrLoadingState.DEFAULT;
-                this.errorNotification = 'Some Error Occurred while Retrieving SSL Thumbprint ' + err.msg;
+                this.errorNotification = 'An Error Occurred while Retrieving SSL Thumbprint ' + err.msg;
             }
         }, (err: any) => {
             if (err.responseType === 'ERROR') {
