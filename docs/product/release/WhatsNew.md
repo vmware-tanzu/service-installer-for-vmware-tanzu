@@ -39,12 +39,14 @@
 - Vcd Api call takes time depending on environment configuration , please re-trigger  the SIVT command after 1 min delay  
 - Creating ALB Service Engine Group assignment to Edge Gateway fails intermittently. [Terraform provider issue](https://github.com/vmware/terraform-provider-vcd/issues/923)
 - Activating AVI L7 on vSphere with NSXT environments over NodePortLocal mode fails to bringup AKO pods. [MAPBUA-1546](https://jira.eng.vmware.com/browse/MAPBUA-1546)
+- SIVT is supposed to download `Ubuntu-2004-kube-v1.22.9.ova`. Currently, it is downloading `Ubuntu-2004-kube-v1.23.8.ova`.
+  **Note:** If user needs a specific version of Ubuntu + K8S ova, download it from marketplace and upload it to the K8S catalog.
 - Harbor deployment fails both with and without SaaS in multi workload cluster configurations in non-airgapped AWS deployment.
 - In case you are using proxy with self-signed or custom CA certificate, SIVT fails to pull the `kind` image while deploying Tanzu Kubernetes Grid management cluster in a vSphere VDS environment.</br>
   **Resolution:** Before initiating the deployment with SIVT, perform the following steps:
 
   1. Import the proxy certificate into the SIVT VM.
-  1. Run the following commands:
+  2. Run the following commands:
       ```
       cat proxy-cert.pem >> /etc/pki/tls/certs/ca-bundle.crt
       systemctl restart docker
