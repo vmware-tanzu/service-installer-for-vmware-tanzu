@@ -1,0 +1,90 @@
+{
+  "DiskProvisioning": "thin",
+  "IPAllocationPolicy": "dhcpPolicy",
+  "IPProtocol": "IPv4",
+  "PropertyMapping": [
+    {
+      "Key": "AVICNTRL",
+      "Value": "172.17.13.2"
+    },
+    {
+      "Key": "AVISETYPE",
+      "Value": "NETWORK_ADMIN"
+    },
+    {
+      "Key": "AVICNTRL_AUTHTOKEN",
+      "Value": "ac93ed7e-e5ac-4021-bc85-e3ad58370389"
+    },
+    {
+      "Key": "AVICNTRL_CLUSTERUUID",
+      "Value": "cluster-580cbb45-38bb-44a8-ba35-e0f0416e2220"
+    },
+    {
+      "Key": "avi.mgmt-ip.SE",
+      "Value": ""
+    },
+    {
+      "Key": "avi.mgmt-mask.SE",
+      "Value": ""
+    },
+    {
+      "Key": "avi.default-gw.SE",
+      "Value": ""
+    },
+    {
+      "Key": "avi.DNS.SE",
+      "Value": ""
+    },
+    {
+      "Key": "avi.sysadmin-public-key.SE",
+      "Value": ""
+    }
+  ],
+  "NetworkMapping": [
+    {
+      "Name": "Management",
+      "Network": "tkgvmc-avi-mgmt-segment"
+    },
+    {
+      "Name": "Data Network 1",
+      "Network": "tkgvmc-avi-mgmtdata-segment"
+    },
+    {
+      "Name": "Data Network 2",
+      "Network": "TKGm-Mgmt-Seg01"
+    },
+    {
+      "Name": "Data Network 3",
+      "Network": "tkgvmc-shared-service-segment"
+    },
+    {
+      "Name": "Data Network 4",
+      "Network": "tkgvmc-shared-service-segment"
+    },
+    {
+      "Name": "Data Network 5",
+      "Network": "tkgvmc-shared-service-segment"
+    },
+    {
+      "Name": "Data Network 6",
+      "Network": "tkgvmc-shared-service-segment"
+    },
+    {
+      "Name": "Data Network 7",
+      "Network": "tkgvmc-shared-service-segment"
+    },
+    {
+      "Name": "Data Network 8",
+      "Network": "tkgvmc-shared-service-segment"
+    },
+    {
+      "Name": "Data Network 9",
+      "Network": "tkgvmc-shared-service-segment"
+    }
+  ],
+  "MarkAsTemplate": true,
+  "PowerOn": false,
+  "InjectOvfEnv": false,
+  "WaitForIP": false,
+  "Name": "tkgvmc-cloud01-avi-se"
+}

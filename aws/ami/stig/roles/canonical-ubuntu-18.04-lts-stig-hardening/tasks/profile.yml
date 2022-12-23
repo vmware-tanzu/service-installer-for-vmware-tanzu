@@ -1,0 +1,11 @@
+- name: "profile d: TMOUT"
+  blockinfile:
+    dest: /etc/profile.d/autologout.sh
+    state: present
+    create: yes
+    insertbefore: EOF
+    marker: "# {mark} MCI hardening"
+    block: |
+      TMOUT={{ autologout_timeout }}
+      readonly TMOUT
+      export TMOUT

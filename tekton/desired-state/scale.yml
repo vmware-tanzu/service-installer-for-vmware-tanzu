@@ -1,0 +1,17 @@
+scaleinfo:
+  mgmt:
+    execute_scale: false
+    clustername: ''
+    scalecontrolnodecount: ''
+    scalworkernodecount: ''
+  shared_services:
+    execute_scale: false
+    clustername: ''
+    scalecontrolnodecount: ''
+    scalworkernodecount: ''
+  workload_clusters:
+    execute_scale: false
+    clustername: ''
+    scalecontrolnodecount: ''
+    scalworkernodecount: ''
+  execute: false

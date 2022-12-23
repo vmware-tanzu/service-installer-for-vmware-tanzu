@@ -1,0 +1,101 @@
+#@ load("@ytt:overlay", "overlay")
+
+#@overlay/match by=overlay.and_op(overlay.subset({"kind": "StatefulSet"}), overlay.subset({"metadata": {"name": "harbor-database"}}))
+---
+spec:
+  template:
+    spec:
+      initContainers:
+        #@overlay/match by=overlay.index(0)
+        #@overlay/insert before=True
+        - name: "data-ownership-ensurer"
+          securityContext:
+            runAsUser: 0
+          image: projects.registry.vmware.com/tkg/harbor/harbor-db@sha256:26ce0071b528944fd33080f273d0812da479da557eee2727409bd4162719deff
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh"]
+          args: ["-c", "chown -R postgres:postgres /var/lib/postgresql/data || true"]
+          volumeMounts:
+            - name: database-data
+              mountPath: /var/lib/postgresql/data
+              subPath:
+
+#@overlay/match by=overlay.and_op(overlay.subset({"kind": "StatefulSet"}), overlay.subset({"metadata": {"name": "harbor-redis"}}))
+---
+spec:
+  template:
+    spec:
+      #@overlay/match missing_ok=True
+      initContainers:
+        - name: "redis-ownership-ensurer"
+          securityContext:
+            runAsUser: 0
+          image: projects.registry.vmware.com/tkg/harbor/redis-photon@sha256:5b55e6d2b2da4d8f1eca413c7d79bebfed64fb69db891b80bc4a28f733f1c85e
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh"]
+          args: ["-c", "chown -R 999:999 /var/lib/redis || true"]
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/redis
+              subPath:
+              readOnly: false
+
+#@overlay/match by=overlay.and_op(overlay.subset({"kind": "StatefulSet"}), overlay.subset({"metadata": {"name": "harbor-trivy"}}))
+---
+spec:
+  template:
+    spec:
+      #@overlay/match missing_ok=True
+      initContainers:
+        - name: "trivy-ownership-ensurer"
+          securityContext:
+            runAsUser: 0
+          image: projects.registry.vmware.com/tkg/harbor/trivy-adapter-photon@sha256:722bcbe039a3d83bc4cc1d78de1cf533bd38b829d494af288622fa956ca648f8
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh"]
+          args: ["-c", "chown -R 10000:10000 /home/scanner/.cache || true"]
+          volumeMounts:
+            - name: data
+              mountPath: /home/scanner/.cache
+              subPath:
+              readOnly: false
+
+#@overlay/match by=overlay.and_op(overlay.subset({"kind": "Deployment"}), overlay.subset({"metadata": {"name": "harbor-jobservice"}}))
+---
+spec:
+  template:
+    spec:
+      #@overlay/match missing_ok=True
+      initContainers:
+        - name: "jobservice-ownership-ensurer"
+          securityContext:
+            runAsUser: 0
+          image: projects.registry.vmware.com/tkg/harbor/harbor-jobservice@sha256:1ab9315d6832320413f0ff48b414c26cbcf3beec9a6ccc13a74e07ecffe2a8e0
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh"]
+          args: ["-c", "chown -R 10000:10000 /var/log/jobs || true"]
+          volumeMounts:
+            - name: job-logs
+              mountPath: /var/log/jobs
+              subPath:
+              readOnly: false
+
+#@overlay/match by=overlay.and_op(overlay.subset({"kind": "Deployment"}), overlay.subset({"metadata": {"name": "harbor-registry"}}))
+---
+spec:
+  template:
+    spec:
+      #@overlay/match missing_ok=True
+      initContainers:
+        - name: "registry-ownership-ensurer"
+          securityContext:
+            runAsUser: 0
+          image: projects.registry.vmware.com/tkg/harbor/harbor-registryctl@sha256:aa7a6547a46b2b0222c7187567e6f85ffbd853611038bf1b0c33a8356d863108
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh"]
+          args: ["-c", "chown -R 10000:10000 /storage || true"]
+          volumeMounts:
+            - name: registry-data
+              mountPath: /storage
+              subPath:
+              readOnly: false

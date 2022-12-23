@@ -1,0 +1,95 @@
+{
+  "builds": [
+    {
+      "name": "aws-tkg-bootstrap-builder",
+      "builder_type": "amazon-ebs",
+      "build_time": 1638470004,
+      "files": null,
+      "artifact_id": "us-east-1:ami-0b964526e27f38441",
+      "packer_run_uuid": "da8839e7-1509-949c-3777-d85cd7bec11b",
+      "custom_data": null
+    },
+    {
+      "name": "aws-tkg-bootstrap-builder",
+      "builder_type": "amazon-ebs",
+      "build_time": 1638485427,
+      "files": null,
+      "artifact_id": "us-east-1:ami-0365138d3550a4b40",
+      "packer_run_uuid": "301bd07f-2474-41e4-7f07-9d7bb1965606",
+      "custom_data": null
+    },
+    {
+      "name": "aws-tkg-bootstrap-builder",
+      "builder_type": "amazon-ebs",
+      "build_time": 1638563942,
+      "files": null,
+      "artifact_id": "us-east-1:ami-0157e3ef89a6c92dd",
+      "packer_run_uuid": "5449903b-8c10-febd-b541-d96e9413ccb2",
+      "custom_data": null
+    },
+    {
+      "name": "aws-tkg-bootstrap-builder",
+      "builder_type": "amazon-ebs",
+      "build_time": 1638811534,
+      "files": null,
+      "artifact_id": "us-east-1:ami-084523fb7c657154b",
+      "packer_run_uuid": "1de4ddf0-8617-b673-2d54-39fbea188162",
+      "custom_data": null
+    },
+    {
+      "name": "aws-tkg-bootstrap-builder",
+      "builder_type": "amazon-ebs",
+      "build_time": 1638817447,
+      "files": null,
+      "artifact_id": "us-east-1:ami-0a7977179a6400013",
+      "packer_run_uuid": "aac9070a-75ce-7279-ba09-92ca0b610428",
+      "custom_data": null
+    },
+    {
+      "name": "aws-tkg-bootstrap-builder",
+      "builder_type": "amazon-ebs",
+      "build_time": 1638820202,
+      "files": null,
+      "artifact_id": "us-east-1:ami-07a1b54f54f44dbd3",
+      "packer_run_uuid": "0e3426d1-b99e-f8ff-834c-5a0f20927145",
+      "custom_data": null
+    },
+    {
+      "name": "aws-tkg-bootstrap-builder",
+      "builder_type": "amazon-ebs",
+      "build_time": 1639160317,
+      "files": null,
+      "artifact_id": "us-east-1:ami-02fee144ff879cf88",
+      "packer_run_uuid": "566552c3-a9f7-d7a9-efb3-f9805484533d",
+      "custom_data": null
+    },
+    {
+      "name": "aws-tkg-bootstrap-builder",
+      "builder_type": "amazon-ebs",
+      "build_time": 1639413747,
+      "files": null,
+      "artifact_id": "us-east-1:ami-00cdd988016377815",
+      "packer_run_uuid": "0dfa21da-abe3-4b2a-9d40-c19d06bb477f",
+      "custom_data": null
+    },
+    {
+      "name": "aws-tkg-bootstrap-builder",
+      "builder_type": "amazon-ebs",
+      "build_time": 1639422318,
+      "files": null,
+      "artifact_id": "us-east-1:ami-0e423aeb4c469475b",
+      "packer_run_uuid": "f922365b-9901-2f87-5247-777c5a19d79f",
+      "custom_data": null
+    },
+    {
+      "name": "aws-tkg-bootstrap-builder",
+      "builder_type": "amazon-ebs",
+      "build_time": 1639502686,
+      "files": null,
+      "artifact_id": "us-east-1:ami-0d49fd10ea4cfe4b3",
+      "packer_run_uuid": "df1792d2-1fc7-2aa4-7666-b7f82faa5440",
+      "custom_data": null
+    }
+  ],
+  "last_run_uuid": "df1792d2-1fc7-2aa4-7666-b7f82faa5440"
+}

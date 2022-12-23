@@ -1,0 +1,402 @@
+<!--
+    Copyright 2021 VMware, Inc
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<form [formGroup]="formGroup">
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <h4 aria-level="2">Configure Tier 1 Gateway</h4>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="vcenter server addr label" clr-control-label aria-describedby="tooltip-vcenter-server">
+                    T1 GATEWAY NAME
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Specify name for creating a new Tier1 gateway
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="tier1GatewayName" placeholder="T1 Gateway name" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="tier1GatewayName required msg" *clrIfError="validatorEnum.REQUIRED">
+                    T1 gateway name is required!
+                </clr-control-error>
+                <clr-control-error i18n="tier1GatewayName whitespace msg" *clrIfError="validatorEnum.WHITESPACE">
+                    T1 gateway name has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+    <br>
+    <h4 aria-level="2">Available IP Ranges as configured for Tier-0 Gateway</h4>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="t0Start label" clr-control-label aria-describedby="tooltip-t0Start">
+                    START IP
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                The Start IP as configured for external network for T0 gateway.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="t0Start" value="this.dataService.t0StartAddress"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="t0End label" clr-control-label aria-describedby="tooltip-t0End">
+                    END IP
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                The End IP as configured for external network for T0 gateway.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="t0End" value="this.dataService.t0EndAddress"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+            </clr-input-container>
+        </div>
+    </div>    
+
+    <h4 aria-level="2">Allocate IP Ranges for Tier-1 Gateway</h4>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="primaryIp label" clr-control-label aria-describedby="tooltip-primaryIp">
+                    PRIMARY IP
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                All Edge Gateways require at least one IP address allocated to it. This IP address can be used for edge services configuration. Not specifying a Primary IP, will result in using the first available IP from the Provider Router.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="primaryIp" placeholder="192.168.10.2" (ngModelChange)="ipGatewayCheck()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Primary IP is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                    *clrIfError="validatorEnum.VALID_IP">
+                    Primary IP is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                    *clrIfError="validatorEnum.WHITESPACE">
+                    Primary IP has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="ipAllocationStartIP label" clr-control-label aria-describedby="tooltip-ipAllocationStartIP">
+                    START IP
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Configure IP allocation start IP Pool for the Tier1 Gateway
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="ipAllocationStartIP" placeholder="192.168.10.1" (ngModelChange)="ipGatewayCheck()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Start IP is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                    *clrIfError="validatorEnum.VALID_IP">
+                    Start IP is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                    *clrIfError="validatorEnum.WHITESPACE">
+                    Start IP has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="ipAllocationEndIP label" clr-control-label aria-describedby="tooltip-ipAllocationEndIP">
+                    END IP
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Configure IP allocation end IP Pool for the Tier1 Gateway
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="ipAllocationEndIP" placeholder="192.168.10.100" (ngModelChange)="ipGatewayCheck()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    End IP is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                    *clrIfError="validatorEnum.VALID_IP">
+                    End IP is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                    *clrIfError="validatorEnum.WHITESPACE">
+                    End IP has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+    <div class="clr-row">
+        <div class="clr-col-12">
+            <clr-toggle-container [attr.data-step-metadata]="formName">
+                <clr-toggle-wrapper>
+                    <input
+                        type="checkbox"
+                        clrToggle
+                        id="isDedicated"
+                        name="isDedicated"
+                        formControlName="isDedicated"
+                        aria-describedby="isDedicated-helper"/>
+                    <label i18n="isDedicated label" clr-control-label>
+                        DEDICATE TIER-0 GATEWAY
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Dedicating the Tier-0 Gateway will enable Route Advertisement for this Edge Gateway.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                </clr-toggle-wrapper>
+            </clr-toggle-container>
+        </div>
+    </div>
+
+    <pre></pre>
+    <h4 aria-level="2">Configure Service Org VDC Network</h4>
+    <div *ngIf="staticIpRangeErrorMessage" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ staticIpRangeErrorMessage }}
+                </span>
+            </div>
+        </div>
+        <button (click)="staticIpRangeErrorMessage = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="vcenter server addr label" clr-control-label aria-describedby="tooltip-vcenter-server">
+                    NETWORK NAME
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Specify name for external network to be attached with the T1 gateway
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="networkName" placeholder="Network name" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="networkName required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Network name is required!
+                </clr-control-error>
+                <clr-control-error i18n="networkName whitespace msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Network name has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="gatewayCIDR label" clr-control-label aria-describedby="tooltip-gatewayCIDR">
+                    GATEWAY CIDR
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                The CIDR includes the IP address of the gateway, e.g. 192.168.100.14/24 represents the gateway address 192.168.100.14 and its associated routing prefix 192.168.100.0, or equivalently, its subnet mask 255.255.255.0. The CIDR value cannot be changed once it is provided.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="gatewayCIDR" placeholder="192.168.10.1/24" (ngModelChange)="staticIpGatewayCheck()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="gatewayCIDR required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Gateway cidr is required!
+                </clr-control-error>
+                <clr-control-error i18n="gatewayCIDR format msg"
+                                   *clrIfError="validatorEnum.VALID_IP">
+                    Gateway cidr is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="gatewayCIDR format msg"
+                                   *clrIfError="validatorEnum.WHITESPACE">
+                    Gateway cidr has leading or trailing whitespaces!
+                </clr-control-error>
+            </clr-input-container>                
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="staticIpPoolStartAddress label" clr-control-label aria-describedby="tooltip-staticIpPoolStartAddress">
+                    STATIC POOL START IP
+                </label>
+                <input clrInput formControlName="staticIpPoolStartAddress" placeholder="192.168.10.2" (ngModelChange)="staticIpGatewayCheck()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Static IP pool start IP is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                    *clrIfError="validatorEnum.VALID_IP">
+                    Static IP pool start IP is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                    *clrIfError="validatorEnum.WHITESPACE">
+                    Static IP pool start IP has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>                
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="staticIpPoolEndAddress label" clr-control-label aria-describedby="tooltip-staticIpPoolEndAddress">
+                    STATIC POOL END IP
+                </label>
+                <input clrInput formControlName="staticIpPoolEndAddress" placeholder="192.168.10.100" (ngModelChange)="staticIpGatewayCheck()"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Static IP pool end IP is required!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                    *clrIfError="validatorEnum.VALID_IP">
+                    Static IP pool end IP is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="control plane endpoint format msg"
+                                    *clrIfError="validatorEnum.WHITESPACE">
+                    Static IP pool end IP has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>                
+        </div>
+    </div>
+
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    PRIMARY DNS
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Specify Primary DNS value for creating the external network.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="primaryDNS" placeholder="192.168.0.1" autocomplete="off" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="primaryDNS required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Primary DNS is required!
+                </clr-control-error>
+                <clr-control-error i18n="primaryDNS required msg" *clrIfError="validatorEnum.VALID_IP">
+                    Primary DNS is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="primaryDNS msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Primary DNS has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    SECONDARY DNS(OPTIONAL)
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Optionally specify secondary DNS value.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="secondaryDNS" placeholder="192.168.0.5" autocomplete="off" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="secondaryDNS required msg" *clrIfError="validatorEnum.VALID_IP">
+                    Secondary DNS is invalid!
+                </clr-control-error>
+                <clr-control-error i18n="secondaryDNS required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Secondary DNS has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    DNS SUFFIX
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Specify DNS suffix value for searching the FQDNs.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="dnsSuffix" placeholder="dns suffix" autocomplete="off" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="dnsSuffix required msg" *clrIfError="validatorEnum.REQUIRED">
+                    DNS Suffix details is required!
+                </clr-control-error>
+                <clr-control-error i18n="dnsSuffix required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    DNS Suffix has whitespaces on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+</form>

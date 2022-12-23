@@ -1,0 +1,77 @@
+FROM photon:latest
+
+RUN tdnf install wget -y
+RUN tdnf install jq coreutils -y
+RUN tdnf install git -y
+RUN tdnf install openssh -y
+RUN tdnf install docker -y
+RUN tdnf install vim -y
+RUN tdnf install unzip -y
+RUN tdnf install sudo -y
+
+
+RUN tdnf install python3-pip -y && pip3 install -U setuptools && pip3 install avisdk pydantic pyVmomi==6.7.0.2018.9 pyVim PyYAML paramiko jinja2 click retry iptools tqdm ruamel.yaml
+RUN curl -L -o - "https://github.com/vmware/govmomi/releases/latest/download/govc_$(uname -s)_$(uname -m).tar.gz" | tar -C /usr/local/bin -xvzf - govc
+
+
+ENV LOG_PATH=/tmp/deploy.log
+ENV LOG_LEVEL=DEBUG
+
+
+RUN mkdir /tanzu
+WORKDIR /tanzu
+
+# install yq
+COPY tanzu_pkg/yq_linux_amd64*.gz /tanzu
+RUN tar -xvf yq_linux_amd64*.gz && \
+    sudo chmod ugo+x yq_linux_amd64 && \
+    sudo mv yq_linux_amd64 /usr/local/bin/yq
+
+
+# install tanzu cli
+COPY tanzu_pkg/tanzu-cli-bundle-linux-amd64*.gz /tanzu
+RUN tar -xvf /tanzu/tanzu-cli-bundle-linux-amd64*.gz && \
+     install cli/core/v*/tanzu-core-linux_amd64 /usr/local/bin/tanzu
+
+
+# install kubectl cli
+COPY tanzu_pkg/kubectl-linux-v*.gz /tanzu
+RUN gunzip kubectl-linux-v*.gz && \
+     install kubectl-linux-v*  /usr/local/bin/kubectl
+
+
+# install plugins
+RUN tanzu plugin clean && \
+    tanzu plugin sync && \
+    tanzu plugin list
+
+# install ytt
+RUN gunzip cli/ytt-linux-amd64-v*.gz && \
+    sudo chmod ugo+x cli/ytt-linux-amd64-v* && \
+    sudo mv cli/ytt-linux-amd64-v* /usr/local/bin/ytt
+
+# install kapp
+RUN gunzip cli/kapp-linux-amd64-v*.gz && \
+    sudo chmod ugo+x cli/kapp-linux-amd64-v* && \
+    sudo mv cli/kapp-linux-amd64-v* /usr/local/bin/kapp
+
+# install kbld
+RUN gunzip cli/kbld-linux-amd64-v*.gz && \
+    sudo chmod ugo+x cli/kbld-linux-amd64-v* && \
+    sudo mv cli/kbld-linux-amd64-v* /usr/local/bin/kbld
+
+# install imgpkg
+RUN gunzip cli/imgpkg-linux-amd64-v*.gz && \
+    sudo chmod ugo+x cli/imgpkg-linux-amd64-v* && \
+    sudo mv cli/imgpkg-linux-amd64-v* /usr/local/bin/imgpkg
+
+# install kind image
+COPY tanzu_pkg/kind /usr/local/bin/kind
+RUN chmod +x /usr/local/bin/kind
+
+# remove unwanted packages
+RUN rm -f tanzu-cli-bundle-linux-amd64.tar && \
+    rm -rf cli && \
+    rm -f kubectl-linux-v* && \
+    rm -f tkg-standard-repo-v*.tar.gz
+

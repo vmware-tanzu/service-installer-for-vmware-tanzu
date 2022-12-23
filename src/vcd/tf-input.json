@@ -1,0 +1,125 @@
+{
+    "envSpec": {
+        "envType": "vcd-avi",
+        "marketplaceSpec": {
+            "refreshToken": ""
+        },
+        "ceipParticipation": "false",
+        "infraComponents": {
+            "dnsServersIp": "10.198.184.22",
+            "ntpServers": "10.84.55.42",
+            "searchDomains": "lab.vmw,vstellar.io"
+        },
+        "vcdSpec": {
+            "vcdComponentSpec": {
+                "vcdAddress": "172.24.10.31",
+                "vcdSysAdminUserName": "admin",
+                "vcdSysAdminPasswordBase64": "Vk13YXJlMSE="
+            }
+        },
+        "aviCtrlDeploySpec": {
+            "deployAvi": "false",
+            "aviComponentsSpec": {
+                "aviClusterIp": "172.24.10.40",
+                "aviClusterFqdn": "alb.lab.vmw",
+                "aviUsername": "admin",
+                "aviPasswordBase64": "Vk13YXJlMSE="
+            },
+            "aviVcdDisplayName": "alb.lab.vmw"
+        },
+        "aviNsxCloudSpec": {
+            "configureAviNsxtCloud": "false",
+            "nsxDetails": {
+                "nsxtAddress": "compute-nsxt01.lab.vmw",
+                "nsxtUser": "admin",
+                "nsxtUserPasswordBase64": "Vk13YXJlMSFWTXdhcmUxIQ=="
+            },
+            "vcenterDetails": {
+                "vcenterAddress": "compute-vcsa.lab.vmw",
+                "vcenterSsoUser": "administrator@vsphere.local",
+                "vcenterSsoPasswordBase64": "Vk13YXJlMSE="
+            },
+            "aviSeTier1Details": {
+                "nsxtOverlay": "Compute-Overlay-TZ"
+            },
+            "aviNsxCloudName": "nsx-cloud-compute",
+            "nsxtCloudVcdDisplayName": "compute-nsxt01.lab.vmw"
+        },
+        "cseSpec": {
+            "svcOrgSpec": {
+                "svcOrgName": "solutions-org",
+                "svcOrgFullName": "solutions-org"
+            },
+            "svcOrgVdcSpec": {
+                "svcOrgVdcName": "CSE-VDC",
+                "svcOrgVdcResourceSpec": {
+                    "providerVDC": "PVDC01",
+                    "cpuAllocation": 10,
+                    "cpuGuaranteed": 50,
+                    "memoryAllocation": 30,
+                    "memoryGuaranteed": 50,
+                    "vcpuSpeed": "1",
+                    "vmQuota": "100",
+                    "networkPoolName": "NP01",
+                    "networkQuota": "100",
+                    "storagePolicySpec": {
+                        "storagePolicies": [
+                            {
+                                "storageLimit": "200",
+                                "storagePolicy": "vSAN Default Storage Policy"
+                            }
+                        ],
+                        "defaultStoragePolicy": "vSAN Default Storage Policy"
+                    },
+                    "isElastic": "false",
+                    "includeMemoryOverhead": "true",
+                    "thinProvisioning": "true",
+                    "fastProvisioning": "false"
+                },
+                "serviceEngineGroup": {
+                    "createSeGroup": "false",
+                    "serviceEngineGroupName": "CSE-SEG",
+                    "serviceEngineGroupVcdDisplayName": "CSE-SEG",
+                    "reservationType": "DEDICATED"
+                },
+                "svcOrgVdcGatewaySpec": {
+                    "tier0GatewaySpec": {
+                        "importTier0": "true",
+                        "tier0Router": "CSE-VRF-GW",
+                        "tier0GatewayName": "CSE-T0-GW",
+                        "extNetGatewayCIDR": "192.168.180.1/27",
+                        "extNetStartIP": "192.168.180.2",
+                        "extNetEndIP": "192.168.180.30"
+                    },
+                    "tier1GatewaySpec": {
+                        "tier1GatewayName": "CSE-T1-GW",
+                        "isDedicated": "true",
+                        "primaryIp": "192.168.180.2",
+                        "ipAllocationStartIP": "192.168.180.2",
+                        "ipAllocationEndIP": "192.168.180.15"
+                    }
+                },
+                "svcOrgVdcNetworkSpec": {
+                    "networkName": "cse-net01",
+                    "gatewayCIDR": "192.168.45.1/24",
+                    "staticIpPoolStartAddress": "192.168.45.2",
+                    "staticIpPoolEndAddress": "192.168.45.251",
+                    "primaryDNS": "10.198.184.22",
+                    "secondaryDNS": "8.8.8.8",
+                    "dnsSuffix": "lab.vmw"
+                },
+                "svcOrgCatalogSpec": {
+                    "cseOvaCatalogName": "CSE-Catalog",
+                    "k8sTemplatCatalogName": "K8-Catalog"
+                }
+            },
+            "cseServerDeploySpec": {
+                "vAppName": "CSE-SRV",
+                "customCseProperties": {
+                    "cseSvcAccountName": "svc_cse",
+                    "cseSvcAccountPasswordBase64": "Vk13YXJlMSE="
+                }
+            }
+        }
+    }
+}

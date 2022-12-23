@@ -1,0 +1,273 @@
+<!--
+    Copyright 2021 VMware, Inc
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<form [formGroup]="formGroup">
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <ng-container *ngIf="this.dataService.importTier0Nsxt">
+        <div *ngIf="this.dataService.t0GatewayFromNsxtErrorMessage" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text">
+                        {{ this.dataService.t0GatewayFromNsxtErrorMessage }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="this.dataService.t0GatewayFromNsxtErrorMessage = null" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+    </ng-container>
+
+    <div *ngIf="this.dataService.t0GatewayFromVcdErrorMessage" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ this.dataService.t0GatewayFromVcdErrorMessage }}
+                </span>
+            </div>
+        </div>
+        <button (click)="this.dataService.t0GatewayFromVcdErrorMessage = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <h4 aria-level="2">Configure Tier 0 Gateway</h4>
+    <div class="clr-row">
+        <div class="clr-col-12">
+            <clr-toggle-container [attr.data-step-metadata]="formName">
+                <clr-toggle-wrapper>
+                    <input
+                        type="checkbox"
+                        clrToggle
+                        id="importTier0"
+                        name="importTier0"
+                        formControlName="importTier0"
+                        (change)="toggleImportTier0()"
+                        aria-describedby="importTier0-helper"/>
+                    <label i18n="importTier0 label" clr-control-label>
+                        Import Tier 0 Router from NSXT
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Enable this setting for importing Tier 0 Router from NSXT to VCD environment.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                </clr-toggle-wrapper>
+            </clr-toggle-container>
+        </div>
+    </div>
+    <ng-container *ngIf="formGroup.value.importTier0">
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="tier0Router label">
+                        T0 ROUTER (As in NSXT)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Select the Tier 0 Router name that is to be imported from NSXT to VCD environment
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                        <div style="display:inline-block"><clr-icon shape="refresh" size="18" role="button" (click)="fetchT0FromNsxt()"></clr-icon></div>
+                    </label>
+                    <select clrSelect name="tier0Router" formControlName="tier0Router">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let tier0Router of this.dataService.t0GatewayFromNsxt">
+                            <option [value]="tier0Router">
+                                {{tier0Router}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting a tier0 router is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="vcenter server addr label" clr-control-label aria-describedby="tooltip-vcenter-server">
+                        T0 GATEWAY NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    This Tier-0 gateway will be created in VCD for the selected Tier-0 Router.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="tier0GatewayName" placeholder="T0 gateway"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="t0 gateway required msg" *clrIfError="validatorEnum.REQUIRED">
+                        T0 gateway name is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="vcenter server addr required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        T0 gateway name has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+        </div>
+        <div *ngIf="extNetVerifiedErrorMsg" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text">
+                        {{ extNetVerifiedErrorMsg }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="extNetVerifiedErrorMsg = null" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="vcenter server addr label" clr-control-label aria-describedby="tooltip-vcenter-server">
+                        EXTERNAL NETWORK GATEWAY CIDR
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    This Tier-0 gateway will be created in VCD for the selected Tier-0 Router.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="extNetGatewayCIDR" placeholder="192.168.0.0/24" (ngModelChange)="ipGatewayCheck()"/>
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="extNetGatewayCIDR required msg" *clrIfError="validatorEnum.REQUIRED">
+                        External network gateway cidr is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="extNetGatewayCIDR format msg"
+                                       *clrIfError="validatorEnum.VALID_IP">
+                        External network gateway cidr is invalid!
+                    </clr-control-error>
+                    <clr-control-error i18n="extNetGatewayCIDR format msg"
+                                       *clrIfError="validatorEnum.WHITESPACE">
+                        External network gateway cidr has leading or trailing whitespaces!
+                    </clr-control-error>
+                </clr-input-container>                
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="extNetStartIP label" clr-control-label aria-describedby="tooltip-extNetStartIP">
+                        EXTERNAL NETWORK START IP
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Configure IP Pool for the Tier0 Gateway imported from NSXT
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="extNetStartIP" placeholder="192.168.10.2" (ngModelChange)="ipGatewayCheck()"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                        External network start IP is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                        *clrIfError="validatorEnum.VALID_IP">
+                        External network start IP is invalid!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                        *clrIfError="validatorEnum.WHITESPACE">
+                        External network start IP has whitespaces on the ends!
+                    </clr-control-error>
+                </clr-input-container>                
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="extNetEndIP label" clr-control-label aria-describedby="tooltip-extNetEndIP">
+                        EXTERNAL NETWORK END IP
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Configure IP Pool for the Tier0 Gateway imported from NSXT
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="extNetEndIP" placeholder="192.168.10.100" (ngModelChange)="ipGatewayCheck()"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                        External network end IP is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                        *clrIfError="validatorEnum.VALID_IP">
+                        External network end IP is invalid!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                        *clrIfError="validatorEnum.WHITESPACE">
+                        External network end IP has whitespaces on the ends!
+                    </clr-control-error>
+                </clr-input-container>                
+            </div>
+        </div>
+    </ng-container>
+    <ng-container *ngIf="!formGroup.value.importTier0">
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="tier0GatewayName label">
+                        T0 GATEWAY NAME (As in VCD)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Select the Tier 0 Gateway name that is present in VCD environment.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                        <div style="display:inline-block"><clr-icon shape="refresh" size="18" role="button" (click)="fetchT0FromVcd()"></clr-icon></div>
+                    </label>
+                    <select clrSelect name="tier0GatewayName" formControlName="tier0GatewayName" (ngModelChange)="fetchIpRangesForTier0()">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let tier0GatewayName of this.dataService.t0GatewayFromVcd">
+                            <option [value]="tier0GatewayName">
+                                {{tier0GatewayName}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting a tier0 gateway name is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+        </div>
+    </ng-container>
+</form>

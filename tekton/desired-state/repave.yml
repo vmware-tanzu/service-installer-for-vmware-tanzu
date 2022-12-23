@@ -1,0 +1,17 @@
+repaveinfo:
+  mgmt:
+    execute_repave: false
+    workername: ''
+    repave_memory_mb: ''
+    repave_cpu: ''
+  shared_services:
+    execute_repave: false
+    workername: ''
+    repave_memory_mb: ''
+    repave_cpu: ''
+  workload_clusters:
+    execute_repave: false
+    workername: ''
+    repave_memory_mb: ''
+    repave_cpu: ''
+  execute: false

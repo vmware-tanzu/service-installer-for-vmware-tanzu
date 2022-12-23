@@ -1,0 +1,22 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: tkgs-bringup-day0-
+spec:
+  pipelineRef:
+    name: day0-pipeline-tkgs
+  params:
+  - name: imagename
+    value: ""
+  - name: giturl
+    value: ""
+  - name: branch
+    value: ""
+  - name: imagepullpolicy
+    value: Never
+  timeout: 2h0m0s
+  workspaces:
+  - name: pipeline-shared-data
+    persistentVolumeClaim:
+      claimName: tekton-day0
+  serviceAccountName: git-bot

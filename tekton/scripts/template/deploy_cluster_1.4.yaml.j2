@@ -1,0 +1,72 @@
+#! ---------------------------------------------------------------------
+#! non proxy env configs
+#! ---------------------------------------------------------------------
+CLUSTER_CIDR: {{ clustercidr }}
+CLUSTER_NAME: {{ sharedClusterName }}
+CLUSTER_PLAN: {{ clusterPlan }}
+ENABLE_CEIP_PARTICIPATION: 'true'
+ENABLE_MHC: 'true'
+IDENTITY_MANAGEMENT_TYPE: none
+INFRASTRUCTURE_PROVIDER: vsphere
+SERVICE_CIDR: {{ servicecidr }}
+TKG_HTTP_PROXY_ENABLED: false
+DEPLOY_TKG_ON_VSPHERE7: 'true'
+VSPHERE_DATACENTER: {{ datacenter }}
+VSPHERE_DATASTORE: {{ dataStorePath }}
+VSPHERE_FOLDER: {{ folderPath }}
+VSPHERE_NETWORK: {{ mgmt_network }}
+VSPHERE_PASSWORD: <encoded:{{ vspherePassword }}>
+VSPHERE_RESOURCE_POOL: {{ sharedClusterResourcePool }}
+VSPHERE_SERVER: {{ vsphereServer }}
+VSPHERE_SSH_AUTHORIZED_KEY: {{ sshKey }}
+VSPHERE_USERNAME: {{ vsphereUseName }}
+WORKER_MACHINE_COUNT: {{ machineCount }}
+VSPHERE_INSECURE: 'true'
+ENABLE_AUDIT_LOGGING: 'true'
+ENABLE_DEFAULT_STORAGE_CLASS: 'true'
+ENABLE_AUTOSCALER: false
+AVI_CONTROL_PLANE_HA_PROVIDER: 'true'
+OS_ARCH: amd64
+OS_NAME: {{ osName }}
+OS_VERSION: {{ osVersion }}
+{% if size == "custom" %}
+VSPHERE_CONTROL_PLANE_NUM_CPUS: {{control_plane_vcpu}}
+VSPHERE_CONTROL_PLANE_DISK_GIB: {{control_plane_disk_gb}}
+VSPHERE_CONTROL_PLANE_MEM_MIB: {{control_plane_mem_mb}}
+VSPHERE_WORKER_NUM_CPUS: {{control_plane_vcpu}}
+VSPHERE_WORKER_DISK_GIB: {{control_plane_disk_gb}}
+VSPHERE_WORKER_MEM_MIB: {{control_plane_mem_mb}}
+{% else %}
+WORKER_SIZE: {{ workerSize }}
+CONTROLPLANE_SIZE: {{ controlPlaneSize }}
+{% endif %}
+
+#! ---------------------------------------------------------------------
+#! proxy env configs
+#! ---------------------------------------------------------------------
+{% if type == "shared" and config.envSpec.proxySpec and config.envSpec.proxySpec.tkgSharedservice.enableProxy == "true"  %}
+TKG_HTTP_PROXY_ENABLED: 'true'
+TKG_HTTP_PROXY: {{ config.envSpec.proxySpec.tkgSharedservice.httpProxy }}
+TKG_HTTPS_PROXY: {{ config.envSpec.proxySpec.tkgSharedservice.httpsProxy }}
+TKG_NO_PROXY: {{ config.envSpec.proxySpec.tkgSharedservice.noProxy }}
+{% endif %}
+{% if type == "workload" and config.envSpec.proxySpec and config.envSpec.proxySpec.tkgWorkload.enableProxy == "true" %}
+TKG_HTTP_PROXY_ENABLED: 'true'
+TKG_HTTP_PROXY: {{ config.envSpec.proxySpec.tkgWorkload.httpProxy }}
+TKG_HTTPS_PROXY: {{ config.envSpec.proxySpec.tkgWorkload.httpsProxy }}
+TKG_NO_PROXY: {{ config.envSpec.proxySpec.tkgWorkload.noProxy }}
+{% endif %}
+
+#! ---------------------------------------------------------------------
+#! airgapped env configs
+#! ---------------------------------------------------------------------
+{% if config.envSpec.customRepositorySpec.tkgCustomImageRepository %}
+TKG_CUSTOM_IMAGE_REPOSITORY: {{ air_gapped_repo }}
+{% if config.envSpec.customRepositorySpec.tkgCustomImageRepositoryPublicCaCert.lower() == "false" %}
+TKG_CUSTOM_IMAGE_REPOSITORY_SKIP_TLS_VERIFY: 'False'
+TKG_CUSTOM_IMAGE_REPOSITORY_CA_CERTIFICATE: {{ repo_certificate }}
+{% else %}
+TKG_CUSTOM_IMAGE_REPOSITORY_SKIP_TLS_VERIFY: 'true'
+{% endif %}
+{% endif %}
+

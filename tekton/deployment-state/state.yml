@@ -1,0 +1,53 @@
+avi:
+  deployed: false
+  health: UP
+  name: alb_controller
+  version: 20.1.7
+mgmt:
+  deployed: true
+  health: UP
+  name: mgmt-clu
+  version: 1.5.3
+shared_services:
+  deployed: false
+  extensions:
+    certManager:
+      deployed: false
+      upgraded: false
+    contour:
+      deployed: false
+      upgraded: false
+    externalDns:
+      deployed: false
+      upgraded: false
+    harbor:
+      deployed: false
+      upgraded: false
+  health: UP
+  integrations:
+    tmc:
+      attached: false
+  name: arcas-shared-services
+  upgradedFrom: null
+  version: 1.5.3
+workload_clusters:
+- deployed: false
+  extensions:
+    certManager:
+      deployed: false
+      upgraded: false
+    contour:
+      deployed: false
+      upgraded: false
+    grafana:
+      deployed: false
+      upgraded: false
+    prometheus:
+      deployed: false
+      upgraded: false
+  health: UP
+  integrations:
+    tmc:
+      attached: false
+  name: arcas-workload
+  version: 1.5.3
