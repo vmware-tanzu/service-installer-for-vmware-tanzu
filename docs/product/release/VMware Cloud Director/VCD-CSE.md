@@ -13,7 +13,7 @@ To summarize, a fully functional VMware Cloud Director environment is required w
 
 The following table provides the component versions.
 
-| **Component**                   | **Version**        |
+| **Component** | **Version** |
 |---|---|
 | VMware Cloud Director       | 10.4 and later |
 | Container Service Extension | 4.0            |
@@ -22,24 +22,24 @@ The following table provides the component versions.
 
 ## Firewall Requirements
 
-| **Source**                              | **Destination**                                                                   | **Port**             | **Description**                                                                                                                                                      |   |
-|---|---|---|---|---|
-| CSE Server                          | VCD                                                               | TCP: 443         | VCD Public API Address                                                                                                                               |   |
-| CSE Server                          | DNS                                                                           | UDP:53           | Core Service: Allow components to look up machine addresses                                                                                                      |   |
-| Tenant Org Network*                 | Internet                                                                      | TCP:443 TCP:6443 | Download Tanzu binaries from VMware Public Image Repository                                                                                                      |   |
-| Tenant Org Network*                 | VCD                                                               | TCP:443          | CSI/CCM (CPI) to communicate with VCD to create required objects in VCD (Load balancer, PVs, etc.) CCM: Cloud Controller Manager CSI: Container Storage Interface |   |
-| Tenant Org Network*                 | DNS                                                                           | UDP:53           | Core Service: Allow components to look up machine addresses                                                                                                      |   |
-| Tenant Org Network*                 | NTP                                                                           | UDP:123          | Core Service: Allow components to sync the current time                                                                                                          |   |
-| NSX ALB Controllers and Cluster VIP | vCenter                                                                       | TCP:443          | Allow AVI to discover vCenter objects and deploy SEs as required                                                                                                 |   |
-| NSX ALB Controllers                 | ESXi Hosts                                                                    | TCP:443          | Management access for Service Engine Creation                                                                                                                    |   |
-| NSX ALB Controllers and Cluster VIP | NSX-T Manager (Workload Domain)                                               | TCP:443          | NSX-T Cloud Integration and discover NSX-T objects                                                                                                               |   |
-| NSX ALB Controllers                 | DNS                                                                           | UDP:53           | Core Service: Allow components to look up machine addresses                                                                                                      |   |
-| NSX ALB Controllers                 | NTP                                                                           | UDP:123          | Core Service: Allow components to sync the current time                                                                                                          |   |
-| NSX ALB Service Engine Mgmt Network | AVI Controllers                                                               | TCP:8443         | Secure channel for key exchange                                                                                                                                  |   |
-| NSX ALB Service Engine Mgmt Network | AVI Controllers                                                               | TCP:22           | Secure channel for communication between NSX ALB components for configuration sync, metrics and logs transfer, heartbeats, and other management processes        |   |
-| AVI Service Engine Mgmt Network     | AVI Controllers                                                               | UDP:123          | Core Service: Allow components to sync the current time                                                                                                          |   |
-| SIVT OVA                            | VCD Management vCenter Workload vCenter NSX-T NSX ALB Controllers | TCP:443          | Configure all required components as per the Architecture                                                                                                        |   |
-| SIVT OVA                            | DNS NTP                                                                       | UDP:53 UDP:123   | Core Service: Allow components to look up machine addresses Core Service: Allow components to sync the current time                                              |   |
+| **Source** | **Destination** | **Port** | **Description** |
+|---|---|---|---|
+| CSE Server                          | VCD                                                               | TCP: 443         | VCD Public API Address |
+| CSE Server                          | DNS                                                                           | UDP:53           | Core Service: Allow components to look up machine addresses |
+| Tenant Org Network*                 | Internet                                                                      | TCP:443 TCP:6443 | Download Tanzu binaries from VMware Public Image Repository |
+| Tenant Org Network*                 | VCD                                                               | TCP:443          | CSI/CCM (CPI) to communicate with VCD to create required objects in VCD (Load balancer, PVs, etc.) CCM: Cloud Controller Manager CSI: Container Storage Interface |
+| Tenant Org Network*                 | DNS                                                                           | UDP:53           | Core Service: Allow components to look up machine addresses |
+| Tenant Org Network*                 | NTP                                                                           | UDP:123          | Core Service: Allow components to sync the current time |
+| NSX ALB Controllers and Cluster VIP | vCenter                                                                       | TCP:443          | Allow AVI to discover vCenter objects and deploy SEs as required |
+| NSX ALB Controllers                 | ESXi Hosts                                                                    | TCP:443          | Management access for Service Engine Creation |
+| NSX ALB Controllers and Cluster VIP | NSX-T Manager (Workload Domain)                                               | TCP:443          | NSX-T Cloud Integration and discover NSX-T objects |
+| NSX ALB Controllers                 | DNS                                                                           | UDP:53           | Core Service: Allow components to look up machine addresses |
+| NSX ALB Controllers                 | NTP                                                                           | UDP:123          | Core Service: Allow components to sync the current time |
+| NSX ALB Service Engine Mgmt Network | AVI Controllers                                                               | TCP:8443         | Secure channel for key exchange |
+| NSX ALB Service Engine Mgmt Network | AVI Controllers                                                               | TCP:22           | Secure channel for communication between NSX ALB components for configuration sync, metrics and logs transfer, heartbeats, and other management processes |
+| AVI Service Engine Mgmt Network     | AVI Controllers                                                               | UDP:123          | Core Service: Allow components to sync the current time |
+| SIVT OVA                            | VCD Management vCenter Workload vCenter NSX-T NSX ALB Controllers | TCP:443          | Configure all required components as per the Architecture |
+| SIVT OVA                            | DNS NTP                                                                       | UDP:53 UDP:123   | Core Service: Allow components to look up machine addresses Core Service: Allow components to sync the current time |
 
 ## Tanzu for Kubernetes Operations on VMware Cloud Director with Container Service Extension Reference Architecture
 
@@ -79,10 +79,10 @@ Service Installer for VMware Tanzu enables Tanzu for Kubernetes Operations on VM
 ## SIVT VCD Deployment Supported Use-cases
 
 
-| Use-Cases      	| Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            	|
-|----------------	|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------	|
-| **Greenfield** 	| User triggers SIVT Automation which performs the below mentioned operations:-<br>  a.) Deploys NSX ALB, configures NSX-T CLoud, configures Service Engine Group<br>  b.) Imports above mentioned components into VCD  <br>  c.) Creates service Org/Org VCD and tier-1 gateway<br>  d.) Creates routed network, NAT and firewall rules <br>  e.) Creates catalogs and SE group<br>  f.) Imports SE group and enables load balancing on the tier-1 gateways<br>  g.) Imports CSE and K8s OVAs <br>  h.) Deploys and enables CSE Plugin<br>  i.) Creates required roles, user, and API token<br>  j.) Deploys CSE Server                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   	|
-| **Brownfield** 	| _**Scenario 1:-**_ NSX ALB, NSX-T Cloud and Service Engine Group are created. User triggers SIVT Automation which performs the below mentioned operations:-<br>    a.) Imports above mentioned components into VCD<br>    b.) Creates service Org/Org VCD and tier-1 gateway<br>    c.) Creates routed network, NAT and firewall rules <br>    d.) Creates catalogs and SE group<br>    e.) Imports SE group and enables load balancing on the tier-1 gateways<br>    g.) Imports CSE and K8s OVAs <br>    h.) Deploys and enables CSE Plugin<br>    i.) Creates required roles, user, and API token<br>    j.) Deploys CSE server<br><br>_**Scenario 2:-**_ NSX ALB, NSX-T Cloud and Service Engine Group are manually created and also manually imported into VCD. User triggers SIVT Automation which performs the below mentioned operations:-<br>     a.) Creates service Org/Org VCD and tier-1 gateway<br>     b.) Creates routed network, NAT and firewall rules <br>     c.) Creates catalogs and SE group<br>     d.) Imports SE group and enables load balancing on the tier-1 gateways<br>     g.) Imports CSE and K8s OVAs <br>     h.) Deploys and enables CSE Plugin<br>     i.) Creates required roles, user, and API token<br>     j.) Deploys CSE server 	|
+| **Use-Cases** | **Description** |
+|---|---|
+| **Greenfield** | User triggers SIVT Automation which performs the below mentioned operations:-<br>  a.) Deploys NSX ALB, configures NSX-T CLoud, configures Service Engine Group<br>  b.) Imports above mentioned components into VCD  <br>  c.) Creates service Org/Org VCD and tier-1 gateway<br>  d.) Creates routed network, NAT and firewall rules <br>  e.) Creates catalogs and SE group<br>  f.) Imports SE group and enables load balancing on the tier-1 gateways<br>  g.) Imports CSE and K8s OVAs <br>  h.) Deploys and enables CSE Plugin<br>  i.) Creates required roles, user, and API token<br>  j.) Deploys CSE Server |
+| **Brownfield** | _**Scenario 1:-**_ NSX ALB, NSX-T Cloud and Service Engine Group are created. User triggers SIVT Automation which performs the below mentioned operations:-<br>    a.) Imports above mentioned components into VCD<br>    b.) Creates service Org/Org VCD and tier-1 gateway<br>    c.) Creates routed network, NAT and firewall rules <br>    d.) Creates catalogs and SE group<br>    e.) Imports SE group and enables load balancing on the tier-1 gateways<br>    g.) Imports CSE and K8s OVAs <br>    h.) Deploys and enables CSE Plugin<br>    i.) Creates required roles, user, and API token<br>    j.) Deploys CSE server<br><br>_**Scenario 2:-**_ NSX ALB, NSX-T Cloud and Service Engine Group are manually created and also manually imported into VCD. User triggers SIVT Automation which performs the below mentioned operations:-<br>     a.) Creates service Org/Org VCD and tier-1 gateway<br>     b.) Creates routed network, NAT and firewall rules <br>     c.) Creates catalogs and SE group<br>     d.) Imports SE group and enables load balancing on the tier-1 gateways<br>     g.) Imports CSE and K8s OVAs <br>     h.) Deploys and enables CSE Plugin<br>     i.) Creates required roles, user, and API token<br>     j.) Deploys CSE server |
 
 ## SIVT Deployment Workflow
 
@@ -90,33 +90,34 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
 
 1. Deploy SIVT OVA on an admin network that has access to the following endpoints over port 433:
 
-- VMware Cloud Director
-- Management vCenter
-- Workload vCenter
-- NSX-T
-- NSX ALB Controllers
+  - VMware Cloud Director
+  - Management vCenter
+  - Workload vCenter
+  - NSX-T
+  - NSX ALB Controllers
 
 1. Enter `ssh root@`_Service-Installer-IP_ in a terminal window to log in to Service Installer for VMware Tanzu. Replace _Service-Installer-IP_ with the IP address for your Service Installer for VMware Tanzu VM.
 
-2. Configure and verify NTP.
+1. Configure and verify NTP.
 
    To configure and verify NTP on a Photon OS, see VMware [KB-76088](https://kb.vmware.com/s/article/76088).
 
-3. Import a certificate and private key to the Service Installer for VMware Tanzu bootstrap VM using a copy utility such as SCP or WinSCP (for Windows).
+1. Import a certificate and private key to the Service Installer for VMware Tanzu bootstrap VM using a copy utility such as SCP or WinSCP (for Windows).
 
    **Note:** Service Installer for VMware Tanzu uses the certificate for NSX Advanced Load Balancer. Ensure that the certificate and private key are in PEM format and are not encrypted. Encrypted certificate files are not supported. If you do not upload a certificate, Service Installer for VMware Tanzu generates a self-signed certificate.
 
-4. Enter the following in a browser window to access the Service Installer user interface:
+1. Enter the following in a browser window to access the Service Installer user interface:
 
     `http://<IP of Service Installer VM>:8888/`
 
-5. Enter the required details to generate the input file.
+1. Enter the required details to generate the input file.
 
    After you have entered the required details, the Service Installer for VMware Tanzu UI provides an option to review the values and download the input file in JSON format.
 
    The values are saved in a file `vcd-cse-tkg.json` located at `/opt/vmware/arcas/src`. See the [sample JSON file](#sample-input-file) file for reference.
 
-6. Execute the following command to initiate the deployment.
+1. Execute the following command to initiate the deployment.
+
    ```
    arcas --env vcd --file /path/to/vcd-cse-tkg.json  --avi_deployment --avi_cloud_configuration  --vcd_org_configuration --cse_server_configuration 
    ```
@@ -125,10 +126,10 @@ Do the following to deploy Tanzu for Kubernetes Operations using Service Install
 
    | **Python CLI Command Parameter** | **Description**                                                                                                                                                                                          |
    |---|---|
-   | --vcd_avi_configuration             | Deploys and attaches NSX ALB in VCD                                                                                                                                                                  |
-   | –-avi_cloud_configuration    | Creates NSX-T cloud and attaches NSX-T cloud to VCD                                                                                                                                                   |
-   | –-vcd_org_configuration      | Creates service Org/Org VCD and tier-1 gateway <br>Creates routed network, NAT and firewall rules <br>Creates catalogs and SE group<br>Imports SE group and enables load balancing on the tier-1 gateways |
-   | –-cse_server_configuration   | Imports CSE and K8s OVAs <br>Deploys and enables CSE Plugin<br>Creates required roles, user, and API token <br>Deploys CSE server                                                                     |
+   | `--vcd_avi_configuration`             | Deploys and attaches NSX ALB in VCD                                                                                                                                                                  |
+   | `--avi_cloud_configuration`    | Creates NSX-T cloud and attaches NSX-T cloud to VCD                                                                                                                                                   |
+   | `--vcd_org_configuration`      | Creates service Org/Org VCD and tier-1 gateway <br>Creates routed network, NAT and firewall rules <br>Creates catalogs and SE group<br>Imports SE group and enables load balancing on the tier-1 gateways |
+   | `--cse_server_configuration`   | Imports CSE and K8s OVAs <br>Deploys and enables CSE Plugin<br>Creates required roles, user, and API token <br>Deploys CSE server                                                                     |
 
 ## <a id="sample-input-file"> </a> Sample Input File
 
