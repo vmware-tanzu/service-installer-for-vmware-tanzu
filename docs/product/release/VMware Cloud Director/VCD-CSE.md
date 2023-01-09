@@ -64,7 +64,7 @@ Service Installer for VMware Tanzu enables Tanzu for Kubernetes Operations on VM
   - Create tier-1 gateway
   - Create routed network
   - Create required gateway firewalls
-  - Create SNAT rules
+  - Create NAT rules
   - Create a service engine group and import it to cloud, or make use of an existing service engine group
   - Enable load balancing capabilities on service organization VDC
 - CSE Capabilities

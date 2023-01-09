@@ -1,3 +1,5 @@
+CapiVA
+Nodeport
 rigion
 containerd
 CPUs

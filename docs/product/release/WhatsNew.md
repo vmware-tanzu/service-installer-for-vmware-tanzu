@@ -12,8 +12,8 @@
 - Tanzu for Kubernetes Operations deployment on VMware Cloud Director (VCD) (CSE + packages) in Internet-connected environments.
   - VCD terraform modules are used for development
   - Both brownfield and greenfield deployments are supported
-- Service Installer for VMware Tanzu comes with pre-bundled Harbor and STIG/FIPS compliant Tanzu Kubernetes Grid dependencies are loaded in the background during the SIVT bootup.
-- Migrated SIVT build system from StudioVA to Capiva and addressed following issues, 
+- Service Installer for VMware Tanzu comes with pre-bundled Harbor and STIG/FIPS compliant Tanzu Kubernetes Grid dependencies are loaded in the background during the SIVT boot up.
+- Migrated SIVT build system from StudioVA to CapiVA and addressed following issues, 
   - Reduces SIVT OVA sizes. Regular ova from 3GB to 2GB and SIVT harbor ova from 30GB to 19GB. 
   - Resolves build issues such as: no-space error, 2x size issues, etc. 
   - Enhanced the integrated Harbor solution. Removed dependency on Tanzu Kubernetes Grid tar download. 
@@ -26,7 +26,7 @@
 - Post validation of 'AVI controller', next button user action is not proceeding further 
 - SIVT is not deploying latest Harbor package as part of the deployment
 - Add pre-check to see if Tanzu, NSX and vCenter licenses are valid
-- Parameterise the data-values for Contour and Fluent-bit
+- Parameterize the data-values for Contour and Fluent-bit
 - Improvise the error message if expired/insufficient permission 'MarketPlace refresh token' is used
 - Implement pre-check to control the date and time on ESXi nodes and vCenter
 - SIVT giving standard package repository error for TKGs deployment

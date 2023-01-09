@@ -21,7 +21,7 @@ Complete the following preparatory tasks for running Tekton pipelines for Tanzu 
 - Avi controller OVAs are present in vCenter's content library
 - Photon/Ubuntu OS OVAs are present as template in vCenter
 
-## Step 1: Download Tekton Dependencies tar and Tanzu images on Jumbox Host
+## Step 1: Download Tekton Dependencies tar and Tanzu images on Jump Host
 
 - Perform following steps to download Tekton dependencies tar:
   - Go to the link and download Tekton dependencies tar file: 
@@ -43,7 +43,7 @@ Perform following steps to create the Tekton Docker image.
 4. Run the following commands to generate the Docker image:
    1. `chmod +x airgapped_tkn_docker_img.py`
    2. `python airgapped_tkn_docker_img.py --tkg_version <TKG VERSION> --refresh_token <MARKETPLACE REFRESH TOKEN>`
-      - **Example**: python airgapped_tkn_docker_img.py --tkg_version 1.5.4 --refresh_token abcc....asfdf
+      - **Example**: python airgapped_tkn_docker_img.py --tkg_version 1.5.4 --refresh_token <REFRESH TOKEN>
       - **Output**: Will generate docker image named as `sivt_tekton:v<tkg_version>`. like sivt_tekton:v154
 5. Run the following commands to tag the generated Docker image and save as a TAR file.
    1. `docker image tag sivt_tekton:v<tkg_version> <HARBOR_URL>/tekton_dep/sivt_tekton:v<tkg_version>`
@@ -138,7 +138,7 @@ This step installs Tekton Pipelines and its dashboard.
 
     Tekton provides a dashboard for monitoring and triggering pipelines from the UI. It is recommended to have the dashboard integrated. This step can be skipped if Tekton dashboard is not required for your environment.
 
-4. Run the folllowing command to deploy the dashboard.
+4. Run the following command to deploy the dashboard.
     
     ```shell
      ./launch.sh --deploy-dashboard --airgapped

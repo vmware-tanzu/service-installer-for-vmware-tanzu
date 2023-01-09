@@ -82,7 +82,7 @@ Complete the following preparatory tasks to running Tekton pipelines for Tanzu K
 
 Tekton provides a dashboard for monitoring and triggering pipelines from the UI. It is recommended to have the dashboard integrated. This step can be skipped if Tekton dashboard is not required for your environment.
 
-- Run the folllowing command:
+- Run the following command:
     ```shell
      ./launch.sh --deploy-dashboard
     ```

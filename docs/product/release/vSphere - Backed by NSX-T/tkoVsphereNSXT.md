@@ -164,7 +164,7 @@ To verify the dependencies, run the following steps.
 ### Internet-Connected and Proxy Environments
 In case of Internet-connected and proxy environments the Ubuntu OVA, and TKG dependencies get downloaded. User must use the SIVT OVA ('service-installer-for-vmware-tanzu-<version>_ovf10.ova') from Marketplace.
 
-- Ubuntu OVA which is STIG hardened and FIPS compliant is availabe in Marketplace.
+- Ubuntu OVA which is STIG hardened and FIPS compliant is available in Marketplace.
 - FIPS Compliant Tanzu Kubernetes Grid dependencies get downloaded from VMware Harbor repository.
 
 ## Non-Compliant Deployment
