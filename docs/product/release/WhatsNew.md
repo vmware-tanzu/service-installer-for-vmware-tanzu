@@ -2,17 +2,12 @@
 
 ## What's New
 
-- Tanzu Kubernetes Grid Federal air-gapped deployment on vSphere. Service Installer for VMware Tanzu now supports following flavours of deployments.
-  1. vSphere + Internet connected + Compliant deployment
-  2. vSphere + Internet connected + non-compliant deployment
-  3. vSphere + air-gapped + compliant deployment
-  4. vSphere + air-gapped + non-compliant deployment
 - Non-orchestrated Tanzu Kubernetes Grid deployment on vSphere VDS.
 - Users can choose AVI for L7 ingress applications. Contour is used by default. For NSX Nodeport mode is supported.
 - Tanzu for Kubernetes Operations deployment on VMware Cloud Director (VCD) (CSE + packages) in Internet-connected environments.
   - VCD terraform modules are used for development
   - Both brownfield and greenfield deployments are supported
-- Service Installer for VMware Tanzu comes with pre-bundled Harbor and STIG/FIPS compliant Tanzu Kubernetes Grid dependencies are loaded in the background during the SIVT boot up.
+- Service Installer for VMware Tanzu comes with pre-bundled Harbor and Tanzu Kubernetes Grid dependencies are loaded in the background during the SIVT boot up.
 - Migrated SIVT build system from StudioVA to CapiVA and addressed following issues, 
   - Reduces SIVT OVA sizes. Regular ova from 3GB to 2GB and SIVT harbor ova from 30GB to 19GB. 
   - Resolves build issues such as: no-space error, 2x size issues, etc. 
