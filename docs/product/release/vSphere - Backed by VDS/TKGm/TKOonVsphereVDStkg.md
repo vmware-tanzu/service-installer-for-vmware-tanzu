@@ -174,35 +174,12 @@ Consider the following when deploying VMware Tanzu for Kubernetes Operations usi
 - If Tanzu Observability is activated, Prometheus and Grafana are not supported.
 - When Tanzu Mission Control is activated only Photon is supported.
 
-## Compliant Deployment
-### Air-gapped: Load Pre-bundled Harbor with Tanzu Kubernetes Grid Dependencies
-
-- User must download STIG/FIPS compliant Ubuntu OVA (`sivt-compliance-ubuntu-2004-kube-v1.23.8+vmware.2-fips.1.ova`) from Marketplace and the SIVT OVA (`service-installer-for-VMware-Tanzu-with-Harbor.ova`) from Marketplace which is bundled with the TKG .TAR file (TKG dependency FIPS compliant) which is used for the deployment.
-- Tanzu Kubernetes Grid dependencies get loaded into Harbor as soon as SIVT boots up. 
-- Service Installer VMware Tanzu (SIVT) comes with Tanzu Kubernetes Grid dependencies (compliant) pre-bundled with SIVT. 
-- You can check Tanzu Kubernetes Grid dependencies loading progress with the below command:
-   - `arcas --get_harbor_preloading_status --repo_name=tanzu_16_fips`
-
-To verify the dependencies, run the following steps.
-
-1. Log in to Harbor at `https://<sivt-ip>:9443`
-    - Credentials -> user:admin password:`<sivt password>`
-2. Verify that all binaries are uploaded to Harbor with the mentioned repo name `tanzu_16_fips`.
-
-3. For more information about the compliant airgap deployment, see [FIPS/STIG Hardened Kubernetes nodes Compliant Deployment](#FIPS/STIG-Hardened-Kubernetes-nodes-Compliant-Deployment).
-
-### Internet-Connected and Proxy Environments
-In case of Internet-connected and proxy environments, the Ubuntu OVA, and Tanzu Kubernetes Grid dependencies get downloaded. User must use the SIVT OVA ('service-installer-for-vmware-tanzu-<version>_ovf10.ova') from Marketplace.
-
-- Ubuntu OVA which is STIG hardened and FIPS compliant is available in Marketplace.
-- FIPS compliant Tanzu Kubernetes Grid dependencies get downloaded from VMware Harbor repository. 
-
-## Non-Compliant Deployment
-### Air-gapped: Load Pre-bundled Harbor with Tanzu Kubernetes Grid Dependencies
+## Air-gapped: Load Pre-bundled Harbor with Tanzu Kubernetes Grid Dependencies
 
 - User must download SIVT OVA (`service-installer-for-VMware-Tanzu-with-Harbor.ova`) file from Marketplace
-- Also download the available tanzu_16.tar file from marketplace (TKG dependency). THis file which is non-compliant must be uploaded to the Harbor.
-- **Note:** Service Installer for VMware Tanzu (SIVT) is available with pre-bundled Harbor along with the FIPS compliant Tanzu Kubernetes Grid dependencies. For non-compliant deployment, complete the following steps.
+- Also download the available tanzu_16.tar file from marketplace (TKG dependency). This which is non-compliant must be uploaded to the Harbor.
+    
+  **Note:** For TKG dependency upload, complete the following steps.
 
 1. Download the SIVT OVA file which includes pre-bundled Harbor: `service-installer-for-VMware-Tanzu-with-Harbor.ova`
 2. Download the dependency tar file 'tanzu_16.tar' which is available for download in Marketplace along with the SIVT OVA file and copy it to the following location on the SIVT VM: `/opt/vmware/arcas/tools`
@@ -214,19 +191,6 @@ In case of Internet-connected and proxy environments, the Ubuntu OVA, and Tanzu 
 4. Log in to Harbor at `https://<sivt-ip>:9443`
     - Credential -> user:admin password:`<sivt password>`
 5. Verify that all binaries are uploaded to Harbor with the mentioned repo name `tanzu_16`.
-
-## FIPS/STIG Hardened Kubernetes nodes Compliant Deployment   
-
-Service Installer for VMware Tanzu (SIVT) can be used for STIG/FIPS compliant Tanzu Kubernetes Grid deployment. Here, an OVA is created, which acts as the base OS for Kubernetes nodes. The OVA is customized and made complaint by using STIG/FIPS rules. The OVA contains FIPS compliant Kubernetes binaries. During Tanzu Kubernetes Grid deployment, Service Installer VMware Tanzu downloads FIPS compliant Tanzu Kubernetes Grid images from [VMware public Harbor](https://projects.registry.vmware.com/harbor/projects/3/repositories/fips%2Ftkg-compatibility/artifacts-tab). In case of air-gapped deployment, FIPS Tanzu Kubernetes Grid docker images are downloaded from the local Harbor repo. Inspection result of the Node OS can be seen in [ubuntu-20.04 result](./inspect_result/os_result.png) and [K8S result](./inspect_result/k8s_result.png), with the list of exceptions [ubuntu-20.04 exception](./inspect_result/final_exception_20-04.xlsx) and [K8S exception](./inspect_result/kube_output.xlsx).
-
-To perform compliant deployment, user have to perform following steps.
-
-1. Download the compliant OVA named `sivt-compliance-ubuntu-2004-kube-v1.23.8+vmware.2-fips.1.ova` from Marketplace.  This file is compliant with STIG/FIPS rules.
-2. Deploy this OVA inside vCenter and convert it to a template. 
-3. In SIVT UI select `compliant deployment` checkbox under `management cluster settings`.
-
-Note: Currently for compliant deployment we only support ubuntu-2004 with latest kubernetes version (v1.23.8) for Cluster deployment.
-
 
 
 ## Update a Running Extension Deployment
