@@ -67,10 +67,10 @@ For the download location, see [Release Notes](WhatsNew.md).
 
 ### Tanzu Kubernetes Grid with Tekton Support Matrix
 
-| Platform | vSphere Compliant | vSphere Non-Compliant |
-| ---     |     ---          |        ---   | 
-|  | Day0 | Day2 | 
-| Internet |  TKG 1.5.3, <br>TKG 1.5.4 |  TKG 1.5.3 -> 1.5.4 | 
+| Platform | vSphere Non-Compliant    | vSphere Non-Compliant |
+| ---     |--------------------------|        ---   | 
+|  | Day0                     | Day2 | 
+| Internet | TKG 1.5.3, <br>TKG 1.5.4 |  TKG 1.5.3 -> 1.5.4 | 
 | Air-gapped  | TKG 1.5.3, <br>TKG 1.5.4 |  TKG 1.5.3 -> 1.5.4 |
 
 ## Documentation

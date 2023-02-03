@@ -39,13 +39,14 @@ Perform following steps to create the Tekton Docker image.
 2. Create two empty files named `airgapped_tkn_docker_img.py` and `dockerfile`.
     - `touch airgapped_tkn_docker_img.py`
     - `touch dockerfile`
-3. Copy the contents of `airgapped_tkn_docker_img.py` and `dockerfile` file from link, https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/1.4.1-1.6.0/tekton/scripts/pre_setup
-4. Run the following commands to generate the Docker image:
+3. Copy the contents of `airgapped_tkn_docker_img.py` from link, https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/1.4.1-1.6.0/tekton/scripts/pre_setup to empty `airgapped_tkn_docker_img.py` file
+4. Copy the contents of `dockerfile` from link, https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/1.4.1-1.6.0/tekton/dockerfile to empty `dockerfile` file
+5. Run the following commands to generate the Docker image:
    1. `chmod +x airgapped_tkn_docker_img.py`
    2. `python airgapped_tkn_docker_img.py --tkg_version <TKG VERSION> --refresh_token <MARKETPLACE REFRESH TOKEN>`
       - **Example**: python airgapped_tkn_docker_img.py --tkg_version 1.5.4 --refresh_token abcc....asfdf
       - **Output**: Will generate docker image named as `sivt_tekton:v<tkg_version>`. like sivt_tekton:v154
-5. Run the following commands to tag the generated Docker image and save as a TAR file.
+6. Run the following commands to tag the generated Docker image and save as a TAR file.
    1. `docker image tag sivt_tekton:v<tkg_version> <HARBOR_URL>/tekton_dep/sivt_tekton:v<tkg_version>`
        - **Example**: `docker image tag sivt_tekton:v154 <HARBOR_URL>/tekton_dep/sivt_tekton:v154`
        - **Note:** <HARBOR_URL> is the Harbor URL of configured Harbor.
