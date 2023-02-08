@@ -1,0 +1,21 @@
+apt_packages:
+- awscli
+- containerd.io
+- docker-ce
+- docker-ce-cli
+- golang
+- jq
+yum_packages:
+- docker
+- golang
+- jq
+disable_public_repos: false
+non_airgapped: false
+is_compliant: true
+extra_repos: ""
+bin_url: ""
+package_url: ""
+tanzu_bundle_url: ""
+ca_path:
+  RedHat: "/etc/pki/ca-trust/source/anchors/"
+  Debian: "/usr/local/share/ca-certificates/"

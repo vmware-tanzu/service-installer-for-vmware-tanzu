@@ -1,0 +1,33 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: git-pvtclone
+spec:
+  workspaces:
+    - name: task-shared-data
+  params:
+    - name: imagename
+      description: the operand image
+    - name: giturl
+      description: the git path
+    - name: branch
+      description: the branch to clone from
+      default: alpha
+    - name: imagepullpolicy
+      description: imagepullpolicy for operand image("Always", "IfNotPresent", "Never")
+  steps:
+    - name: step-gitclone
+      image: $(params.imagename)
+      imagePullPolicy: $(params.imagepullpolicy)
+      script: |
+        cd /workspace/task-shared-data/
+        rm -rf *
+        rm -rf .tmp
+        set -x
+        git clone $(params.giturl) -b $(params.branch) arcas-tekton-cicd
+        src_dir=`ls`
+        cp -rf $src_dir/config .
+        cp -rf $src_dir/deployment-state .
+        cp -rf $src_dir/desired-state .
+        cp -rf $src_dir/kubeconfig-repo .
+        ls -la

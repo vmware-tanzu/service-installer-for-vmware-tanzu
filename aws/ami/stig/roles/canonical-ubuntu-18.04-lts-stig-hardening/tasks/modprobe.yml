@@ -1,0 +1,7 @@
+- name: "modprobe: usb-storage"
+  blockinfile:
+    dest: /etc/modprobe.d/DISASTIG.conf
+    block: |
+      install usb-storage /bin/true
+      blacklist usb-storage
+    create: yes

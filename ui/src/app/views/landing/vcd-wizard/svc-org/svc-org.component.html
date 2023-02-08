@@ -1,0 +1,118 @@
+<!--
+    Copyright 2021 VMware, Inc
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<form [formGroup]="formGroup">
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <div *ngIf="this.dataService.svcOrgNamesErrorMessage" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ this.dataService.svcOrgNamesErrorMessage }}
+                </span>
+            </div>
+        </div>
+        <button (click)="this.dataService.svcOrgNamesErrorMessage = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <h4 aria-level="2">Configure Service Organization</h4>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="svcOrgName label">
+                    ORGANIZATION NAME
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Select an existing Service Organzation or choose to create a new org. User/provider needs to set publish externally and publish catalogs as true for existing org.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                    <div style="display:inline-block"><clr-icon shape="refresh" size="18" role="button" (click)="fetchSvcOrgNames()"></clr-icon></div>
+                </label>
+                <select clrSelect name="svcOrgName" formControlName="svcOrgName" (ngModelChange)="onSvcOrgNameChange()">
+                    <option [value]="'CREATE NEW'">CREATE NEW</option>
+                    <ng-container *ngFor="let svcOrgName of this.dataService.svcOrgNames">
+                        <option [value]="svcOrgName">
+                            {{svcOrgName}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error>Selecting a Service org name is required!</clr-control-error>
+            </clr-select-container>
+        </div>
+        <ng-container *ngIf="formGroup.value.svcOrgName === 'CREATE NEW'">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="svcOrgNameInput label" clr-control-label aria-describedby="tooltip-vcenter-server">
+                        NEW ORGANIZATION NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    The name for creating a new Service Organization
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="svcOrgNameInput" placeholder="New org name" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="svcOrgNameInput required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Service org name is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="svcOrgNameInput whitespace msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Service org name has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="svcOrgFullName label" clr-control-label aria-describedby="tooltip-vcenter-server">
+                        NEW ORGANIZATION FULL NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    The full name for creating a new Service Organization.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="svcOrgFullName" placeholder="New org full name" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="svcOrgFullName required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Service org full name is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="svcOrgFullName whitespace msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Service org full name has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+        </ng-container>
+    </div>
+</form>

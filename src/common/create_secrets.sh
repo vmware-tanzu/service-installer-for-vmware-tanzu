@@ -1,0 +1,1 @@
+kubectl -n package-tanzu-system-registry create secret generic harbor-notary-singer-image-overlay -o yaml --dry-run=client --from-file=/opt/vmware/arcas/tanzu-clusters/harbor-overlay.yaml | kubectl apply -f -

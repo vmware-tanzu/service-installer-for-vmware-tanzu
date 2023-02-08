@@ -1,0 +1,19 @@
+name: wrapped-links-checkw
+on:
+  pull_request:
+  push:
+    
+jobs:
+  wrapped-links-check:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: checkout repo content
+        uses: actions/checkout@v2
+      - name: setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11.0-beta.1
+          architecture: 'x64'
+      - name: check for wrapped links
+        run: |
+          python tests/wrapped-links.py

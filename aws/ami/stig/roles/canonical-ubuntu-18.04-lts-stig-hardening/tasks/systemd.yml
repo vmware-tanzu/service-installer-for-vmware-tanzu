@@ -1,0 +1,7 @@
+- name: "systemd: ctrl-alt-del"
+  systemd:
+    name: ctrl-alt-del.target
+    enabled: no
+    masked: yes
+    daemon_reload: yes
+    

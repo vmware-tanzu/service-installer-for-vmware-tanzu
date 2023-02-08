@@ -1,0 +1,142 @@
+<!--
+    Copyright 2021 VMware, Inc
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<form [formGroup]="formGroup">
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <h4 aria-level="2">Create vApp</h4>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="vAppName label" clr-control-label aria-describedby="tooltip-vAppName">
+                    vAPP NAME
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Specify name of the vApp which will be created from CSE template.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="vAppName" placeholder="Name" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="vAppName required msg" *clrIfError="validatorEnum.REQUIRED">
+                    vApp name is required!
+                </clr-control-error>
+                <clr-control-error i18n="vAppName whitespace msg" *clrIfError="validatorEnum.WHITESPACE">
+                    vApp name has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+    <pre></pre>
+    <h5 aria-level="2">IP Pool assignment for the vApp</h5>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="startAddress label" clr-control-label aria-describedby="tooltip-startAddress">
+                    START ADDRESS
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                The IP Pool assigned for the CSE Organization VDC network will be used.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="startAddress" placeholder="startAddress"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="startAddress required msg" *clrIfError="validatorEnum.REQUIRED">
+                    vApp name is required!
+                </clr-control-error>
+                <clr-control-error i18n="startAddress whitespace msg" *clrIfError="validatorEnum.WHITESPACE">
+                    vApp name has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="endAddress label" clr-control-label aria-describedby="tooltip-endAddress">
+                    END ADDRESS
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                The IP Pool assigned for the CSE Organization VDC network will be used.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="endAddress" placeholder="endAddress"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="endAddress required msg" *clrIfError="validatorEnum.REQUIRED">
+                    vApp name is required!
+                </clr-control-error>
+                <clr-control-error i18n="endAddress whitespace msg" *clrIfError="validatorEnum.WHITESPACE">
+                    vApp name has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+    </div>
+    <pre></pre>
+    <h5 aria-level="2">CSE Service Account</h5>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="cseSvcAccountName label" clr-control-label aria-describedby="tooltip-cseSvcAccountName">
+                    CSE SERVICE ACCOUNT NAME
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Specify name of the CSE Service Account that will be created by SIVT.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="cseSvcAccountName" placeholder="Name" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="cseSvcAccountName required msg" *clrIfError="validatorEnum.REQUIRED">
+                    CSE account name is required!
+                </clr-control-error>
+                <clr-control-error i18n="cseSvcAccountName whitespace msg" *clrIfError="validatorEnum.WHITESPACE">
+                    CSE account name has whitespaces on end!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-password-container [attr.data-step-metadata]="formName">
+                <label i18n="cseSvcAccountPasswordBase64 label" clr-control-label>
+                    CSE SERVICE ACCOUNT PASSWORD
+                </label>
+                <input clrPassword formControlName="cseSvcAccountPasswordBase64" placeholder="Password"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="cseSvcAccountPasswordBase64 required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Password cannot be empty!
+                </clr-control-error>
+            </clr-password-container>
+        </div>
+    </div>
+</form>

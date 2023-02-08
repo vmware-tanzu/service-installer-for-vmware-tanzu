@@ -1,0 +1,12 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("@ytt:data", "data")
+
+#@overlay/match by=overlay.subset({"kind":"AWSCluster"})
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha3
+kind: AWSCluster
+spec:
+#@overlay/match missing_ok=True
+  controlPlaneLoadBalancer:
+#@overlay/match missing_ok=True
+     scheme: "internal"

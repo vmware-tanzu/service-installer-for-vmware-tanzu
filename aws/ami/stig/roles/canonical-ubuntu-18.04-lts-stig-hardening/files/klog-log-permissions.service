@@ -1,0 +1,8 @@
+[Unit]
+Description=Fix klog file perms
+[Service]
+StartLimitBurst=0
+Restart=always
+ExecStart=/bin/find /var/log/kubernetes/ /var/log/antrea  -type f -exec /bin/chmod 0640 {} \;
+[Install]
+WantedBy=multi-user.target

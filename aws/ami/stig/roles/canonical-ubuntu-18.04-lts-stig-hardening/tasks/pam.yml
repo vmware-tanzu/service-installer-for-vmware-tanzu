@@ -1,0 +1,36 @@
+- name: "pam: faildelay"
+  lineinfile:
+    dest: /etc/pam.d/common-auth
+    line: 'auth       required   pam_faildelay.so  delay={{ (pam_fail_delay | int) * 10**6 }}'
+    state: present
+
+- name: "pam: showfailed"
+  lineinfile:
+    dest: "/etc/pam.d/login"
+    regexp: '^(session)(\s+)([^\s]*)(\s+)(pam_lastlog\.so)'
+    line: '\1 required \5 showfailed'
+    backrefs: yes
+    state: present
+
+- name: "pam: consecutive invalid logon attempts"
+  lineinfile:
+    dest: /etc/pam.d/common-auth
+    line: 'auth required pam_tally2.so onerr=fail deny=3'
+    state: present
+    insertafter: EOF
+
+- name: "pam: remember passwords"
+  lineinfile:
+    dest: "/etc/pam.d/common-password"
+    regexp: '^(password\s+[a-z0-9\=\[\] ]+\s+pam_unix\.so.+?)\s+(?:remember=\d+)?$'
+    line: '\1 remember=5'
+    backrefs: yes
+    state: present
+
+- name: "pam: use pam_pwquality"
+  lineinfile:
+    dest: "/etc/pam.d/common-password"
+    regexp: '^(password\s+requisite\s+pam_pwquality.so\s+retry=)(\d+)$'
+    line: '\1\2 enforce_for_root'
+    backrefs: yes
+    state: present

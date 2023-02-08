@@ -1,0 +1,174 @@
+- name: "create dirs"
+  file:
+    path: "/home/{{ ssh_username }}/{{ item }}/"
+    state: directory
+    owner: "{{ ssh_username }}"
+    group: "{{ ssh_username }}"
+  with_items:
+  - scripts
+  - packages
+  - 04_user_customizations
+  - air-gapped
+  - non-airgapped
+
+- name: "online: apt gpg keys"
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+  when: not disable_public_repos|bool
+
+- name: "online: apt repos"
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+  with_items:
+    - deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
+    - ppa:longsleep/golang-backports
+  when: not disable_public_repos|bool
+
+- name: "offline: find existing repo files"
+  find:
+    depth: 1
+    paths:
+      - /etc/apt
+      - /etc/apt/sources.list.d
+    patterns: '*.list'
+  register: repo_files
+  when: disable_public_repos|bool and ansible_os_family == "Debian"
+
+- name: "offline: disable repos"
+  command: "mv {{ item.path }} {{ item.path }}.disabled"
+  loop: "{{ repo_files.files }}"
+  when: disable_public_repos|bool and ansible_os_family == "Debian"
+
+- name: "offline: install extra repos"
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/apt/sources.list.d/{{ item | basename }}"
+    mode: "0644"
+  loop: "{{ extra_repos.split() }}"
+  when: extra_repos != "" and ansible_os_family == "Debian"
+
+- name: "apt update"
+  apt:
+    force_apt_get: yes
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: "apt install deps"
+  apt:
+    pkg: "{{ apt_packages }}"
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: "yum install deps"
+  yum:
+    pkg: "{{ yum_packages }}"
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: "copy binaries"
+  copy:
+    src: files/bin/
+    dest: /usr/bin
+    owner: "{{ ssh_username }}"
+    group: "{{ ssh_username }}"
+    mode: '0750'
+
+- name: "copy tanzu"
+  copy:
+    src: files/packages/
+    dest: "/home/{{ ssh_username }}/packages"
+    owner: "{{ ssh_username }}"
+    group: "{{ ssh_username }}"
+
+- name: "copy air-gapped"
+  copy:
+    src: files/air-gapped/
+    dest: "/home/{{ ssh_username }}/air-gapped"
+    owner: "{{ ssh_username }}"
+    group: "{{ ssh_username }}"
+  when: not non_airgapped|bool
+
+- name: "update setup-airgapped.sh mode"
+  file:
+    path: "/home/{{ ssh_username }}/air-gapped/{{ item }}"
+    mode: '0750'
+  with_items:
+  - setup-airgapped.sh
+  - update-bom.sh
+  - delete-airgapped.sh
+  - check_name_space.sh
+  - deploy_cert_manager.sh
+  - deploy_contour.sh
+  - deploy_fluent_bit.sh
+  - deploy_grafana.sh
+  - deploy_harbor.sh
+  - deploy_prometheus.sh
+  - deploy_tkg_extensions.sh
+  when: not non_airgapped|bool
+
+- name: "copy non air-gapped"
+  copy:
+    src: files/non-airgapped/
+    dest: "/home/{{ ssh_username }}/non-airgapped"
+    owner: "{{ ssh_username }}"
+    group: "{{ ssh_username }}"
+  when: non_airgapped|bool
+
+- name: "update non-airgapped scripts"
+  file:
+    path: "/home/{{ ssh_username }}/non-airgapped/{{ item }}"
+    mode: '0750'
+  with_items:
+  - setup-non-airgapped.sh
+  - update-bom.sh
+  - delete-non-airgapped.sh
+  - check_name_space.sh
+  - deploy_cert_manager.sh
+  - deploy_contour.sh
+  - deploy_fluent_bit.sh
+  - deploy_grafana.sh
+  - deploy_harbor.sh
+  - deploy_prometheus.sh
+  - deploy_tkg_extensions.sh
+  when: non_airgapped|bool
+
+- name: "copy scripts"
+  copy:
+    src: files/scripts/
+    dest: "/home/{{ ssh_username }}/scripts/"
+    owner: "{{ ssh_username }}"
+    group: "{{ ssh_username }}"
+    mode: '0750'
+
+- name: "copy overlays"
+  copy:
+    src: files/overlays/04_user_customizations_multi_vpc
+    dest: "/home/{{ ssh_username }}/04_user_customizations/"
+  when: not non_airgapped|bool and is_compliant|bool
+
+- name: "copy multiple vpc overlays"
+  copy:
+    src: files/overlays/04_user_customizations_multi_vpc
+    dest: "/home/{{ ssh_username }}/04_user_customizations/"
+  when: non_airgapped|bool and is_compliant|bool
+
+- name: "install tanzu"
+  shell: |
+    set -e
+    cd /home/{{ ssh_username }}/packages/
+      tar xf tanzu.tar
+      cd cli/core/v*
+        install tanzu-core-linux_amd64 /usr/bin/tanzu
+      cd -
+    cd -
+
+- name: "install carvel"
+  shell: |
+    set -e
+    gunzip -c /home/{{ ssh_username }}/packages/cli/imgpkg-linux-* > /usr/bin/imgpkg && chmod -R +x /usr/bin/imgpkg
+    gunzip -c /home/{{ ssh_username }}/packages/cli/ytt-linux-* > /usr/bin/ytt && chmod -R +x /usr/bin/ytt
+    gunzip -c /home/{{ ssh_username }}/packages/cli/kapp-linux-* > /usr/bin/kapp && chmod -R +x /usr/bin/kapp
+    gunzip -c /home/{{ ssh_username }}/packages/cli/kbld-linux-* > /usr//bin/kbld && chmod -R +x //usr/bin/kbld
+    gunzip -c /home/{{ ssh_username }}/packages/cli/vendir-linux-* > /usr/bin/vendir && chmod -R +x /usr/bin/vendir

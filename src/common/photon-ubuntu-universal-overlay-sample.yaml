@@ -1,0 +1,50 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("@ytt:data", "data")
+#! This ytt overlay adds additional custom CA certificates on TKG cluster nodes, so containerd and other tools trust these CA certificates.
+#! It works when using Photon or Ubuntu as the TKG node template on all TKG infrastructure providers.
+#! Trust your custom CA certificates on all Control Plane nodes.
+#@overlay/match by=overlay.subset({"kind":"KubeadmControlPlane"})
+---
+spec:
+  kubeadmConfigSpec:
+    #@overlay/match missing_ok=True
+    files:
+        #@ arr = ["tkg-custom-cert01.pem", "tkg-custom-cert02.pem"]
+        #@ for/end val in arr:
+        - content: #@ data.read(val)
+          owner: root:root
+          path: #@ 'etc/ssl/certs/'+ val
+          permissions: "0644"
+    #@overlay/match missing_ok=False
+    preKubeadmCommands:
+    - '! which rehash_ca_certificates.sh 2>/dev/null || rehash_ca_certificates.sh'
+    #@overlay/append
+    #@ for cert in arr:
+    #@ certstr = '/etc/ssl/certs/' + cert
+    #@ certstr2 = '/usr/local/share/ca-certificates/' + cert
+    - #@ "! which update-ca-certificates 2>/dev/null || (mv {} {} && update-ca-certificates)".format(certstr, certstr2)
+    #@ end
+---
+#! Trust your custom CA certificates on all worker nodes.
+#@overlay/match by=overlay.subset({"kind":"KubeadmConfigTemplate"}), expects="1+"
+---
+spec:
+  template:
+    spec:
+      #@overlay/match missing_ok=True
+      files:
+        #@ arr = ["tkg-custom-cert01.pem", "tkg-custom-cert02.pem"]
+        #@ for/end val in arr:
+        - content: #@ data.read(val)
+          owner: root:root
+          path: #@ 'etc/ssl/certs/'+ val
+          permissions: "0644"
+      #@overlay/match missing_ok=False
+      preKubeadmCommands:
+       - '! which rehash_ca_certificates.sh 2>/dev/null || rehash_ca_certificates.sh'
+       #@overlay/append
+       #@ for cert in arr:
+       #@ certstr = '/etc/ssl/certs/' + cert
+       #@ certstr2 = '/usr/local/share/ca-certificates/' + cert
+       - #@ "! which update-ca-certificates 2>/dev/null || (mv {} {} && update-ca-certificates)".format(certstr, certstr2)
+       #@ end

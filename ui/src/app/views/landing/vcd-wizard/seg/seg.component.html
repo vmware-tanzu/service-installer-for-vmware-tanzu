@@ -1,0 +1,411 @@
+<!--
+    Copyright 2021 VMware, Inc
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<form [formGroup]="formGroup">
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <ng-container *ngIf="!this.dataService.createSeGroup">
+        <div *ngIf="this.dataService.serviceEngineGroupnameAlbErrorMessage" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text">
+                        {{ this.dataService.serviceEngineGroupnameAlbErrorMessage }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="this.dataService.serviceEngineGroupnameAlbErrorMessage = null" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+    </ng-container>
+
+    <ng-container *ngIf="!this.dataService.createSeGroup">
+        <div *ngIf="this.dataService.serviceEngineGroupVcdDisplayNameErrorMessage" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text">
+                        {{ this.dataService.serviceEngineGroupVcdDisplayNameErrorMessage }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="this.dataService.serviceEngineGroupVcdDisplayNameErrorMessage = null" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+    </ng-container>
+
+    <ng-container *ngIf="!this.dataService.aviGreenfield && !this.dataService.configureAviNsxtCloud">
+        <h4 aria-level="2">Create Service Engine Group</h4>
+        <div class="clr-row">
+            <div class="clr-col-12">
+                <clr-toggle-container [attr.data-step-metadata]="formName">
+                    <clr-toggle-wrapper>
+                        <input
+                            type="checkbox"
+                            clrToggle
+                            id="createSeGroup"
+                            name="createSeGroup"
+                            formControlName="createSeGroup"
+                            (change)="toggleImportSEG()"
+                            aria-describedby="createSeGroup-helper"/>
+                        <label i18n="createSeGroup label" clr-control-label>
+                            Create Service Engine Group
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Enable this setting for creating service engine group.
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                    </clr-toggle-wrapper>
+                </clr-toggle-container>
+            </div>
+        </div>
+    </ng-container>
+
+    <ng-container *ngIf="this.dataService.createSeGroup">
+        <h5 aria-level="2"> Service Engine Group Configuration </h5>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="serviceEngineGroupName label" clr-control-label aria-describedby="tooltip-serviceEngineGroupName">
+                        SERVICE ENGINE GROUP NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Specify the name for Service Engine Group to be created in ALB.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="serviceEngineGroupName" placeholder="VCD Display name" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="serviceEngineGroupName required msg" *clrIfError="validatorEnum.REQUIRED">
+                        VCD display name is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="serviceEngineGroupName required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        VCD display name has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="serviceEngineGroupVcdDisplayName label" clr-control-label aria-describedby="tooltip-serviceEngineGroupVcdDisplayName">
+                        SERVICE ENGINE GROUP VCD DISPLAY NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Specify display name for importing Service Engine Group to VCD.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="serviceEngineGroupVcdDisplayName" placeholder="VCD Display name" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="serviceEngineGroupVcdDisplayName required msg" *clrIfError="validatorEnum.REQUIRED">
+                        VCD display name is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="serviceEngineGroupVcdDisplayName required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        VCD display name has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="reservationType label">
+                        RESERVATION MODEL
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Specify whether the imported service engine group will be a dedicated to the Edge Gateway
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <select clrSelect name="reservationType" formControlName="reservationType">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let reservationType of reservationTypes">
+                            <option [value]="reservationType">
+                                {{reservationType}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting reservation model is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+        </div>
+        <pre></pre>
+        <h5 aria-level="2"> vCenter Placement Details </h5>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="vcenterDatacenter label">
+                        DATACENTER
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please select Datacenter from the drop-down
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                        <div style="display:inline-block"><clr-icon shape="refresh" size="18" role="button" (click)="getVsphereData()"></clr-icon></div>
+                    </label>
+                    <select clrSelect name="vcenterDatacenter" formControlName="vcenterDatacenter" (ngModelChange)="onDatacenterChange()">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let vcenterDatacenter of this.dataService.vc2Datacenters">
+                            <option [value]="vcenterDatacenter">
+                                {{vcenterDatacenter}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting a datacenter is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="vcenterCluster label">
+                        CLUSTER
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please select Cluster from the drop-down
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                        <div style="display:inline-block"><clr-icon shape="refresh" size="18" role="button" (click)="getClustersUnderDatacenter(this.formGroup.get('vcenterDatacenter').value)"></clr-icon></div>
+                    </label>
+                    <select clrSelect name="vcenterCluster" formControlName="vcenterCluster">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let vcenterCluster of this.dataService.vc2Clusters">
+                            <option [value]="vcenterCluster">
+                                {{vcenterCluster}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting a cluster is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="vcenterDatastore label">
+                        DATASTORE
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please select Datastore from the drop-down
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                        <div style="display:inline-block"><clr-icon shape="refresh" size="18" role="button" (click)="getDatastoresUnderDatacenter(this.formGroup.get('vcenterDatacenter').value)"></clr-icon></div>
+                    </label>
+                    <select clrSelect name="vcenterDatastore" formControlName="vcenterDatastore">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let vcenterDatastore of this.dataService.vc2Datastores">
+                            <option [value]="vcenterDatastore">
+                                {{vcenterDatastore}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting a datastore is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="vcenterContentSeLibrary label">
+                        SE CONTENT LIBRARY
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    User can choose an exisitng Content Library, or SIVT will create a new one. This Content Library will be used to store Service Engine VM templates.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                        <div style="display:inline-block"><clr-icon shape="refresh" size="18" role="button" (click)="getVsphereData()"></clr-icon></div>
+                    </label>
+                    <select clrSelect name="vcenterContentSeLibrary" formControlName="vcenterContentSeLibrary" (ngModelChange)="onContentLibraryChange()">
+                        <option [value]="'CREATE NEW'">CREATE NEW</option>
+                        <ng-container *ngFor="let vcenterContentSeLibrary of this.dataService.vc2ContentLibs">
+                            <option [value]="vcenterContentSeLibrary">
+                                {{vcenterContentSeLibrary}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting an SE content library is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+            <ng-container *ngIf="this.formGroup.get('vcenterContentSeLibrary').value === 'CREATE NEW'">
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label i18n="newVcenterContentSeLibrary label">
+                            NEW CONTENT LIBRARY NAME
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        SIVT will create a new Content Library and upload Service Engine VM templates to it.
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="newVcenterContentSeLibrary" placeholder="New content library name">
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error>New content library name cannot be empty!</clr-control-error>
+                    </clr-input-container>
+                </div>
+            </ng-container>
+        </div>
+    </ng-container>
+
+    <ng-container *ngIf="!this.dataService.createSeGroup">
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="serviceEngineGroupName label">
+                        SERVICE ENGINE GROUP NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Select the service engine group name that is present in ALB and needs to be imported to VCD.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                        <div style="display:inline-block"><clr-icon shape="refresh" size="18" role="button" (click)="fetchServiceEngineGroupNamesFromALB()"></clr-icon></div>
+                    </label>
+                    <select clrSelect name="serviceEngineGroupName" formControlName="serviceEngineGroupName">
+                        <ng-container *ngFor="let serviceEngineGroupName of this.dataService.serviceEngineGroupnamesAlb">
+                            <option [value]="serviceEngineGroupName">
+                                {{serviceEngineGroupName}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting a service engine group name for importing is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="serviceEngineGroupVcdDisplayName label">
+                        SERVICE ENGINE GROUP VCD DISPLAY NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Select Service engine group name if it is already imported to VCD or choose "IMPORT TO VCD" and specify the name.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                        <div style="display:inline-block"><clr-icon shape="refresh" size="18" role="button" (click)="fetchServiceEngineGroupNamesFromVCD()"></clr-icon></div>
+                    </label>
+                    <select clrSelect name="serviceEngineGroupVcdDisplayName" formControlName="serviceEngineGroupVcdDisplayName" (ngModelChange)="onServiceEngineGroupVcdDisplayNameChange()">
+                        <option [value]="'IMPORT TO VCD'">IMPORT TO VCD</option>
+                        <ng-container *ngFor="let serviceEngineGroupVcdDisplayName of this.dataService.serviceEngineGroupVcdDisplayNames">
+                            <option [value]="serviceEngineGroupVcdDisplayName">
+                                {{serviceEngineGroupVcdDisplayName}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Service Engine group VCD display name is required</clr-control-error>
+                </clr-select-container>
+            </div>
+            <ng-container *ngIf="this.formGroup.get('serviceEngineGroupVcdDisplayName').value === 'IMPORT TO VCD'">
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label i18n="serviceEngineGroupVcdDisplayNameInput label" clr-control-label aria-describedby="tooltip-serviceEngineGroupVcdDisplayNameInput">
+                            VCD DISPLAY NAME
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        The service engine group will be imported to VCD with the following name.
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="serviceEngineGroupVcdDisplayNameInput" placeholder="VCD Display name" />
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="serviceEngineGroupVcdDisplayNameInput required msg" *clrIfError="validatorEnum.REQUIRED">
+                            VCD display name is required!
+                        </clr-control-error>
+                        <clr-control-error i18n="serviceEngineGroupVcdDisplayNameInput required msg" *clrIfError="validatorEnum.WHITESPACE">
+                            VCD display name has whitespaces on ends!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-select-container [attr.data-step-metadata]="formName">
+                        <label i18n="reservationType label">
+                            RESERVATION MODEL
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Please specify whether the import service engine group will be a dedicated to the Edge Gateway
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <select clrSelect name="reservationType" formControlName="reservationType">
+                            <ng-container *ngFor="let reservationType of reservationTypes">
+                                <option [value]="reservationType">
+                                    {{reservationType}}
+                                </option>
+                            </ng-container>
+                        </select>
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error>Selecting reservation type is required!</clr-control-error>
+                    </clr-select-container>
+                </div>
+            </ng-container>
+        </div>
+    </ng-container>
+
+</form>

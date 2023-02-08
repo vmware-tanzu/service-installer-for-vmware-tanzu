@@ -1,0 +1,1232 @@
+<!--
+    Copyright 2021 VMware, Inc
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<form [formGroup]="formGroup">
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <h4 aria-level="2">Deploy NSX ALB Controller</h4>
+    <div class="clr-row">
+        <div class="clr-col-12">
+            <clr-toggle-container [attr.data-step-metadata]="formName">
+                <clr-toggle-wrapper>
+                    <input
+                        type="checkbox"
+                        clrToggle
+                        id="deployAvi"
+                        name="deployAvi"
+                        formControlName="deployAvi"
+                        (change)="toggleDeployAvi()"
+                        aria-describedby="deployAvi-helper"/>
+                    <label i18n="deployAvi label" clr-control-label>
+                        Deploy NSX ALB controller
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Enable this setting for deploying a new ALB controller. If controller is to be imported to VCD or is already configured, turn it off.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                </clr-toggle-wrapper>
+            </clr-toggle-container>
+        </div>
+    </div>
+    <br>
+
+    <ng-container *ngIf="formGroup.value.deployAvi">
+        <div *ngIf="aviOvaErrorNotification" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text" i18n="connect vcenter failure notification">
+                        {{ aviOvaErrorNotification }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="aviOvaErrorNotification = null" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div *ngIf="datastoreError" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text" i18n="connect vcenter failure notification">
+                        {{ datastoreErrorMsg }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="datastoreError = false" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div *ngIf="clusterError" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text" i18n="connect vcenter failure notification">
+                        {{ clusterErrorMsg }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="clusterError = false" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div *ngIf="datacenterError" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text" i18n="connect vcenter failure notification">
+                        {{ datacenterErrorMsg }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="datacenterError = false" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div *ngIf="contentLibError" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text" i18n="connect vcenter failure notification">
+                        {{ contentLibErrorMsg }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="contentLibError = false" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div *ngIf="ovaImageError" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text" i18n="connect vcenter failure notification">
+                        {{ ovaImageErrorMsg }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="ovaImageError = false" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+
+        <h4 aria-level="2">Marketplace </h4>
+        <div class="clr-row">
+            <div class="clr-col-12">
+                <clr-toggle-container [attr.data-step-metadata]="formName">
+                    <clr-toggle-wrapper>
+                        <input
+                                type="checkbox"
+                                clrToggle
+                                id="isMarketplace"
+                                name="isMarketplace"
+                                formControlName="isMarketplace"
+                                (change)="toggleMarketPlace()"
+                                aria-describedby="isMarketplace-helper"/>
+                        <label>
+                            Download Binaries from Marketplace
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Enable this setting for downloading ALB controller, CSE ova and K8s templates from VMware Marketplace.
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                    </clr-toggle-wrapper>
+                </clr-toggle-container>
+            </div>
+        </div>
+
+        <ng-container *ngIf="formGroup.value['isMarketplace']">
+            <h5 aria-level="2"> Marketplace Account Details</h5>
+            <div class="clr-row">
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label i18n="username label" clr-control-label>
+                            REFRESH TOKEN
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Use Refresh token generated from CSP portal.
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="marketplaceRefreshToken" placeholder="Marketplace Refresh Token" />
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="username required msg" *clrIfError="validatorEnum.REQUIRED">
+                            Refresh Token is required!
+                        </clr-control-error>
+                        <clr-control-error i18n="username required msg" *clrIfError="validatorEnum.WHITESPACE">
+                            Refresh Token has whitespaces on ends!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4" aria-live="assertive">
+                    <button [clrLoading]="validateLoadingState"
+                            [disabled]="!this.formGroup.get('marketplaceRefreshToken').valid || validateToken"
+                            (click)="verifyMarketplaceRefreshToken()" i18n="connect btn"
+                            class="btn btn-primary btn-connect">
+                        {{ validateToken ? "VALIDATED" : "VALIDATE" }}
+                    </button>
+                </div>
+            </div>
+        </ng-container>
+    
+        <pre></pre>
+        <h4 aria-level="2">vSphere </h4>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="vcenter server addr label" clr-control-label aria-describedby="tooltip-vcenter-server">
+                        VCENTER SERVER
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    IP address or hostname of the vCenter server that manages your vSphere infrastructure.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="vcenterAddress" placeholder="IP or FQDN" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="vcenter server addr required msg" *clrIfError="validatorEnum.REQUIRED">
+                        vCenter Server address cannot be empty
+                    </clr-control-error>
+                    <clr-control-error i18n="vcenter server addr valid msg" *clrIfError="validatorEnum.VALID_IP_OR_FQDN">
+                        Enter a valid IP address or FQDN
+                    </clr-control-error>
+                    <clr-control-error i18n="vcenter server addr required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        vCenter Server address has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="vcenterSsoUser label" clr-control-label>
+                        USERNAME
+                    </label>
+                    <input clrInput formControlName="vcenterSsoUser" placeholder="Username" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="vcenterSsoUser required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Username cannot be empty
+                    </clr-control-error>
+                    <clr-control-error i18n="vcenterSsoUser required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Username has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-password-container [attr.data-step-metadata]="formName">
+                    <label i18n="vcenterSsoPasswordBase64 label" clr-control-label>
+                        PASSWORD
+                    </label>
+                    <input clrPassword formControlName="vcenterSsoPasswordBase64" placeholder="Password" id="ssoPassword"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="vcenterSsoPasswordBase64 required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Password cannot be empty
+                    </clr-control-error>
+                </clr-password-container>
+            </div>
+        </div>
+        <div *ngIf="!connected" class="alert alert-info" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="info-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text" i18n="vsphere wizard step info notification">
+                        You must click "CONNECT" to verify
+                        the vSphere credentials before moving to next step.
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-4" aria-live="assertive">
+                <button [clrLoading]="connectLoadingState"
+                        [disabled]="getDisabled() || connected"
+                        (click)="connectVC()" i18n="connect btn"
+                        class="btn btn-primary btn-connect">
+                    {{ connected ? "CONNECTED" : "CONNECT" }}
+                </button>
+            </div>
+            <!-- <div *ngIf="connected">
+                <div class="clr-col-12 clr-col-sm-4" aria-live="assertive">
+                    <button [clrLoading]="reloadLoadingState"
+                            [disabled]="getDisabled()"
+                            (click)="reloadVsphereData()" i18n="connect btn"
+                            class="btn btn-primary btn-connect">
+                        {{ "RELOAD" }}
+                    </button>
+                </div>
+            </div> -->
+        </div>
+    
+        <h5 aria-level="2"> Resource Group Details </h5>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="vcenterDatacenter label">
+                        DATACENTER
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please select Datacenter from the drop-down
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <select clrSelect name="vcenterDatacenter" formControlName="vcenterDatacenter" (ngModelChange)="onDatacenterChange()">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let vcenterDatacenter of datacenters">
+                            <option [value]="vcenterDatacenter">
+                                {{vcenterDatacenter}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting a datacenter is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="vcenterCluster label">
+                        CLUSTER
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please select Cluster from the drop-down
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <select clrSelect name="vcenterCluster" formControlName="vcenterCluster">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let vcenterCluster of clusters">
+                            <option [value]="vcenterCluster">
+                                {{vcenterCluster}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting a cluster is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="vcenterDatastore label">
+                        DATASTORE
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please select Datastore from the drop-down
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <select clrSelect name="vcenterDatastore" formControlName="vcenterDatastore">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let vcenterDatastore of datastores">
+                            <option [value]="vcenterDatastore">
+                                {{vcenterDatastore}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting a datastore is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4" *ngIf="!formGroup.value['isMarketplace']">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="datacenter label">
+                        CONTENT LIBRARY
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please upload the NSX ALB controller OVA to content library if download from Marketplace setting is turned off.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <select clrSelect name="contentLibraryName" formControlName="contentLibraryName" (ngModelChange)="onContentLibChange()">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let contentLibraryName of contentLibs">
+                            <option [value]="contentLibraryName">
+                                {{contentLibraryName}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting a content library is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4" *ngIf="!formGroup.value['isMarketplace']">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="aviOvaName label">
+                        NSX ALB OVA IMAGE
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                   Please select NSX ALB Ova Image name from the drop-down
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <select clrSelect name="aviOvaName" formControlName="aviOvaName">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let aviOvaName of aviOvaImages">
+                            <option [value]="aviOvaName">
+                                {{aviOvaName}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting an ova image is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="resourcePoolName label">
+                        RESOURCE POOL (OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Optionally specify resource pool name for creating child resource pools within.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <select clrSelect name="resourcePoolName" formControlName="resourcePoolName">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let resourcePoolName of resourcePools">
+                            <option [value]="resourcePoolName">
+                                {{resourcePoolName}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                </clr-select-container>
+            </div>
+        </div>
+        <app-ssl-thumbprint-modal [thumbprint]="thumbprint" [vcenterHost]="vcenterAddress" (verifiedThumbprint)="thumbprintModalResponse($event)"></app-ssl-thumbprint-modal>
+
+        <pre></pre>
+        <h4 aria-level="2">NSX ALB Management Network</h4>
+        <div *ngIf="aviMgmtNetworkNameError" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text" i18n="connect vcenter failure notification">
+                        The provided NSX ALB Management Network is not found, please select one from dropdown
+                    </span>
+                </div>
+            </div>
+            <button (click)="aviMgmtNetworkNameError = false" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="datacenter label">
+                        SEGMENT NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please select segment name to be used as NSX ALB Management Network, this segment needs to be already created by users.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <select clrSelect name="aviMgmtNetworkName" formControlName="aviMgmtNetworkName">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let aviMgmtNetworkName of this.apiClient.networks">
+                            <option [value]="aviMgmtNetworkName">
+                                {{aviMgmtNetworkName}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting a segment name is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        GATEWAY CIDR
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please specify the Gateway CIDR configured for NSX ALB Management Network.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="aviMgmtNetworkGatewayCidr" placeholder="192.168.0.0/24" (ngModelChange)="validateGatewayCidrAndIp()"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Gateway CIDR for NSX ALB Management Network is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                       *clrIfError="validatorEnum.VALID_IP">
+                        Gateway CIDR for NSX ALB Management Network is invalid!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                       *clrIfError="validatorEnum.WHITESPACE">
+                        Gateway CIDR for NSX ALB Management Network has leading or trailing whitespaces!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+        </div>
+
+        <pre></pre>
+        <h4 aria-level="2">NSX ALB Component Specifications</h4>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="aviUsername label" clr-control-label>
+                        NSX ALB USERNAME
+                    </label>
+                    <input clrInput formControlName="aviUsername" placeholder="aviUsername" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="aviUsername required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Username cannot be empty
+                    </clr-control-error>
+                    <clr-control-error i18n="aviUsername required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Username has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-password-container [attr.data-step-metadata]="formName">
+                    <label i18n="aviPasswordBase64 label" clr-control-label>
+                        NSX ALB PASSWORD
+                    </label>
+                    <input clrPassword formControlName="aviPasswordBase64" placeholder="Password"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="aviPasswordBase64 required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Password cannot be empty!
+                    </clr-control-error>
+                    <clr-control-error i18n="aviPasswordBase64 valid msg"
+                                        *clrIfError="validatorEnum.VALID_AVI_PASSWORD">
+                        NSX ALB Password must  contain a combination of 3: Uppercase character, Lowercase character, Numeric or Special Character.
+                    </clr-control-error>
+                    <clr-control-error i18n="aviPasswordBase64 required msg" *clrIfError="validatorEnum.MIN_LEN">
+                        NSX ALB Password minimum length has to be 8!
+                    </clr-control-error>
+                </clr-password-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-password-container [attr.data-step-metadata]="formName">
+                    <label i18n="aviBackupPassphraseBase64 label" clr-control-label>
+                        NSX ALB BACKUP PASSPHRASE
+                    </label>
+                    <input clrPassword formControlName="aviBackupPassphraseBase64" placeholder="Password"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="aviBackupPassphraseBase64 required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Password cannot be empty!
+                    </clr-control-error>
+                    <clr-control-error i18n="avi aviBackupPassphraseBase64 valid msg"
+                                        *clrIfError="validatorEnum.VALID_AVI_PASSWORD">
+                        NSX ALB Backup Passphrase must  contain a combination of 3: Uppercase character, Lowercase character, Numeric or Special Character.
+                    </clr-control-error>
+                    <clr-control-error i18n="aviBackupPassphraseBase64 required msg" *clrIfError="validatorEnum.MIN_LEN">
+                        NSX ALB Backup Passphrase minimum length has to be 8!
+                    </clr-control-error>
+                </clr-password-container>
+            </div>
+        </div>
+
+        <h5 i18n="cluster settings" aria-level="2">
+            Enable High Availability for NSX Advanced Load Balancer
+        </h5>
+        <div class="clr-row">
+            <div class="clr-col-12">
+                <clr-toggle-container [attr.data-step-metadata]="formName">
+                    <clr-toggle-wrapper>
+                        <input
+                            type="checkbox"
+                            clrToggle
+                            id="enableAviHa"
+                            name="enableAviHa"
+                            formControlName="enableAviHa"
+                            (change)="toggleEnableAviHa()"
+                            aria-describedby="enableAviHa-helper"/>
+                        <label class="hidden">Enable HA for NSX ALB Controller</label>
+                    </clr-toggle-wrapper>
+                </clr-toggle-container>
+            </div>
+        </div>
+        <div *ngIf="this.apiClient.aviController01Error" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <div class="newline">
+                        <span class="alert-text">
+                            AVI Controller Node 01 is out of the provided NSX ALB Management subnet.
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <button (click)="this.apiClient.aviController01Error = false" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div *ngIf="this.apiClient.aviController02Error" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <div class="newline">
+                        <span class="alert-text">
+                            AVI Controller Node 02 is out of the provided NSX ALB Management subnet.
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <button (click)="this.apiClient.aviController02Error = null" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div *ngIf="this.apiClient.aviController03Error" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <div class="newline">
+                        <span class="alert-text">
+                            AVI Controller Node 03 is out of the provided NSX ALB Management subnet.
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <button (click)="this.apiClient.aviController01Error = null" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div *ngIf="this.apiClient.clusterIpError" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <div class="newline">
+                        <span class="alert-text">
+                            Cluster IP is out of the provided subnet NSX ALB Management subnet.
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <button (click)="this.apiClient.clusterIpError = false" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4 clr-form-horizontal">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="load balancer template label" clr-control-label>
+                        NSX ALB NODE-01 FQDN
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please specify NSX ALB Controller FQDN to be configured for controller VM-1
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="aviController01Fqdn" placeholder="FQDN" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                        NSX ALB NODE-01 FQDN is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                       *clrIfError="validatorEnum.VALID_FQDN">
+                        NSX ALB NODE-01 FQDN is invalid!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                       *clrIfError="validatorEnum.WHITESPACE">
+                        NSX ALB NODE-01 FQDN has leading or trailing whitespaces!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4 clr-form-horizontal">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        NSX ALB NODE-01 IP
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please specify NSX ALB Controller IP to be configured for controller VM-1
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="aviController01Ip" placeholder="192.168.0.0" (ngModelChange)="validateGatewayCidrAndIp()"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                        NSX ALB NODE-01 IP is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                       *clrIfError="validatorEnum.VALID_IP">
+                        NSX ALB NODE-01 IP is invalid!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                       *clrIfError="validatorEnum.WHITESPACE">
+                        NSX ALB NODE-01 IP has leading or trailing whitespaces!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+        </div>
+        <ng-container *ngIf="formGroup.value['enableAviHa']">
+            <div class="clr-row" *ngIf="formGroup.value['enableAviHa']">
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4 clr-form-horizontal">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            NSX ALB NODE-02 FQDN
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Please specify NSX ALB Controller FQDN to be configured for controller VM-2
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="aviController02Fqdn" placeholder="FQDN" />
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                            NSX ALB NODE-02 FQDN is required!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.VALID_FQDN">
+                            NSX ALB NODE-02 FQDN is invalid!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.WHITESPACE">
+                            NSX ALB NODE-02 FQDN has leading or trailing whitespaces!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4 clr-form-horizontal">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            NSX ALB NODE-02 IP
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Please specify NSX ALB Controller IP to be configured for controller VM-2
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="aviController02Ip" placeholder="192.168.0.0" (ngModelChange)="validateGatewayCidrAndIp()"/>
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                            NSX ALB Controller IP is required!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.VALID_IP">
+                            NSX ALB Controller IP is invalid!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.WHITESPACE">
+                            NSX ALB Controller IP has leading or trailing whitespaces!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+            </div>
+            <div class="clr-row" *ngIf="formGroup.value['enableAviHa']">
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4 clr-form-horizontal">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            NSX ALB NODE-03 FQDN
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Please specify NSX ALB Controller FQDN to be configured for controller VM-3
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="aviController03Fqdn" placeholder="FQDN" />
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                            NSX ALB NODE-03 FQDN is required!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.VALID_FQDN">
+                            NSX ALB NODE-03 FQDN is invalid!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.WHITESPACE">
+                            NSX ALB NODE-03 FQDN has leading or trailing whitespaces!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4 clr-form-horizontal">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            NSX ALB NODE-03 IP
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Please specify NSX ALB Controller IP to be configured for controller VM-3
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="aviController03Ip" placeholder="192.168.0.0" (ngModelChange)="validateGatewayCidrAndIp()"/>
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                            NSX ALB NODE-03 IP is required!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.VALID_IP">
+                            NSX ALB NODE-03 IP is invalid!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.WHITESPACE">
+                            NSX ALB NODE-03 IP has leading or trailing whitespaces!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+            </div>
+            <div class="clr-row" *ngIf="formGroup.value['enableAviHa']">
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4 clr-form-horizontal">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            NSX ALB CLUSTER FQDN
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Please specify Cluster FQDN to be configured for enabling HA on NSX ALB Controller.
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="aviClusterFqdn" placeholder="FQDN"/>
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                            Cluster FQDN is required!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.VALID_FQDN">
+                            Cluster FQDN is invalid!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.WHITESPACE">
+                            Cluster FQDN has leading or trailing whitespaces!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4 clr-form-horizontal">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            NSX ALB CLUSTER IP
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Please specify NSX ALB Cluster IP to be configured
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="aviClusterIp" placeholder="192.168.0.0" (ngModelChange)="validateGatewayCidrAndIp()"/>
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                            Cluster IP is required!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.VALID_IP">
+                            Cluster IP is invalid!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint format msg"
+                                           *clrIfError="validatorEnum.WHITESPACE">
+                            Cluster IP has leading or trailing whitespaces!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+            </div>
+        </ng-container>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-4" aria-live="assertive">
+                <button [clrLoading]="nameResolutionLoadingState"
+                        [disabled]="nameResolution"
+                        (click)="nameResolutionTest()" i18n="connect btn"
+                        class="btn btn-primary btn-connect">
+                    {{ nameResolution ? "VALIDATED" : "VALIDATE NAME RESOLUTION" }}
+                </button>
+            </div>
+        </div>
+        <h5 i18n="cluster settings" aria-level="2">
+            NSX Advanced Load Balancer Size Configuration
+        </h5>
+        <div class="clr-row">
+            <div class="clr-col-6 clr-form-horizontal">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="datacenter label">
+                        CONTROLLER SIZE
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please choose size of NSX ALB Controller.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <select clrSelect name="aviSize" formControlName="aviSize">
+                        <option aria-label="blank" title="blank"></option>
+                        <ng-container *ngFor="let aviSize of nodeTypes">
+                            <option [value]="aviSize.id">
+                                {{aviSize.name}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting NSX ALB Controller size is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+        </div>
+        <h5 i18n="cluster settings" aria-level="2">
+            NSX Advanced Load Balancer Certificate Configuration
+        </h5>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        NSX ALB CERT PATH (OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Optionally specify certificate path (loaded into Bootstrap VM) for NSX ALB Controller.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="aviCertPath" placeholder="/root/cert.pem" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Cert Path has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        NSX ALB CERT KEY PATH (OPTIONAL)
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Optionally specify certificate key path (loaded into Bootstrap VM) for NSX ALB Controller.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="aviCertKeyPath" placeholder="/root/key.pem" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Cert-key Path has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+        </div>
+
+        <h5 i18n="cluster settings" aria-level="2">
+            NSX Advanced Load Balancer VCD display name
+        </h5>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        VCD NSX ALB DISPLAY NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Specify display name for NSX ALB controller for importing it to VCD environment.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="aviVcdDisplayName" placeholder="Display Name"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Display name has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+        </div>
+    </ng-container>
+
+    <ng-container *ngIf="!formGroup.value.deployAvi">
+        <h4 aria-level="2">NSX ALB Component Specifications</h4>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="aviUsername label" clr-control-label>
+                        NSX ALB USERNAME
+                    </label>
+                    <input clrInput formControlName="aviUsername" placeholder="aviUsername" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="aviUsername required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Username cannot be empty
+                    </clr-control-error>
+                    <clr-control-error i18n="aviUsername required msg" *clrIfError="validatorEnum.WHITESPACE">
+                        Username has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-password-container [attr.data-step-metadata]="formName">
+                    <label i18n="aviPasswordBase64 label" clr-control-label>
+                        NSX ALB PASSWORD
+                    </label>
+                    <input clrPassword formControlName="aviPasswordBase64" placeholder="Password"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="aviPasswordBase64 required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Password cannot be empty!
+                    </clr-control-error>
+                    <clr-control-error i18n="aviPasswordBase64 valid msg"
+                                        *clrIfError="validatorEnum.VALID_AVI_PASSWORD">
+                        NSX ALB Password must  contain a combination of 3: Uppercase character, Lowercase character, Numeric or Special Character.
+                    </clr-control-error>
+                    <clr-control-error i18n="aviPasswordBase64 required msg" *clrIfError="validatorEnum.MIN_LEN">
+                        NSX ALB Password minimum length has to be 8!
+                    </clr-control-error>
+                </clr-password-container>
+            </div>
+        </div>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        NSX ALB FQDN
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please specify FQDN for accessing NSX ALB controller.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="aviClusterFqdn" placeholder="FQDN"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Controller FQDN is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                        *clrIfError="validatorEnum.VALID_FQDN">
+                        Controller FQDN is invalid!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                        *clrIfError="validatorEnum.WHITESPACE">
+                        Controller FQDN has leading or trailing whitespaces!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label class="hidden" i18n="load balancer template label">
+                        NSX ALB IP
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    Please specify IP for accessing NSX ALB controller.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="aviClusterIp" placeholder="192.168.0.0"/>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                        Controller IP is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                        *clrIfError="validatorEnum.VALID_IP">
+                        Controller IP is invalid!
+                    </clr-control-error>
+                    <clr-control-error i18n="control plane endpoint format msg"
+                                        *clrIfError="validatorEnum.WHITESPACE">
+                        Controller IP has leading or trailing whitespaces!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+        </div>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-4" aria-live="assertive">
+                <button [clrLoading]="nameResolutionLoadingState"
+                        [disabled]="nameResolution"
+                        (click)="nameResolutionTest()" i18n="connect btn"
+                        class="btn btn-primary btn-connect">
+                    {{ nameResolution ? "VALIDATED" : "VALIDATE NAME RESOLUTION" }}
+                </button>
+            </div>
+        </div>
+        <h5 i18n="cluster settings" aria-level="2">
+            NSX Advanced Load Balancer VCD display name
+        </h5>
+        <div *ngIf="this.dataService.aviVcdDisplayNamesErrorMessage" class="alert alert-danger" role="alert">
+            <div class="alert-items">
+                <div class="alert-item static">
+                    <div class="alert-icon-wrapper">
+                        <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                    </div>
+                    <span class="alert-text">
+                        {{  this.dataService.aviVcdDisplayNamesErrorMessage }}
+                    </span>
+                </div>
+            </div>
+            <button (click)="this.dataService.aviVcdDisplayNamesErrorMessage = null" type="button" class="close" aria-label="Close">
+                <clr-icon aria-hidden="true" shape="close"></clr-icon>
+            </button>
+        </div>
+        <div class="clr-row">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-select-container [attr.data-step-metadata]="formName">
+                    <label i18n="aviVcdDisplayName label">
+                        VCD NSX ALB DISPLAY NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    If NSX ALB is already configured in VCD, please choose the display name or else choose IMPORT TO VCD and specify the display name.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                        <div style="display:inline-block"><clr-icon shape="refresh" size="18" role="button" (click)="getAVIVcdDisplayNames()"></clr-icon></div>
+                    </label>
+                    <select clrSelect name="aviVcdDisplayName" formControlName="aviVcdDisplayName" (ngModelChange)="onAviVcdDisplayNameChange()">
+                        <option [value]="'IMPORT TO VCD'">IMPORT TO VCD</option>
+                        <ng-container *ngFor="let aviVcdDisplayName of this.dataService.aviVcdDisplayNames">
+                            <option [value]="aviVcdDisplayName">
+                                {{aviVcdDisplayName}}
+                            </option>
+                        </ng-container>
+                    </select>
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error>Selecting a display name is required!</clr-control-error>
+                </clr-select-container>
+            </div>
+            <ng-container *ngIf="formGroup.value.aviVcdDisplayName === 'IMPORT TO VCD'">
+                <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <label class="hidden" i18n="load balancer template label">
+                            NAME
+                            <clr-tooltip>
+                                <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                    <span>
+                                        Please provide name with which AVI controller should be imported to VCD.
+                                    </span>
+                                </clr-tooltip-content>
+                            </clr-tooltip>
+                        </label>
+                        <input clrInput formControlName="aviVcdDisplayNameInput" placeholder="Display name"/>
+                        <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                        <clr-control-helper></clr-control-helper>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.REQUIRED">
+                            Display name is required!
+                        </clr-control-error>
+                        <clr-control-error i18n="control plane endpoint required msg" *clrIfError="validatorEnum.WHITESPACE">
+                            Display name has whitespaces on ends!
+                        </clr-control-error>
+                    </clr-input-container>
+                </div>
+            </ng-container>
+        </div>
+    </ng-container>
+</form>

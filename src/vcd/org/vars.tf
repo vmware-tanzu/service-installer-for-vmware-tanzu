@@ -1,0 +1,1 @@
+variable "org_details" { }

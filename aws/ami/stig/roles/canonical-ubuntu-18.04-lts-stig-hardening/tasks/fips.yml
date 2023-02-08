@@ -1,0 +1,169 @@
+- name: "fips: Add Ubuntu advantage key."
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: A166877412DAC26E73CEBF3FF6C280178D13028C
+  when:
+    install_fips | bool and
+    ansible_os_family == "Debian" and
+    not offline_install | bool
+
+- name: Make sure apt-auth config directory exists.
+  file:
+    path: "/etc/apt/auth.conf.d/"
+    state: directory
+  when:
+    install_fips | bool and
+    ansible_os_family == "Debian" and
+    not offline_install | bool
+
+- name: Create fips auth configuration
+  template:
+    src: "ubuntuadvantage.conf.j2"
+    dest: "/etc/apt/auth.conf.d/ubuntuadvantage.conf"
+    owner: "root"
+    group: "root"
+  when:
+    install_fips | bool and
+    ansible_os_family == "Debian" and
+    not offline_install | bool
+
+- name: Create fips updates auth configuration
+  template:
+    src: "ubuntuadvantageupdates.conf.j2"
+    dest: "/etc/apt/auth.conf.d/ubuntuadvantageupdates.conf"
+    owner: "root"
+    group: "root"
+  when:
+    install_fips | bool and
+    ansible_os_family == "Debian" and
+    not offline_install | bool
+
+- name: Add FIPS Repository sources
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+  with_items:
+  - "deb https://private-ppa.launchpad.net/ubuntu-advantage/fips-updates/ubuntu {{ ansible_distribution_release }} main"
+  - "deb https://private-ppa.launchpad.net/ubuntu-advantage/fips/ubuntu {{ ansible_distribution_release }} main "
+  when:
+    install_fips | bool and
+    ansible_os_family == "Debian" and
+    not offline_install | bool
+
+- name: "fips: Install FIPS debs"
+  apt:
+    force_apt_get: True
+    name:
+    - openssh-client
+    - openssh-client-hmac
+    - openssh-server
+    - openssh-server-hmac
+    - openssl
+    - libssl1.1
+    - libssl1.1-hmac
+    force: yes
+    dpkg_options: 'force-confnew'
+  when:
+    install_fips | bool and
+    ansible_os_family == "Debian"
+
+- name: "fips: Install FIPS debs for AWS"
+  apt:
+    force_apt_get: True
+    name:
+    - linux-aws-fips
+    force: yes
+    dpkg_options: 'force-confnew'
+  when:
+    install_fips | bool and
+    packer_builder_type.startswith('amazon') and
+    ansible_os_family == "Debian"
+
+- name: "fips: Install FIPS debs for vSphere"
+  apt:
+    force_apt_get: True
+    name:
+    - linux-fips
+    force: yes
+    dpkg_options: 'force-confnew'
+  when:
+    install_fips | bool and
+    packer_builder_type is search('vmware') or
+    packer_builder_type is search('vsphere')
+
+- name: "fips: Install FIPS debs for Azure"
+  apt:
+    force_apt_get: True
+    name:
+    - linux-azure-fips
+    force: yes
+    dpkg_options: 'force-confnew'
+  when:
+    install_fips | bool and
+    packer_builder_type.startswith('azure') and
+    ansible_os_family == "Debian"
+
+- name: "fips: Make sure grub config directory exists"
+  file:
+    state: directory
+    path: /etc/default/grub.d/
+    owner: root
+    group: root
+    mode: 0755
+  when:
+    install_fips | bool
+
+- name: "fips: Put FIPS grub config in place"
+  copy:
+    src: 99-fips.cfg
+    dest: /etc/default/grub.d/99-fips.cfg
+  when:
+    install_fips | bool
+
+- name: "fips: Get FIPS kernel"
+  command: awk -F"'" '/menuentry.*fips/ { print $(NF-1); exit }' /boot/grub/grub.cfg
+  register: fips_kernel
+  when:
+    install_fips | bool
+
+- name: "fips: Set FIPS kernel in 99-fips.cfg"
+  lineinfile:
+    path: /etc/default/grub.d/99-fips.cfg
+    insertbefore: BOF
+    line: GRUB_DEFAULT="1>{{fips_kernel.stdout}}"
+  notify:
+    - update grub
+  when:
+    install_fips | bool
+
+- name: Remove fips auth configuration
+  file:
+    path: "/etc/apt/auth.conf.d/ubuntuadvantage.conf"
+    state: absent
+  when:
+    install_fips | bool and
+    ansible_os_family == "Debian" and
+    not offline_install | bool
+
+- name: Remove fips updates auth configuration
+  file:
+    path: "/etc/apt/auth.conf.d/ubuntuadvantageupdates.conf"
+    state: absent
+  when:
+    install_fips | bool and
+    ansible_os_family == "Debian" and
+    not offline_install | bool
+
+- name: "fips: Find FIPS hmac files"
+  command: find /usr/bin /usr/sbin /boot /usr/lib/ /usr/local/bin/  -type f -name "*.hmac"
+  register: fips_hmac_files
+  when:
+    install_fips | bool
+
+- name: "fips: Set permissions on FIPS hmac files"
+  file:
+    path: "{{ item }}"
+    mode: '0644'
+  with_items: "{{ fips_hmac_files.stdout_lines }}"
+  when:
+    install_fips | bool
