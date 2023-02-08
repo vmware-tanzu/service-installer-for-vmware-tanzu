@@ -1,0 +1,59 @@
+---
+CLUSTER_CIDR: 100.96.0.0/11
+CLUSTER_NAME: {{ spec.tkg.sharedService.cluster.name }}
+CLUSTER_PLAN: {{ spec.tkg.sharedService.cluster.plan }}
+{% if spec.tkg.sharedService.controlPlane.count is not none %}CONTROL_PLANE_MACHINE_COUNT: {{ spec.tkg.sharedService.controlPlane.count }}{% endif %}
+{% if spec.tkg.sharedService.worker.count is not none %}WORKER_MACHINE_COUNT: {{ spec.tkg.sharedService.worker.count }}{% endif %}
+ENABLE_MHC: "true"
+IDENTITY_MANAGEMENT_TYPE: none
+INFRASTRUCTURE_PROVIDER: vsphere
+SERVICE_CIDR: 100.64.0.0/13
+
+VSPHERE_SERVER: {{ spec.vsphere.server }}
+VSPHERE_USERNAME: {{ spec.vsphere.username }}
+VSPHERE_PASSWORD:  {{ spec.vsphere.password }}
+VSPHERE_TLS_THUMBPRINT: {{ spec.vsphere.tlsThumbprint }}
+
+VSPHERE_DATACENTER: {{ spec.tkg.sharedService.deployment.datacenter }}
+VSPHERE_DATASTORE: {{ spec.tkg.sharedService.deployment.datastore }}
+VSPHERE_FOLDER: {{ spec.tkg.sharedService.deployment.folder }}
+VSPHERE_NETWORK: {{ spec.tkg.sharedService.deployment.network }}
+VSPHERE_RESOURCE_POOL: {{ spec.tkg.sharedService.deployment.resourcePool }}
+
+VSPHERE_SSH_AUTHORIZED_KEY: {{ spec.tkg.sharedService.sshKey }}
+VSPHERE_CONTROL_PLANE_ENDPOINT: {{ spec.tkg.sharedService.controlPlane.endpoint }}
+VSPHERE_CONTROL_PLANE_DISK_GIB: "{{ spec.tkg.sharedService.controlPlane.diskGib }}"
+VSPHERE_CONTROL_PLANE_MEM_MIB: "{{ spec.tkg.sharedService.controlPlane.memoryMib }}"
+VSPHERE_CONTROL_PLANE_NUM_CPUS: "{{ spec.tkg.sharedService.controlPlane.cpus }}"
+VSPHERE_WORKER_DISK_GIB: "{{ spec.tkg.sharedService.worker.diskGib }}"
+VSPHERE_WORKER_MEM_MIB: "{{ spec.tkg.sharedService.worker.memoryMib }}"
+VSPHERE_WORKER_NUM_CPUS: "{{ spec.tkg.sharedService.worker.cpus }}"
+DEPLOY_TKG_ON_VSPHERE7: true
+
+#! ---------------------------------------------------------------------
+#! Proxy configuration
+#! ---------------------------------------------------------------------
+
+{% if spec.tkg.common.proxy %}
+TKG_HTTP_PROXY: {{ spec.tkg.common.proxy.http}}
+TKG_HTTPS_PROXY: {{ spec.tkg.common.proxy.https}}
+TKG_NO_PROXY: {{ spec.tkg.common.proxy.noProxy}}
+{% endif %}
+
+#! ---------------------------------------------------------------------
+#! Common configuration
+#! ---------------------------------------------------------------------
+
+# TKG_CUSTOM_IMAGE_REPOSITORY: ""
+# TKG_CUSTOM_IMAGE_REPOSITORY_CA_CERTIFICATE: ""
+
+#! ---------------------------------------------------------------------
+#! Node configuration
+#! ---------------------------------------------------------------------
+
+{% if spec.tkg.common.node %}
+OS_NAME: {{ spec.tkg.common.node.osName}}
+OS_VERSION: {{ spec.tkg.common.node.osVersion}}
+OS_ARCH: "amd64"
+{% endif %}
+SIZE: "large"

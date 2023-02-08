@@ -1,0 +1,20 @@
+kind: Task
+apiVersion: tekton.dev/v1beta1
+metadata:
+  name: avi-setup-task
+spec:
+  workspaces:
+    - name: task-shared-data
+  params:
+    - name: imagename
+      description: the operand image
+    - name: imagepullpolicy
+      description: imagepullpolicy for operand image("Always", "IfNotPresent", "Never")
+  steps:
+    - name: run-avi-setup
+      image: $(params.imagename)
+      imagePullPolicy: $(params.imagepullpolicy)
+      script: |
+        cd /workspace/task-shared-data
+        ls -al
+        python arcas-tekton-cicd/scripts/__main__.py --root-dir=/workspace/task-shared-data avi deploy

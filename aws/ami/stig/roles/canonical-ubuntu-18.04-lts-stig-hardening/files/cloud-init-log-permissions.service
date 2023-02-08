@@ -1,0 +1,14 @@
+[Unit]
+Description=Fix cloud-init logfile permissions
+
+After=cloud-init.service
+
+PartOf=cloud-init.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/chmod 0640 /var/log/cloud-init.log /var/log/cloud-init-output.log
+
+[Install]
+WantedBy=multi-user.target

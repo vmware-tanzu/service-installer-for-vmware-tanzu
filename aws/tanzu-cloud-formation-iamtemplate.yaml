@@ -1,0 +1,409 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  AWSIAMInstanceProfileControlPlane:
+    Properties:
+      InstanceProfileName: control-plane.tkg.cloud.vmware.com
+      Roles:
+        - Ref: AWSIAMRoleControlPlane
+    Type: 'AWS::IAM::InstanceProfile'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: caec7610-8cde-422f-934b-f88182fb97b0
+  AWSIAMInstanceProfileControllers:
+    Properties:
+      InstanceProfileName: controllers.tkg.cloud.vmware.com
+      Roles:
+        - Ref: AWSIAMRoleControllers
+    Type: 'AWS::IAM::InstanceProfile'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: e1b405cf-46c5-4caa-ab64-c27dd3c8c7c2
+  AWSIAMInstanceProfileNodes:
+    Properties:
+      InstanceProfileName: nodes.tkg.cloud.vmware.com
+      Roles:
+        - Ref: AWSIAMRoleNodes
+    Type: 'AWS::IAM::InstanceProfile'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 256ba0a5-c05f-488b-b4b6-98a55c1834fe
+  AWSIAMManagedPolicyCloudProviderControlPlane:
+    Properties:
+      Description: For the Kubernetes Cloud Provider AWS Control Plane
+      ManagedPolicyName: control-plane.tkg.cloud.vmware.com
+      PolicyDocument:
+        Statement:
+          - Action:
+              - 'autoscaling:DescribeAutoScalingGroups'
+              - 'autoscaling:DescribeLaunchConfigurations'
+              - 'autoscaling:DescribeTags'
+              - 'ec2:DescribeInstances'
+              - 'ec2:DescribeImages'
+              - 'ec2:DescribeRegions'
+              - 'ec2:DescribeRouteTables'
+              - 'ec2:DescribeSecurityGroups'
+              - 'ec2:DescribeSubnets'
+              - 'ec2:DescribeVolumes'
+              - 'ec2:CreateSecurityGroup'
+              - 'ec2:CreateTags'
+              - 'ec2:CreateVolume'
+              - 'ec2:ModifyInstanceAttribute'
+              - 'ec2:ModifyVolume'
+              - 'ec2:AttachVolume'
+              - 'ec2:AuthorizeSecurityGroupIngress'
+              - 'ec2:CreateRoute'
+              - 'ec2:DeleteRoute'
+              - 'ec2:DeleteSecurityGroup'
+              - 'ec2:DeleteVolume'
+              - 'ec2:DetachVolume'
+              - 'ec2:RevokeSecurityGroupIngress'
+              - 'ec2:DescribeVpcs'
+              - 'elasticloadbalancing:AddTags'
+              - 'elasticloadbalancing:AttachLoadBalancerToSubnets'
+              - 'elasticloadbalancing:ApplySecurityGroupsToLoadBalancer'
+              - 'elasticloadbalancing:CreateLoadBalancer'
+              - 'elasticloadbalancing:CreateLoadBalancerPolicy'
+              - 'elasticloadbalancing:CreateLoadBalancerListeners'
+              - 'elasticloadbalancing:ConfigureHealthCheck'
+              - 'elasticloadbalancing:DeleteLoadBalancer'
+              - 'elasticloadbalancing:DeleteLoadBalancerListeners'
+              - 'elasticloadbalancing:DescribeLoadBalancers'
+              - 'elasticloadbalancing:DescribeLoadBalancerAttributes'
+              - 'elasticloadbalancing:DetachLoadBalancerFromSubnets'
+              - 'elasticloadbalancing:DeregisterInstancesFromLoadBalancer'
+              - 'elasticloadbalancing:ModifyLoadBalancerAttributes'
+              - 'elasticloadbalancing:RegisterInstancesWithLoadBalancer'
+              - 'elasticloadbalancing:SetLoadBalancerPoliciesForBackendServer'
+              - 'elasticloadbalancing:AddTags'
+              - 'elasticloadbalancing:CreateListener'
+              - 'elasticloadbalancing:CreateTargetGroup'
+              - 'elasticloadbalancing:DeleteListener'
+              - 'elasticloadbalancing:DeleteTargetGroup'
+              - 'elasticloadbalancing:DescribeListeners'
+              - 'elasticloadbalancing:DescribeLoadBalancerPolicies'
+              - 'elasticloadbalancing:DescribeTargetGroups'
+              - 'elasticloadbalancing:DescribeTargetHealth'
+              - 'elasticloadbalancing:ModifyListener'
+              - 'elasticloadbalancing:ModifyTargetGroup'
+              - 'elasticloadbalancing:RegisterTargets'
+              - 'elasticloadbalancing:SetLoadBalancerPoliciesOfListener'
+              - 'iam:CreateServiceLinkedRole'
+              - 'kms:DescribeKey'
+            Effect: Allow
+            Resource:
+              - '*'
+        Version: 2012-10-17
+      Roles:
+        - !Ref AWSIAMRoleControlPlane
+    Type: 'AWS::IAM::ManagedPolicy'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 27365cc7-9529-4dbc-a0b9-35886757ad6b
+  AWSIAMManagedPolicyCloudProviderNodes:
+    Properties:
+      Description: For the Kubernetes Cloud Provider AWS nodes
+      ManagedPolicyName: nodes.tkg.cloud.vmware.com
+      PolicyDocument:
+        Statement:
+          - Action:
+              - 'ec2:DescribeInstances'
+              - 'ec2:DescribeRegions'
+              - 'ecr:GetAuthorizationToken'
+              - 'ecr:BatchCheckLayerAvailability'
+              - 'ecr:GetDownloadUrlForLayer'
+              - 'ecr:GetRepositoryPolicy'
+              - 'ecr:DescribeRepositories'
+              - 'ecr:ListImages'
+              - 'ecr:BatchGetImage'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Action:
+              - 'secretsmanager:DeleteSecret'
+              - 'secretsmanager:GetSecretValue'
+            Effect: Allow
+            Resource:
+              - 'arn:*:secretsmanager:*:*:secret:aws.cluster.x-k8s.io/*'
+          - Action:
+              - 'ssm:UpdateInstanceInformation'
+              - 'ssmmessages:CreateControlChannel'
+              - 'ssmmessages:CreateDataChannel'
+              - 'ssmmessages:OpenControlChannel'
+              - 'ssmmessages:OpenDataChannel'
+              - 's3:GetEncryptionConfiguration'
+            Effect: Allow
+            Resource:
+              - '*'
+        Version: 2012-10-17
+      Roles:
+        - !Ref AWSIAMRoleControlPlane
+        - !Ref AWSIAMRoleNodes
+    Type: 'AWS::IAM::ManagedPolicy'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 7c62d84c-a8ed-4081-8577-b2ceacd57df5
+  AWSIAMManagedPolicyControllers:
+    Properties:
+      Description: For the Kubernetes Cluster API Provider AWS Controllers
+      ManagedPolicyName: controllers.tkg.cloud.vmware.com
+      PolicyDocument:
+        Statement:
+          - Action:
+              - 'ec2:AllocateAddress'
+              - 'ec2:AssociateRouteTable'
+              - 'ec2:AuthorizeSecurityGroupIngress'
+              - 'ec2:CreateNatGateway'
+              - 'ec2:CreateRoute'
+              - 'ec2:CreateRouteTable'
+              - 'ec2:CreateSecurityGroup'
+              - 'ec2:CreateSubnet'
+              - 'ec2:CreateTags'
+              - 'ec2:ModifyVpcAttribute'
+              - 'ec2:DeleteNatGateway'
+              - 'ec2:DeleteRouteTable'
+              - 'ec2:DeleteSecurityGroup'
+              - 'ec2:DeleteSubnet'
+              - 'ec2:DeleteTags'
+              - 'ec2:DescribeAccountAttributes'
+              - 'ec2:DescribeAddresses'
+              - 'ec2:DescribeAvailabilityZones'
+              - 'ec2:DescribeInstances'
+              - 'ec2:DescribeInternetGateways'
+              - 'ec2:DescribeImages'
+              - 'ec2:DescribeNatGateways'
+              - 'ec2:DescribeNetworkInterfaces'
+              - 'ec2:DescribeNetworkInterfaceAttribute'
+              - 'ec2:DescribeRouteTables'
+              - 'ec2:DescribeSecurityGroups'
+              - 'ec2:DescribeSubnets'
+              - 'ec2:DescribeVpcs'
+              - 'ec2:DescribeVpcAttribute'
+              - 'ec2:DescribeVolumes'
+              - 'ec2:DisassociateRouteTable'
+              - 'ec2:DisassociateAddress'
+              - 'ec2:ModifyInstanceAttribute'
+              - 'ec2:ModifyNetworkInterfaceAttribute'
+              - 'ec2:ModifySubnetAttribute'
+              - 'ec2:ReleaseAddress'
+              - 'ec2:RevokeSecurityGroupIngress'
+              - 'ec2:RunInstances'
+              - 'ec2:TerminateInstances'
+              - 'tag:GetResources'
+              - 'elasticloadbalancing:AddTags'
+              - 'elasticloadbalancing:CreateLoadBalancer'
+              - 'elasticloadbalancing:ConfigureHealthCheck'
+              - 'elasticloadbalancing:DeleteLoadBalancer'
+              - 'elasticloadbalancing:DescribeLoadBalancers'
+              - 'elasticloadbalancing:DescribeLoadBalancerAttributes'
+              - 'elasticloadbalancing:DescribeTags'
+              - 'elasticloadbalancing:ModifyLoadBalancerAttributes'
+              - 'elasticloadbalancing:RegisterInstancesWithLoadBalancer'
+              - 'elasticloadbalancing:DeregisterInstancesFromLoadBalancer'
+              - 'elasticloadbalancing:RemoveTags'
+              - 'autoscaling:DescribeAutoScalingGroups'
+              - 'autoscaling:DescribeInstanceRefreshes'
+              - 'ec2:CreateLaunchTemplate'
+              - 'ec2:CreateLaunchTemplateVersion'
+              - 'ec2:DescribeLaunchTemplates'
+              - 'ec2:DescribeLaunchTemplateVersions'
+              - 'ec2:DeleteLaunchTemplate'
+              - 'ec2:DeleteLaunchTemplateVersions'
+            Effect: Allow
+            Resource:
+              - '*'
+          - Action:
+              - 'autoscaling:CreateAutoScalingGroup'
+              - 'autoscaling:UpdateAutoScalingGroup'
+              - 'autoscaling:CreateOrUpdateTags'
+              - 'autoscaling:StartInstanceRefresh'
+              - 'autoscaling:DeleteAutoScalingGroup'
+              - 'autoscaling:DeleteTags'
+            Effect: Allow
+            Resource:
+              - 'arn:*:autoscaling:*:*:autoScalingGroup:*:autoScalingGroupName/*'
+          - Action:
+              - 'iam:CreateServiceLinkedRole'
+            Condition:
+              StringLike:
+                'iam:AWSServiceName': autoscaling.amazonaws.com
+            Effect: Allow
+            Resource:
+              - >-
+                arn:*:iam::*:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling
+          - Action:
+              - 'iam:CreateServiceLinkedRole'
+            Condition:
+              StringLike:
+                'iam:AWSServiceName': elasticloadbalancing.amazonaws.com
+            Effect: Allow
+            Resource:
+              - >-
+                arn:*:iam::*:role/aws-service-role/elasticloadbalancing.amazonaws.com/AWSServiceRoleForElasticLoadBalancing
+          - Action:
+              - 'iam:CreateServiceLinkedRole'
+            Condition:
+              StringLike:
+                'iam:AWSServiceName': spot.amazonaws.com
+            Effect: Allow
+            Resource:
+              - >-
+                arn:*:iam::*:role/aws-service-role/spot.amazonaws.com/AWSServiceRoleForEC2Spot
+          - Action:
+              - 'iam:PassRole'
+            Effect: Allow
+            Resource:
+              - 'arn:*:iam::*:role/*.tkg.cloud.vmware.com'
+          - Action:
+              - 'secretsmanager:CreateSecret'
+              - 'secretsmanager:DeleteSecret'
+              - 'secretsmanager:TagResource'
+            Effect: Allow
+            Resource:
+              - 'arn:*:secretsmanager:*:*:secret:aws.cluster.x-k8s.io/*'
+        Version: 2012-10-17
+      Roles:
+        - !Ref AWSIAMRoleControllers
+        - !Ref AWSIAMRoleControlPlane
+    Type: 'AWS::IAM::ManagedPolicy'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: ceda3de6-e01e-414b-b9f7-ff689d2539b2
+  AWSIAMRoleControlPlane:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+        Version: 2012-10-17
+      RoleName: control-plane.tkg.cloud.vmware.com
+    Type: 'AWS::IAM::Role'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: dfeab068-b7a7-4386-b05b-d0530112ba64
+  AWSIAMRoleControllers:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+        Version: 2012-10-17
+      RoleName: controllers.tkg.cloud.vmware.com
+    Type: 'AWS::IAM::Role'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 50e34516-1474-4096-86a8-4e7547f31fb9
+  AWSIAMRoleNodes:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+        Version: 2012-10-17
+      RoleName: nodes.tkg.cloud.vmware.com
+    Type: 'AWS::IAM::Role'
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: c9bb1522-da26-476f-945c-3de6b0306b6b
+Metadata:
+  'AWS::CloudFormation::Designer':
+    c9bb1522-da26-476f-945c-3de6b0306b6b:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -20
+        'y': 80
+      z: 1
+      embeds: []
+    50e34516-1474-4096-86a8-4e7547f31fb9:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 90
+        'y': 80
+      z: 1
+      embeds: []
+    dfeab068-b7a7-4386-b05b-d0530112ba64:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 180
+        'y': 80
+      z: 1
+      embeds: []
+    ceda3de6-e01e-414b-b9f7-ff689d2539b2:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 470
+        'y': 270
+      z: 1
+      embeds: []
+      isassociatedwith:
+        - 50e34516-1474-4096-86a8-4e7547f31fb9
+        - dfeab068-b7a7-4386-b05b-d0530112ba64
+    7c62d84c-a8ed-4081-8577-b2ceacd57df5:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 470
+        'y': 80
+      z: 1
+      embeds: []
+      isassociatedwith:
+        - dfeab068-b7a7-4386-b05b-d0530112ba64
+        - c9bb1522-da26-476f-945c-3de6b0306b6b
+    27365cc7-9529-4dbc-a0b9-35886757ad6b:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 460
+        'y': 190
+      z: 1
+      embeds: []
+      isassociatedwith:
+        - dfeab068-b7a7-4386-b05b-d0530112ba64
+    256ba0a5-c05f-488b-b4b6-98a55c1834fe:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 60
+        'y': 330
+      z: 1
+      embeds: []
+    e1b405cf-46c5-4caa-ab64-c27dd3c8c7c2:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 180
+        'y': 330
+      z: 1
+      embeds: []
+    caec7610-8cde-422f-934b-f88182fb97b0:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 300
+        'y': 330
+      z: 1
+      embeds: []

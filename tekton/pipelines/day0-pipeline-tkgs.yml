@@ -1,0 +1,134 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: day0-pipeline-tkgs
+spec:
+  description: >-
+    The Pipline to run e2e TKGs 1.4.x bringup on vSphere DVS Internet Lab.
+  workspaces:
+    - name: pipeline-shared-data
+  params:
+    - name: imagename
+      description: "The image location"
+    - name: giturl
+      description: The full http git path
+    - name: branch
+      description: the branch to clone from. By default, it is set to master.
+      default: alpha
+    - name: imagepullpolicy
+      description: imagepullpolicy for operand image("Always", "IfNotPresent", "Never")
+  tasks:
+    - name: start-prep-workspace
+      taskRef:
+        name: git-pvtclone
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: giturl
+          value: "$(params.giturl)"
+        - name: branch
+          value: "$(params.branch)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+
+    - name: start-avi
+      taskRef:
+        name: avi-setup-task
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+      runAfter:
+          - start-prep-workspace
+
+    - name: start-avi-wcp-configuration
+      taskRef:
+        name: tkgs-supervisor-create
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+      runAfter:
+        - start-avi
+
+    - name: start-enable-wcp
+      taskRef:
+        name: enable-wcp
+      workspaces:
+          - name: task-shared-data
+            workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+      runAfter:
+            - start-avi-wcp-configuration
+
+    - name: start-wld-ns-setup
+      taskRef:
+        name: tkgs-wld-ns-setup
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+      runAfter:
+        - start-enable-wcp
+
+    - name: start-wld-setup
+      taskRef:
+        name: tkgs-wld-setup
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+      runAfter:
+        - start-wld-ns-setup
+    
+    - name: start-extns-deploy
+      taskRef:
+        name: tkgs-extns-setup
+      workspaces:
+          - name: task-shared-data
+            workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+        - name: imagepullpolicy
+          value: "$(params.imagepullpolicy)"
+      runAfter:
+            - start-wld-setup
+
+  finally:
+      - name: gitcommit
+        taskRef:
+            name: tkgs-git-commit-task
+        workspaces:
+          - name: task-shared-data
+            workspace: pipeline-shared-data
+        params:
+          - name: imagename
+            value: "$(params.imagename)"
+          - name: imagepullpolicy
+            value: "$(params.imagepullpolicy)"
+          - name: branch
+            value: "$(params.branch)"

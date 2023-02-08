@@ -1,0 +1,16 @@
+#! Copyright 2021 VMware, Inc
+#! SPDX-License-Identifier: BSD-2-Clause
+{
+  "full_name":
+    {
+      "provisionerName": "default",
+      "clusterName": "${CLUSTER_NAME}",
+      "managementClusterName": "${MGMT_CLUSTER_NAME}",
+      "name": "tanzu-observability-saas",
+    },
+  "spec":
+    {
+            "configurations": { "url": "${TO_URL}" },
+            "secrets": { "token": "${TO_TOKEN}" },
+    },
+}

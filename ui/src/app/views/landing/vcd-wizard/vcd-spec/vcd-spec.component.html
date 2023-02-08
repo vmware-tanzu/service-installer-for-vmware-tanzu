@@ -1,0 +1,134 @@
+<!--
+    Copyright 2021 VMware, Inc
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<form [formGroup]="formGroup">
+    <div *ngIf="!connected" class="alert alert-info" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="info-circle"></clr-icon>
+                </div>
+                <span class="alert-text" i18n="vsphere wizard step info notification">
+                    You must click "CONNECT" to verify
+                    the VCD credentials before moving to next step.
+                </span>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text" i18n="connect vcenter failure notification">
+                    {{ errorNotification }}
+                </span>
+            </div>
+        </div>
+        <button (click)="errorNotification = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <h4 aria-level="2">CEIP Participation </h4>
+    <div class="clr-row">
+        <div class="clr-col-12">
+            <clr-toggle-container [attr.data-step-metadata]="formName">
+                <clr-toggle-wrapper>
+                    <input
+                        type="checkbox"
+                        clrToggle
+                        id="isCeipEnabled"
+                        name="isCeipEnabled"
+                        formControlName="isCeipEnabled"
+                        aria-describedby="tmcSettings-helper"/>
+                    <label>
+                        Enable CEIP Participation
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    VMware's Customer Experience Improvement Program (CEIP) is a voluntary program that collects information about how people use our products.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                </clr-toggle-wrapper>
+            </clr-toggle-container>
+        </div>
+    </div>
+    <br>
+
+    <h4 aria-level="2">vCloud Director Specifications</h4>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="vcenter server addr label" clr-control-label aria-describedby="tooltip-vcenter-server">
+                    VCD ADDRESS
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                VCD must be deployed and PVCD must be configured, SIVT does not deploy VCD and/or configure PVCD.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput formControlName="vcdAddress" placeholder="IP or FQDN" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="vcenter server addr required msg" *clrIfError="validatorEnum.REQUIRED">
+                    VCD address cannot be empty
+                </clr-control-error>
+                <clr-control-error i18n="vcenter server addr valid msg" *clrIfError="validatorEnum.VALID_IP_OR_FQDN">
+                    Enter a valid IP address or FQDN
+                </clr-control-error>
+                <clr-control-error i18n="vcenter server addr required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    VCD address has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label i18n="vcdSysAdminUserName label" clr-control-label>
+                    SYSTEM ADMIN USERNAME
+                </label>
+                <input clrInput formControlName="vcdSysAdminUserName" placeholder="Username" />
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="vcdSysAdminUserName required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Username cannot be empty
+                </clr-control-error>
+                <clr-control-error i18n="vcdSysAdminUserName required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Username has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-password-container [attr.data-step-metadata]="formName">
+                <label i18n="vcdSysAdminPasswordBase64 label" clr-control-label>
+                    SYSTEM ADMIN PASSWORD
+                </label>
+                <input clrPassword formControlName="vcdSysAdminPasswordBase64" placeholder="Password" id="vcdSysAdminPasswordBase64"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="vcdSysAdminPasswordBase64 required msg" *clrIfError="validatorEnum.REQUIRED">
+                    Password cannot be empty
+                </clr-control-error>
+            </clr-password-container>
+        </div>
+    </div>
+
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-4" aria-live="assertive">
+            <button [clrLoading]="loadingState"
+                    [disabled]="getDisabled() || connected"
+                    (click)="connectVCD()" i18n="connect btn"
+                    class="btn btn-primary btn-connect">
+                {{ connected ? "CONNECTED" : "CONNECT" }}
+            </button>
+        </div>
+    </div>
+</form>

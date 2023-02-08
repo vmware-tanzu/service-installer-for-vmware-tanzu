@@ -1,0 +1,7 @@
+{
+    "protocol": "http",
+    "host":"window.location.host",
+    "port": "5000",
+    "defaultAppName": "",
+    "validationAppName": "validation"
+}

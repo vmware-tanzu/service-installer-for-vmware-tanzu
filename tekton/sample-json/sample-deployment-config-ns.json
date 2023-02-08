@@ -1,0 +1,118 @@
+{
+    "envSpec": {
+        "envType": "tkgs-ns",
+        "vcenterDetails": {
+            "vcenterAddress": "<VCENTER_IP_ADDRESS_OR_HOSTNAME>",
+            "vcenterSsoUser": "<VCENTER_USERNAME>",
+            "vcenterSsoPasswordBase64": "<VCENTER_ENCRYPTED_PASSWORD>",
+            "vcenterDatacenter": "<VCENTER_DATA_CENTER>",
+            "vcenterCluster": "<VCENTER_CLUSTER>"
+        },
+        "saasEndpoints": {
+            "tmcDetails": {
+                "tmcAvailability": "false",
+                "tmcRefreshToken": "",
+                "tmcInstanceURL": "",
+                "tmcSupervisorClusterName": ""
+            },
+            "tanzuObservabilityDetails": {
+                "tanzuObservabilityAvailability": "false",
+                "tanzuObservabilityUrl": "",
+                "tanzuObservabilityRefreshToken": ""
+            }
+        }
+    },
+    "tkgsComponentSpec": {
+        "tkgsWorkloadNetwork": {
+            "tkgsWorkloadNetworkName": "<TKGs_WORKLOAD_NETWORK_NAME>",
+            "tkgsWorkloadPortgroupName": "",
+            "tkgsWorkloadNetworkGatewayCidr": "",
+            "tkgsWorkloadNetworkStartRange": "",
+            "tkgsWorkloadNetworkEndRange": "",
+            "tkgsWorkloadServiceCidr": ""
+        },
+        "tkgsVsphereNamespaceSpec": {
+            "tkgsVsphereNamespaceName": "<TKGs_VSPHERE_NAMESPACE_NAME>",
+            "tkgsVsphereNamespaceDescription": "",
+            "tkgsVsphereNamespaceContentLibrary": "",
+            "tkgsVsphereNamespaceVmClasses": [
+                "best-effort-2xlarge",
+                "best-effort-4xlarge",
+                "best-effort-large"
+            ],
+            "tkgsVsphereNamespaceResourceSpec": {},
+            "tkgsVsphereNamespaceStorageSpec": [
+                {
+                    "storagePolicy": "<TKGs_VSPHERE_NAMESPACE_STORAGE_POLICY>"
+                }
+            ],
+            "tkgsVsphereWorkloadClusterSpec": {
+                "tkgsVsphereNamespaceName": "<TKGs_VSPHERE_NAMESPACE_NAME>",
+                "tkgsVsphereWorkloadClusterName": "<TKGs_WORKLOAD_CLUSTER_NAME>",
+                "tkgsVsphereWorkloadClusterVersion": "v1.21.6+vmware.1-tkg.1.b3d708a",
+                "allowedStorageClasses": [
+                    "<TKGs_VSPHERE_NAMESPACE_STORAGE_POLICY>"
+                ],
+                "defaultStorageClass": "<TKGs_VSPHERE_NAMESPACE_STORAGE_POLICY>",
+                "nodeStorageClass": "<TKGs_VSPHERE_NAMESPACE_STORAGE_POLICY>",
+                "serviceCidrBlocks": "10.96.0.0/12",
+                "podCidrBlocks": "192.168.0.0/16",
+                "controlPlaneVmClass": "best-effort-large",
+                "workerVmClass": "best-effort-large",
+                "workerNodeCount": "3",
+                "enableControlPlaneHa": "true",
+                "tkgWorkloadTsmIntegration": "false",
+                "namespaceExclusions": {
+                    "exactName": "",
+                    "startsWith": ""
+                },
+                "tkgsWorkloadClusterGroupName": "",
+                "tkgsWorkloadEnableDataProtection": "false",
+                "tkgWorkloadClusterCredential": "",
+                "tkgWorkloadClusterBackupLocation": ""
+            }
+        }
+    },
+    "tanzuExtensions": {
+        "enableExtensions": "false",
+        "tkgClustersName": "",
+        "harborSpec": {
+            "enableHarborExtension": "false",
+            "harborFqdn": "",
+            "harborPasswordBase64": "",
+            "harborCertPath": "",
+            "harborCertKeyPath": ""
+        },
+        "logging": {
+            "syslogEndpoint": {
+                "enableSyslogEndpoint": "false",
+                "syslogEndpointAddress": "",
+                "syslogEndpointPort": "",
+                "syslogEndpointMode": "",
+                "syslogEndpointFormat": ""
+            },
+            "httpEndpoint": {
+                "enableHttpEndpoint": "false",
+                "httpEndpointAddress": "",
+                "httpEndpointPort": "",
+                "httpEndpointUri": "",
+                "httpEndpointHeaderKeyValue": ""
+            },
+            "kafkaEndpoint": {
+                "enableKafkaEndpoint": "false",
+                "kafkaBrokerServiceName": "",
+                "kafkaTopicName": ""
+            }
+        },
+        "monitoring": {
+            "enableLoggingExtension": "false",
+            "prometheusFqdn": "",
+            "prometheusCertPath": "",
+            "prometheusCertKeyPath": "",
+            "grafanaFqdn": "",
+            "grafanaCertPath": "",
+            "grafanaCertKeyPath": "",
+            "grafanaPasswordBase64": ""
+        }
+    }
+}

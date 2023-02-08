@@ -1,0 +1,139 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+  TKGBucketParameter:
+    Type: String
+    Description: The name of the s3 bucket where you store tkg dependencies
+Resources:
+  AWSIAMManagedPolicyS3:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      Description: Read Only s3 policy for bucket
+      ManagedPolicyName: !Sub ${AWS::Region}-tkg-airgapped-bucket
+      PolicyDocument:
+        Statement:
+          - Action:
+              - 's3:Get*'
+              - 's3:Put*'
+              - 's3:List*'
+            Effect: Allow
+            Resource:
+              - !Join 
+                - ''
+                - - 'arn:aws:s3:::'
+                  - !Ref TKGBucketParameter
+              - !Join 
+                - ''
+                - - 'arn:aws:s3:::'
+                  - !Ref TKGBucketParameter
+                  - /*
+        Version: 2012-10-17
+      Roles:
+        - !Ref AWSIAMRoleS3
+        - !Ref AWSIAMRoleTKGBootstrap
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: d661d148-ea7b-470b-ae84-b3158f94f007
+  AWSIAMRoleS3:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub ${AWS::Region}-tkg-s3-role
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+        Version: 2012-10-17
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 9918f2d9-001f-43af-ab4b-6cfa195a3d73
+  AWSIAMInstanceProfileTKGS3:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      InstanceProfileName: !Sub ${AWS::Region}-tkg-s3-viewer
+      Roles:
+        - Ref: AWSIAMRoleS3
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 09f7d81d-311d-4dac-b916-698a6a0f930a
+  AWSIAMInstanceProfileTKGBootstrap:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      InstanceProfileName: !Sub ${AWS::Region}-tkg-bootstrap
+      Roles:
+        - !Ref AWSIAMRoleTKGBootstrap
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 1e7d15bd-7c05-40ca-8d71-f07a779bd39c
+  AWSIAMRoleTKGBootstrap:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      ManagedPolicyArns:
+        - !Sub "arn:aws:iam::${AWS::AccountId}:policy/control-plane.tkg.cloud.vmware.com"
+        - !Sub "arn:aws:iam::${AWS::AccountId}:policy/controllers.tkg.cloud.vmware.com"
+        - !Sub "arn:aws:iam::${AWS::AccountId}:policy/nodes.tkg.cloud.vmware.com"
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+        Version: 2012-10-17
+      RoleName: !Sub ${AWS::Region}-tkg-bootstrap
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 078550ad-5b87-492f-8b19-8e0f87deb150
+Metadata:
+  'AWS::CloudFormation::Designer':
+    d661d148-ea7b-470b-ae84-b3158f94f007:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -30
+        'y': 210
+      z: 0
+      embeds: []
+      isassociatedwith:
+        - 9918f2d9-001f-43af-ab4b-6cfa195a3d73
+        - 078550ad-5b87-492f-8b19-8e0f87deb150
+    9918f2d9-001f-43af-ab4b-6cfa195a3d73:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -140
+        'y': 210
+      z: 0
+      embeds: []
+    09f7d81d-311d-4dac-b916-698a6a0f930a:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -190
+        'y': 330
+      z: 0
+      embeds: []
+    1e7d15bd-7c05-40ca-8d71-f07a779bd39c:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -40
+        'y': 330
+      z: 0
+      embeds: []
+    078550ad-5b87-492f-8b19-8e0f87deb150:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -30
+        'y': 100
+      z: 0
+      embeds: []

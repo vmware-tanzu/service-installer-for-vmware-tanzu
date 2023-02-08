@@ -1,0 +1,273 @@
+<!--
+    Copyright 2021 VMware, Inc
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<div [ngClass]="{'hide': review}">
+    <div class="clr-row mb-20">
+        <div class="clr-col-12">
+            <h4 i18n="wizard title" aria-level="1">
+                <div class="vsphere-icon-30"></div>
+                Configure and deploy Tanzu Kubernetes Grid management, shared services, and workload clusters on vSphere
+            </h4>
+        </div>
+    </div>
+
+    <form clrStepper #wizard [formGroup]="form">
+
+        <clr-stepper-panel formGroupName="dnsNtpForm" removeAriaLabelleedBy>
+            <clr-step-title i18n="Infra Details step name">
+                    Infrastructure
+                </clr-step-title>
+            <clr-step-description i18n="IaaS provider step description">
+                    Configure DNS and NTP server/s
+            </clr-step-description>
+            <ng-container *ngIf="steps[0]">
+                <app-dns-ntp-step [formGroup]="form.controls.dnsNtpForm" formName="dnsNtpForm">
+                </app-dns-ntp-step>
+            </ng-container>
+            <clr-step-content *clrIfExpanded>
+                <app-step-controller (nextStep)="onNextStep()"></app-step-controller>
+            </clr-step-content>
+        </clr-stepper-panel>
+
+        <clr-stepper-panel formGroupName="vcdSpecForm" removeAriaLabelledBy>
+            <clr-step-title i18n="IaaS provider step name">
+                    vCloud Director Details
+            </clr-step-title>
+            <clr-step-description i18n="IaaS provider step description">
+                {{ getStepDescription('vcdSpecForm') }}
+            </clr-step-description>
+            <ng-container *ngIf="steps[1]">
+                <app-vcd-spec-step [formGroup]="form.controls.vcdSpecForm" formName="vcdSpecForm">
+                </app-vcd-spec-step>
+            </ng-container>
+            <clr-step-content *clrIfExpanded>
+                <app-step-controller (nextStep)="onVcdSpecNextStep()"></app-step-controller>
+            </clr-step-content>
+        </clr-stepper-panel>
+
+        <clr-stepper-panel formGroupName="aviControllerForm" removeAriaLabelleedBy>
+            <clr-step-title i18n="Infra Details step name">
+                    AVI Controller Specifications
+            </clr-step-title>
+            <clr-step-description i18n="IaaS provider step description">
+                Specify details for configuring AVI controller
+            </clr-step-description>
+            <ng-container *ngIf="steps[2]">
+                <app-avi-controller-step [formGroup]="form.controls.aviControllerForm" formName="aviControllerForm" [InputAviVcdDisplayName]="this.dataService.aviVcdDisplayNames">
+                </app-avi-controller-step>
+            </ng-container>
+            <clr-step-content *clrIfExpanded>
+                <app-step-controller (nextStep)="onAviControllerNextStep()"></app-step-controller>
+            </clr-step-content>
+        </clr-stepper-panel>
+
+        <clr-stepper-panel formGroupName="aviNsxtCloudForm" removeAriaLabelleedBy>
+            <clr-step-title i18n="Infra Details step name">
+                    AVI NSXT Cloud Specifications
+            </clr-step-title>
+            <clr-step-description i18n="IaaS provider step description">
+                Specify details for configuring AVI NSXT cloud
+            </clr-step-description>
+            <ng-container *ngIf="steps[3]">
+                <app-avi-nsx-cloud-step [formGroup]="form.controls.aviNsxtCloudForm" formName="aviNsxtCloudForm" [InputNsxtCloudsInALB]="this.dataService.nsxtCloudsInALB" [InputNsxtCloudVcdDisplayName]="this.dataService.nsxtCloudVcdDisplayNames" [InputConfigureNSXTCloud]="this.dataService.configureAviNsxtCloud">
+                </app-avi-nsx-cloud-step>
+            </ng-container>
+            <clr-step-content *clrIfExpanded>
+                <app-step-controller (nextStep)="onNsxCloudNextStep()"></app-step-controller>
+            </clr-step-content>
+        </clr-stepper-panel>
+
+        <clr-stepper-panel formGroupName="t0RouterForm" removeAriaLabelleedBy>
+            <clr-step-title i18n="Infra Details step name">
+                    TIER 0 Router Details
+            </clr-step-title>
+            <clr-step-description i18n="IaaS provider step description">
+                Specify T0 Router details
+            </clr-step-description>
+            <ng-container *ngIf="steps[4]">
+                <app-t0-router-step [formGroup]="form.controls.t0RouterForm" formName="t0RouterForm" [t0GatewayFromNsxt]="this.vcdDataService.t0GatewayFromNsxt" [InputTier0GatewayName]="this.dataService.t0GatewayFromVcd">
+                </app-t0-router-step>
+            </ng-container>
+            <clr-step-content *clrIfExpanded>
+                <app-step-controller (nextStep)="onT0GatewayNext()"></app-step-controller>
+            </clr-step-content>
+        </clr-stepper-panel>
+
+        <clr-stepper-panel formGroupName="svcOrgForm" removeAriaLabelleedBy>
+            <clr-step-title i18n="Service Org Form Details">
+                    Service Organization Details
+            </clr-step-title>
+            <clr-step-description i18n="IaaS provider step description">
+                Select or create a Service Organization
+            </clr-step-description>
+            <ng-container *ngIf="steps[5]">
+                <app-svc-org-step [formGroup]="form.controls.svcOrgForm" formName="svcOrgForm" [InputSvcOrgName]="this.dataService.svcOrgNames">
+                </app-svc-org-step>
+            </ng-container>
+            <clr-step-content *clrIfExpanded>
+                <app-step-controller (nextStep)="onSvcOrgNextButton()"></app-step-controller>
+            </clr-step-content>
+        </clr-stepper-panel>
+
+        <clr-stepper-panel formGroupName="svcOrgVdcForm" removeAriaLabelleedBy>
+            <clr-step-title i18n="Service Org VDC Form Details">
+                    Service Organization VDC Details
+            </clr-step-title>
+            <clr-step-description i18n="IaaS provider step description">
+                Create a Service Organization VDC
+            </clr-step-description>
+            <ng-container *ngIf="steps[6]">
+                <app-svc-org-vdc-step [formGroup]="form.controls.svcOrgVdcForm" formName="svcOrgVdcForm" [InputProviderVDC]="this.dataService.providerVDCNames" [InputNetworkPoolName]="this.dataService.networkPoolNames" [InputStoragePolicies]="this.apiClient.storagePolicy">
+                </app-svc-org-vdc-step>
+            </ng-container>
+            <clr-step-content *clrIfExpanded>
+                <app-step-controller (nextStep)="onSvcOrgVdcNextStep()"></app-step-controller>
+            </clr-step-content>
+        </clr-stepper-panel>
+
+        <clr-stepper-panel formGroupName="svcOrgEdgeGatewayForm" removeAriaLabelleedBy>
+            <clr-step-title i18n="Service Org Edge Gateway Form Details">
+                    CSE Edge Gateway
+            </clr-step-title>
+            <clr-step-description i18n="IaaS provider step description">
+                Create an edge gateway for the Service Organization VDC
+            </clr-step-description>
+            <ng-container *ngIf="steps[7]">
+                <app-svc-org-edge-gw-step [formGroup]="form.controls.svcOrgEdgeGatewayForm" formName="svcOrgEdgeGatewayForm" [InputTier0Start]="this.dataService.t0StartAddress" [InputTier0End]="this.dataService.t0EndAddress">
+                </app-svc-org-edge-gw-step>
+            </ng-container>
+            <clr-step-content *clrIfExpanded>
+                <app-step-controller (nextStep)="onEdgeGatewayNextStep()"></app-step-controller>
+            </clr-step-content>
+        </clr-stepper-panel>
+
+        <clr-stepper-panel formGroupName="segForm" removeAriaLabelleedBy>
+            <clr-step-title i18n="Service Org Edge Gateway Form Details">
+                    ALB Configuration for Service Organization
+            </clr-step-title>
+            <clr-step-description i18n="IaaS provider step description">
+                Associate Service Engine Groups
+            </clr-step-description>
+            <ng-container *ngIf="steps[8]">
+                <app-seg-step [formGroup]="form.controls.segForm" formName="segForm" [InputCreateSeGroup]="this.dataService.createSeGroup" [InputVcenterDatacenter]="this.dataService.vc2Datacenters" [InputVcenterCluster]="this.dataService.vc2Clusters" [InputVcenterDatastore]="this.dataService.vc2Datastores" [InputVcenterContentSeLibrary]="this.dataService.vc2ContentLibs" [InputServiceEngineGroupName]="this.dataService.serviceEngineGroupnamesAlb" [InputServiceEngineGroupVcdDisplayName]="this.dataService.serviceEngineGroupVcdDisplayNames">
+                </app-seg-step>
+            </ng-container>
+            <clr-step-content *clrIfExpanded>
+                <app-step-controller (nextStep)="onNextStep()"></app-step-controller>
+            </clr-step-content>
+        </clr-stepper-panel>
+
+        <clr-stepper-panel formGroupName="catalogForm" removeAriaLabelleedBy>
+            <clr-step-title i18n="Service Org Edge Gateway Form Details">
+                    Catalog
+            </clr-step-title>
+            <clr-step-description i18n="IaaS provider step description">
+                Create catalog for K8s templates and CSE OVA
+            </clr-step-description>
+            <ng-container *ngIf="steps[9]">
+                <app-catalog-step [formGroup]="form.controls.catalogForm" formName="catalogForm" [InputCatalogName]="this.dataService.catalogNames">
+                </app-catalog-step>
+            </ng-container>
+            <clr-step-content *clrIfExpanded>
+                <app-step-controller (nextStep)="onNextStep()"></app-step-controller>
+            </clr-step-content>
+        </clr-stepper-panel>
+
+        <clr-stepper-panel formGroupName="vappForm" removeAriaLabelleedBy>
+            <clr-step-title i18n="Service Org Edge Gateway Form Details">
+                    vApp Configuration
+            </clr-step-title>
+            <clr-step-description i18n="IaaS provider step description">
+                Create vApp
+            </clr-step-description>
+            <ng-container *ngIf="steps[9]">
+                <app-vapp-step [formGroup]="form.controls.vappForm" formName="vappForm">
+                </app-vapp-step>
+            </ng-container>
+            <clr-step-content *clrIfExpanded>
+                <app-step-controller (nextStep)="onNextStep()"></app-step-controller>
+            </clr-step-content>
+        </clr-stepper-panel>
+    </form>
+
+    <button class="btn btn-primary mt-20" [disabled]="!getWizardValidity()" (click)="reviewConfiguration(true)"
+            i18n="review cluster configuration btn">
+        REVIEW CONFIGURATION
+    </button>
+</div>
+
+   <!-- <div *ngIf="errorNotification" class="alert alert-danger" role="alert">
+       <div class="alert-items">
+           <div class="alert-item static">
+               <div class="alert-icon-wrapper">
+                   <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+               </div>
+               <span class="alert-text" i18n="connect vcenter failure notification">
+                   {{ errorNotification }}
+               </span>
+           </div>
+       </div>
+       <button class="btn btn-primary mt-20" [disabled]="!getWizardValidity()" (click)="reviewConfiguration(true)"
+               i18n="review cluster configuration btn">
+           REVIEW CONFIGURATION
+       </button>
+   </div> -->
+
+<ng-container *ngIf="review">
+    <tkg-kickstart-ui-confirm [errorNotification]="errorNotification"></tkg-kickstart-ui-confirm>
+    <div class="clr-row mt-20">
+        <div class="clr-col-12 btn-container">
+            <button class="btn btn-outline edit-btn" (click)="reviewConfiguration(false)"
+                    i18n="return to wizard for edit button">
+                <clr-icon shape="pencil" dir="left" size="18" class="is-info back-link"></clr-icon>
+                Edit
+            </button>
+            <button class="btn btn-primary deploy-btn" [disabled]="disableDeployButton" (click)="generateInput()"
+                    i18n="deploy cluster configuration btn">
+                <clr-icon shape="download-cloud" size="18"></clr-icon>
+                Save to VM
+            </button>
+            <button class="btn btn-primary deploy-btn" (click)="openViewJsonModal()"
+                    i18n="deploy cluster configuration btn">
+                <clr-icon shape="tree-view" size="18"></clr-icon>
+                View
+            </button>
+<!--            <button [clrLoading]="loadingState" class="btn btn-success" (click)="downloadSupportBundle()"-->
+<!--                    i18n="deploy cluster configuration btn">-->
+<!--                <clr-icon shape="file-zip" size="18"></clr-icon>-->
+<!--                Support Bundle-->
+<!--            </button>-->
+        </div>
+    </div>
+<!--            <button class="btn btn-primary deploy-btn" [disabled]="disableDeployButton" (click)="deploy()"-->
+<!--                    i18n="deploy cluster configuration btn">-->
+<!--                Run Deployment-->
+<!--            </button>-->
+    <div *ngIf="showAwsTestMessage" class="alert alert-success" role="alert" id="retrieve-az-alert-success">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="check-circle"></clr-icon>
+                </div>
+                <span class="alert-text" id="retrieve-az-alert-success-msg-2">
+                    Generation of input json file is successful. The file is present at {{filePath}}.
+                </span>
+            </div>
+        </div>
+    </div>
+    <div *ngIf="showIPValidationSuccess" class="alert alert-success" role="alert" id="retrieve-az-alert-success-2">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="check-circle"></clr-icon>
+                </div>
+                <span class="alert-text" id="retrieve-az-alert-success-msg">
+                    IP and network details are successfully validated. Generate input JSON file or deploy to proceed.
+                </span>
+            </div>
+        </div>
+    </div>
+</ng-container>
+
+<app-view-json-modal [payload]="this.apiClient.vcdPayload" [env]="'vcd'"></app-view-json-modal>

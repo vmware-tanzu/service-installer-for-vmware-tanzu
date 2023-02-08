@@ -1,0 +1,86 @@
+{
+    "envSpec": {
+        "envType": "tkgs-wcp",
+        "vcenterDetails": {
+            "vcenterAddress": "<VCENTER_IP_ADDRESS_OR_HOSTNAME>",
+            "vcenterSsoUser": "<VCENTER_USERNAME>",
+            "vcenterSsoPasswordBase64": "<VCENTER_ENCRYPTED_PASSWORD>",
+            "vcenterDatacenter": "<VCENTER_DATA_CENTER>",
+            "vcenterCluster": "<VCENTER_CLUSTER>",
+            "vcenterDatastore": "<VCENTER_DATASTORE>",
+            "contentLibraryName": "<VCENTER_CONTENT_LIBRARY_NAME>",
+            "aviOvaName": "<AVI_OVA_NAME>"
+        },
+        "marketplaceSpec": {
+            "refreshToken": ""
+        },
+        "saasEndpoints": {
+            "tmcDetails": {
+                "tmcAvailability": "false",
+                "tmcRefreshToken": "",
+                "tmcInstanceURL": "",
+                "tmcSupervisorClusterName": "",
+                "tmcSupervisorClusterGroupName": ""
+            }
+        },
+        "infraComponents": {
+            "dnsServersIp": "<DNS_SERVER_IP>",
+            "searchDomains": "<DNS_SEARCH_DOMAINS>",
+            "ntpServers": "<NTP_SERVER_IP>"
+        }
+    },
+    "tkgsComponentSpec": {
+        "controlPlaneSize": "SMALL",
+        "aviMgmtNetwork": {
+            "aviMgmtNetworkName": "<AVI_MGMT_NETWORK_NAME>",
+            "aviMgmtNetworkGatewayCidr": "172.16.10.1/24",
+            "aviMgmtServiceIpStartRange": "172.16.10.150",
+            "aviMgmtServiceIpEndRange": "172.16.10.199"
+        },
+        "aviComponents": {
+            "aviPasswordBase64": "<AVI_ENCRYPTED_PASSWORD>",
+            "aviBackupPassphraseBase64": "<AVI_ENCRYPTED_BACKUP_PASSWORD>",
+            "enableAviHa": "false",
+            "aviController01Ip": "172.16.10.56",
+            "aviController01Fqdn": "<AVI_FQDN01>",
+            "aviController02Ip": "",
+            "aviController02Fqdn": "",
+            "aviController03Ip": "",
+            "aviController03Fqdn": "",
+            "aviClusterIp": "",
+            "aviClusterFqdn": "",
+            "aviSize": "essentials",
+            "aviCertPath": "",
+            "aviCertKeyPath": ""
+        },
+        "tkgsVipNetwork": {
+            "tkgsVipNetworkName": "<TKGS_VIP_NETWORK_NAME>",
+            "tkgsVipNetworkGatewayCidr": "172.16.16.1/26",
+            "tkgsVipIpStartRange": "172.16.16.2",
+            "tkgsVipIpEndRange": "172.16.16.59"
+        },
+        "tkgsMgmtNetworkSpec": {
+            "tkgsMgmtNetworkName": "<TKGS_MGMT_NETWORK_NAME>",
+            "tkgsMgmtNetworkGatewayCidr": "172.16.14.1/24",
+            "tkgsMgmtNetworkStartingIp": "172.16.14.150",
+            "tkgsMgmtNetworkDnsServers": "<DNS_SERVER_IP>",
+            "tkgsMgmtNetworkSearchDomains": "<DNS_SEARCH_DOMAINS>",
+            "tkgsMgmtNetworkNtpServers": "<NTP_SERVER_IP>"
+        },
+        "tkgsStoragePolicySpec": {
+            "masterStoragePolicy": "<TKGs_VSPHERE_NAMESPACE_STORAGE_POLICY>",
+            "ephemeralStoragePolicy": "<TKGs_VSPHERE_NAMESPACE_STORAGE_POLICY>",
+            "imageStoragePolicy": "<TKGs_VSPHERE_NAMESPACE_STORAGE_POLICY>"
+        },
+        "tkgsPrimaryWorkloadNetwork": {
+            "tkgsPrimaryWorkloadPortgroupName": "<TKGS_WORKLOAD_PORTGROUP_NAME>",
+            "tkgsPrimaryWorkloadNetworkName": "<TKGS_WORKLOAD_NETWORK_NAME>",
+            "tkgsPrimaryWorkloadNetworkGatewayCidr": "172.16.15.1/24",
+            "tkgsPrimaryWorkloadNetworkStartRange": "172.16.15.150",
+            "tkgsPrimaryWorkloadNetworkEndRange": "172.16.15.199",
+            "tkgsWorkloadDnsServers": "<DNS_SERVER_IP>",
+            "tkgsWorkloadNtpServers": "<NTP_SERVER_IP>",
+            "tkgsWorkloadServiceCidr": "10.96.0.0/22"
+        }
+    }
+}

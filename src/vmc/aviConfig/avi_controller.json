@@ -1,0 +1,27 @@
+{
+  "DiskProvisioning": "thin",
+  "IPAllocationPolicy": "dhcpPolicy",
+  "IPProtocol": "IPv4",
+  "PropertyMapping": [{
+    "Key": "avi.mgmt-ip.CONTROLLER",
+    "Value": ""
+  }, {
+    "Key": "avi.mgmt-mask.CONTROLLER",
+    "Value": ""
+  }, {
+    "Key": "avi.default-gw.CONTROLLER",
+    "Value": ""
+  }, {
+    "Key": "avi.sysadmin-public-key.CONTROLLER",
+    "Value": ""
+  }],
+  "NetworkMapping": [{
+    "Name": "Management",
+    "Network": "xyz"
+  }],
+  "MarkAsTemplate": false,
+  "PowerOn": true,
+  "InjectOvfEnv": false,
+  "WaitForIP": true,
+  "Name": null
+}
