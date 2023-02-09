@@ -8,7 +8,7 @@
 - For the DVS mode, for all the networks it shows "SEGMENT NAME", this needs to be changed to "Portgroup name"
 - AVI 21.1.4 support for TKGs and TKGm.
 
-NOTE: SIVT AWS, Azure components will still be supporting the older version of Tanzu Kubernetes Grid [support matrix](index.md/##Service Installer for VMware Tanzu Support Matrix).
+NOTE: SIVT AWS, Azure components will still be supporting the older version of [Tanzu Kubernetes Grid support matrix](./index.md#support-matrix).
       Tanzu Kubernetes Grid 2.1.0 support for these components will be added in future releases.
 
 ## Resolved Issues

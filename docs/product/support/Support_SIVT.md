@@ -8,7 +8,7 @@ Service Installer for VMware Tanzu ( **SIVT** ) automates the deployment of the 
 
 ## In Scope
 
-The following items are examples of tasks which are covered by VMware Support for SIVT
+The following items are examples of tasks which are covered by VMware Support for SIVT.
 
 | **Tasks** | **In Scope** |
 | --- | --- |
