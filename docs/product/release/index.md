@@ -44,7 +44,7 @@ For the download location, see [Release Notes](WhatsNew.md).
    To access the Service Installer CLI, log in over SSH. Enter `ssh root@<Service-Installer-VM-IP>`.
 
 
-## Service Installer for VMware Tanzu Support Matrix
+### <a id=service-installer-for-vmware-tanzu-support-matrix> </a> Service Installer for VMware Tanzu Support Matrix
 
 
 ### Tanzu Kubernetes Grid Support Matrix

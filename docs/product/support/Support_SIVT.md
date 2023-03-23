@@ -23,13 +23,13 @@ The following items are examples of tasks which are covered by VMware Support fo
 
 [1]  Bug fixes and enhancement requests are prioritized by VMware Engineering with input from VMware Support and our customers. There is no guarantee of an immediate fix and VMware Support retains the right to close out support tickets if a fix is not immediate.
 
-[2]  For the exact list and versions of the product, see [Service Installer for VMware Tanzu Support matrix](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/2.1.0/service-installer/GUID-index.html#service-installer-for-vmware-tanzu-support-matrix-3).
+[2]  For the exact list and versions of the product, see [Service Installer for VMware Tanzu Support matrix](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/2.1.1/service-installer/GUID-index.html#support-matrix).
 
 [3] The API, CLI and GUI are supported however VMware support can not assist with writing or debugging custom code that leverages these components. Also, writing or troubleshooting custom wrappers modifications or automation are out of scope of support.
 
 [4] Tekton use is only supported when using SIVT to deploy the documented products. Any custom applications or use of Tekton for user applications is outside the scope of support. Only VMware shipped SIVT pipelines are supported.
 
-[5] Harbor usage is supported strictly when using to deploy the products mentioned in [Service Installer for VMware Tanzu Support matrix](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/2.1.0/service-installer/GUID-index.html#service-installer-for-vmware-tanzu-support-matrix-3). The Harbor instance of SIVT should not be used for external applications or as a standalone Harbor deployment to be used outside of SIVT.
+[5] Harbor usage is supported strictly when using to deploy the products mentioned in [Service Installer for VMware Tanzu Support matrix](https://docs.vmware.com/en/Service-Installer-for-VMware-Tanzu/2.1.1/service-installer/GUID-index.html#support-matrix). The Harbor instance of SIVT should not be used for external applications or as a standalone Harbor deployment to be used outside of SIVT.
 
 ## Out of Scope
 

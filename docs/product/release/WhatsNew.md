@@ -13,7 +13,7 @@
 - Updated the names of Service Engines for Management and Workload cluster to `Mgmt-se` and `Workload-se` respectively.
 - SIVT now runs the complete set of pre-checks and provides all the errors encountered together at the end.
 
-NOTE: SIVT Azure component will still be supporting the older version of Tanzu Kubernetes Grid [support matrix](index.md/##Service Installer for VMware Tanzu Support Matrix).
+-NOTE:SIVT Azure component will still be supporting the older version of Tanzu Kubernetes Grid [support matrix](./index.md#service-installer-for-vmware-tanzu-support-matrix).
 
 ## Resolved Issues
 
