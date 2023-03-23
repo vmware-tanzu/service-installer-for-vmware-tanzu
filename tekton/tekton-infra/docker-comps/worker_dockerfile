@@ -1,0 +1,12 @@
+FROM photon:latest
+
+RUN tdnf install git -y
+RUN tdnf install vim -y
+RUN tdnf install unzip -y
+RUN tdnf install gawk -y
+
+ENV LOG_PATH=/tmp/deploy.log
+ENV LOG_LEVEL=DEBUG
+
+RUN mkdir /scripts
+COPY scripts  /scripts

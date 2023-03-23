@@ -1,0 +1,36 @@
+- name: "packages: apt update"
+  apt:
+    force_apt_get: yes
+    update_cache: yes
+    upgrade: dist
+  when: not offline_install | bool
+
+- name: "packages: apt install"
+  apt:
+    name: "{{ install_packages }}"
+    state: present
+    force_apt_get: yes
+
+- name: "packages: apt remove"
+  apt:
+    name: "{{ remove_packages }}"
+    state: absent
+    force_apt_get: yes
+    purge: yes
+    autoclean: yes
+  notify:
+  - remove apt dependencies
+
+- name: "packages: delete chrony"
+  package:
+    name: chrony
+    state: absent
+  when:
+    not install_chrony
+
+- name: "packages: enable systemd-timesyncd"
+  service:
+    name: systemd-timesyncd
+    enabled: yes
+  when:
+    not install_chrony

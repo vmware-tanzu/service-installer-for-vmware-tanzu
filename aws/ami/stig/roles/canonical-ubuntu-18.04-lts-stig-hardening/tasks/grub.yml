@@ -1,0 +1,15 @@
+- name: "grub: single-user mode authentication"
+  lineinfile:
+    path: /etc/grub.d/40_custom
+    insertbefore: EOF
+    line: password_pbkdf2 root grub.pbkdf2.sha512.10000.*
+    state: present
+  notify:
+    - update grub
+
+- name: "grub: initiate session audits"
+  copy:
+    src: 98-audit.cfg
+    dest: /etc/default/grub.d/98-audit.cfg
+  notify:
+  - update grub

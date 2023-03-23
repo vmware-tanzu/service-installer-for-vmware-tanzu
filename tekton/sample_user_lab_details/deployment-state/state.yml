@@ -1,0 +1,53 @@
+avi:
+  deployed: true
+  health: UP
+  name: avi-controller1.tanzu.lab
+  version: 21.1.4
+mgmt:
+  deployed: true
+  health: UP
+  name: abhi-clstr-mgmt
+  version: 1.5.3
+shared_services:
+  deployed: true
+  extensions:
+    certManager:
+      deployed: false
+      upgraded: false
+    contour:
+      deployed: false
+      upgraded: false
+    externalDns:
+      deployed: false
+      upgraded: false
+    harbor:
+      deployed: false
+      upgraded: false
+  health: UP
+  integrations:
+    tmc:
+      attached: false
+  name: abhi-clstr-shrd
+  upgradedFrom:
+  version: 1.5.3
+workload_clusters:
+- deployed: false
+  extensions:
+    certManager:
+      deployed: false
+      upgraded: false
+    contour:
+      deployed: false
+      upgraded: false
+    grafana:
+      deployed: false
+      upgraded: false
+    prometheus:
+      deployed: false
+      upgraded: false
+  health: DOWN
+  integrations:
+    tmc:
+      attached: false
+  name: abhi-wrkld-clsrt
+  version: 1.5.3

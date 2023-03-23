@@ -1,0 +1,67 @@
+#@ load("@ytt:overlay", "overlay")
+#@ load("@ytt:data", "data")
+#@ load("lib/helpers.star", "get_bom_data_for_tkr_name", "get_default_tkg_bom_data", "kubeadm_image_repo", "get_image_repo_for_component", "get_vsphere_thumbprint")
+#@ load("@ytt:yaml", "yaml")
+
+#@ bomData = get_default_tkg_bom_data()
+
+
+#@ def kube_vip_pod():
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  name: kube-vip
+  namespace: kube-system
+spec:
+  containers:
+    - args:
+        - start
+      env:
+        - name: vip_arp
+          value: "true"
+        - name: vip_leaderelection
+          value: "true"
+        - name: address
+          value: #@ data.values.VSPHERE_CONTROL_PLANE_ENDPOINT
+        - name: vip_interface
+          value:  #@ data.values.VIP_NETWORK_INTERFACE
+        - name: vip_leaseduration
+          value: "30"
+        - name: vip_renewdeadline
+          value: "20"
+        - name: vip_retryperiod
+          value: "4"
+      image: #@ "{}/{}:{}".format(get_image_repo_for_component(bomData.components["kube-vip"][0].images.kubeVipImage), bomData.components["kube-vip"][0].images.kubeVipImage.imagePath, bomData.components["kube-vip"][0].images.kubeVipImage.tag)
+      imagePullPolicy: IfNotPresent
+      name: kube-vip
+      resources: {}
+      securityContext:
+        capabilities:
+          add:
+            - NET_ADMIN
+            - SYS_TIME
+      volumeMounts:
+        - mountPath: /etc/kubernetes/admin.conf
+          name: kubeconfig
+  hostNetwork: true
+  volumes:
+    - hostPath:
+        path: /etc/kubernetes/admin.conf
+        type: FileOrCreate
+      name: kubeconfig
+status: {}
+#@ end
+
+#@overlay/match by=overlay.subset({"kind":"KubeadmControlPlane"})
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+kind: KubeadmControlPlane
+metadata:
+  name: #@ "{}-control-plane".format(data.values.CLUSTER_NAME)
+spec:
+  kubeadmConfigSpec:
+    files:
+      #@overlay/match by=overlay.index(0)
+      - content: #@ yaml.encode(kube_vip_pod())

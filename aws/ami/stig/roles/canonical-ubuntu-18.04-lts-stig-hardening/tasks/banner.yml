@@ -1,0 +1,6 @@
+- name: "banner: /etc/issue ownership"
+  copy:
+    content: "{{ login_banner }}"
+    dest: /etc/issue
+    owner: root
+    group: root

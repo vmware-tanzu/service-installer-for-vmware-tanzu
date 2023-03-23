@@ -1,0 +1,24 @@
+clientOptions:
+    features:
+        global:
+            context-aware-cli-for-plugins: "true"
+            context-target-v2: "true"
+            tkr-version-v1alpha3-beta: "false"
+        management-cluster:
+            package-based-cc: "true"
+            dual-stack-ipv4-primary: "false"
+            export-from-confirm: "true"
+            standalone-cluster-mode: "false"
+            aws-instance-types-exclude-arm: "true"
+            deploy-in-cluster-ipam-provider: "true"
+            dual-stack-ipv6-primary: "false"
+            import: "false"
+            custom-nameservers: "false"
+        cluster:
+            allow-legacy-cluster: "false"
+            custom-nameservers: "false"
+            dual-stack-ipv4-primary: "false"
+            dual-stack-ipv6-primary: "false"
+            auto-apply-generated-clusterclass-based-configuration: "true"
+        package:
+            kctrl-command-tree: "true"

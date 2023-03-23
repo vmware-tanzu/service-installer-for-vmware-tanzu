@@ -1,0 +1,23 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: tkgm-resize-day2-
+spec:
+  pipelineRef:
+    name: day2-resize-pipeline
+  params:
+    - name: giturl
+      value: #@ "https://" + data.values.git.host + "/" + data.values.git.repository
+    - name: branch
+      value: #@ data.values.git.branch
+
+  timeout: 2h0m0s
+  workspaces:
+    - name: pipeline-shared-data
+      persistentVolumeClaim:
+        claimName: tekton-day2
+  serviceAccountName: git-bot
+
+

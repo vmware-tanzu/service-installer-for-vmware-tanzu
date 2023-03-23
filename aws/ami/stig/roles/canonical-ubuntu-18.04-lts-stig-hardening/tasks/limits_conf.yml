@@ -1,0 +1,7 @@
+- name: "limits conf: maxlogins"
+  blockinfile:
+    dest: /etc/security/limits.conf
+    insertbefore: EOF
+    marker: "# {mark} MCI hardening"
+    block: |
+      * hard maxlogins {{ limits_maxlogins }}

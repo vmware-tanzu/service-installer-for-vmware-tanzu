@@ -1,0 +1,58 @@
+CLUSTER_CIDR: 100.96.0.0/11
+CLUSTER_NAME: {{ wl_cluster.cluster.name }}
+CLUSTER_PLAN: {{ wl_cluster.cluster.plan }}
+{% if wl_cluster.controlPlane.count is not none %}CONTROL_PLANE_MACHINE_COUNT: {{ wl_cluster.controlPlane.count }}{% endif %}
+{% if wl_cluster.worker.count is not none %}WORKER_MACHINE_COUNT: {{ wl_cluster.worker.count }}{% endif %}
+ENABLE_MHC: "true"
+IDENTITY_MANAGEMENT_TYPE: none
+INFRASTRUCTURE_PROVIDER: vsphere
+SERVICE_CIDR: 100.64.0.0/13
+
+VSPHERE_SERVER: {{ spec.vsphere.server }}
+VSPHERE_USERNAME: {{ spec.vsphere.username }}
+VSPHERE_PASSWORD:  {{ spec.vsphere.password }}
+VSPHERE_TLS_THUMBPRINT: {{ spec.vsphere.tlsThumbprint }}
+
+VSPHERE_DATACENTER: {{ wl_cluster.deployment.datacenter }}
+VSPHERE_DATASTORE: {{ wl_cluster.deployment.datastore }}
+VSPHERE_FOLDER: {{ wl_cluster.deployment.folder }}
+VSPHERE_NETWORK: {{ wl_cluster.deployment.network }}
+VSPHERE_RESOURCE_POOL: {{ wl_cluster.deployment.resourcePool }}
+
+VSPHERE_SSH_AUTHORIZED_KEY: {{ wl_cluster.sshKey }}
+VSPHERE_CONTROL_PLANE_ENDPOINT: {{ wl_cluster.controlPlane.endpoint }}
+VSPHERE_CONTROL_PLANE_DISK_GIB: "{{ wl_cluster.controlPlane.diskGib }}"
+VSPHERE_CONTROL_PLANE_MEM_MIB: "{{ wl_cluster.controlPlane.memoryMib }}"
+VSPHERE_CONTROL_PLANE_NUM_CPUS: "{{ wl_cluster.controlPlane.cpus }}"
+VSPHERE_WORKER_DISK_GIB: "{{ wl_cluster.worker.diskGib }}"
+VSPHERE_WORKER_MEM_MIB: "{{ wl_cluster.worker.memoryMib }}"
+VSPHERE_WORKER_NUM_CPUS: "{{ wl_cluster.worker.cpus }}"
+DEPLOY_TKG_ON_VSPHERE7: true
+
+#! ---------------------------------------------------------------------
+#! Proxy configuration
+#! ---------------------------------------------------------------------
+
+{% if spec.tkg.common.proxy %}
+TKG_HTTP_PROXY: {{ spec.tkg.common.proxy.http}}
+TKG_HTTPS_PROXY: {{ spec.tkg.common.proxy.https}}
+TKG_NO_PROXY: {{ spec.tkg.common.proxy.noProxy}}
+{% endif %}
+
+#! ---------------------------------------------------------------------
+#! Common configuration
+#! ---------------------------------------------------------------------
+
+# TKG_CUSTOM_IMAGE_REPOSITORY: ""
+# TKG_CUSTOM_IMAGE_REPOSITORY_CA_CERTIFICATE: ""
+
+#! ---------------------------------------------------------------------
+#! Node configuration 
+#! ---------------------------------------------------------------------
+
+{% if spec.tkg.common.node %}
+OS_NAME: {{ spec.tkg.common.node.osName}}
+OS_VERSION: {{ spec.tkg.common.node.osVersion}}
+OS_ARCH: "amd64"
+{% endif %}
+SIZE: {{ wl_cluster.cluster.size }}
