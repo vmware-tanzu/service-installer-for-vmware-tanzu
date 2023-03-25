@@ -2,11 +2,21 @@
 
 Tekton pipeline execution for Tanzu Kubernetes Grid requires the following:
 
-- Linux VM with `kind` cluster of version v1.21 or later
-  - **Note:** SIVT OVA can also be used as Linux VM with `kind` preloaded.
-  - SIVT OVA can be downloaded from: https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true
-- Service Installer Tekton Docker file:
-  - Generate your own Docker image using the existing dockerfile in the repository. For more information, see the [Prepare Tekton Pipeline Environment](./preparefortektonpipelines.md)
-- Private GitLab or GitHub repository
+- Linux machine for creating kind cluster
+  - Photon OS or Service Installer for VMware Tanzu VM can also be used   
+- GitLab or GitHub repository for storing infrastructure and setup configuration files 
+- Docker login credentials
+- Marketplace token
+- Install Python-Pip dependencies
+  - pip install retry
+  - pip install paramkio
+- Install `tkn` CLI:
+  - Download `tkn` CLI from:
+    curl -LO https://github.com/tektoncd/cli/releases/download/v0.29.1/tkn_0.29.1_Linux_x86_64.tar.gz
+  - Untar the downloaded zip package to bin:
+    sudo tar xvzf tkn_0.29.1_Linux_x86_64.tar.gz -C /usr/local/bin/ tkn
+  - Verify the `tkn` CLI is installed
+    tkn version
 
-[Back to Main](./README.md)
+
+[Back to Main](../README.md)

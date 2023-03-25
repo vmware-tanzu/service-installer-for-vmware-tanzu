@@ -1,60 +1,38 @@
-# Run Day-2 Tekton Pipelines for Tanzu Kubernetes Grid
+# Run Day 2 Operations Pipelines for Tanzu Kubernetes Grid
 
-1. Update the desired state YAML file.
-   
-   1. Browse to the `desired-state` directory in Linux or SIVT VM.
-   
-   2. Update the `desired-state.yml` file as below. 
-      - Set `env` as `vsphere` or `vcf`.
-     
+See [Day 2 Support Matrix](../README.md) for Day 2 support.
+
+The pipelines support the following Day 2 operations:
+- Perform Tanzu Kubernetes Grid cluster upgrade
+- Perform resize of Workload clusters
+- Perform Scale Up/Down of clusters
+
+**Note:** It is recommended to perform one Day 2 operation at one instance. Multiple Day 2 operations cannot be executed in one run.
+
+### PREPARATORY STEPS
+Browse to the prepared Git repository (gitlab/github) and ensure the following:
+   1. File `desired-state/day2-desired-state.yml` is updated with the required version. 
+   2. Change `execute: true` for the desired Day 2 operation. 
+   3. Change `target_cluster` to select the cluster for Day 2 operation. 
+        - Grouping of clusters is also supported in target_cluster. 
+        - `all` - To perform the Day 2 operation on all the clusters. 
+        - `dev-lab*` - To perform the Day 2 operation on the clusters matching dev-lab name. 
+        - `clustername` - To perform on one specific cluster.
+
+### EXECUTION STEPS
+1. From the Linux machine or Service Installer for VMware Tanzu VM, browse to the CI/CD directory. 
+2. Execute: 
+      ```bash
+         ./prepare-sivt-tekton.sh --exec-day2-upgrade # for Upgrade operation
+         ./prepare-sivt-tekton.sh --exec-day2-resize # for Resize operation
+         ./prepare-sivt-tekton.sh --exec-day2-scale # for Scaling operation
       ```
-       ----
-       version:
-         tkgm: 1.5.4
-         env: vsphere
-       ```
-
-2. Generate the SIVT Tekton Docker TAR file.
-    1. [RECOMMENDED] To generate the Docker image using dockerfile, follow below steps:
-       1. Update `desired-state/desired-state.yml` file with desired version
-       2. Run the following command.
-               ```Shell
-               ./launch.sh --build_docker_image
-               ```
-       Running this command generates a Docker image as per the version mentioned in `desired-state/desired-state.yml` file.
-          Examples:
-          ```
-          1.5.3 --> sivt_tekton:v153
-          1.5.4 --> sivt_tekton:v154
-          ```
-          Note: Before running the command, install these Python dependencies: `iptools`, `paramiko`, and `retry`
+The pipelines can be monitored from UI at:  `http://<IP of Linux/SIVT VM>:8085`        
+                  
+The pipelines can be monitored from CLI by executing:
+```bash
+            export KUBECONFIG=path to arcas-ci-cd-cluster.yaml
+            tkn pr desc -L    
+```
    
-    2. To use a pre-existing Docker tar image, open `launch.sh` and update `UPGRADE_TARBALL_FILE_PATH` to the absolute path where the Service Installer Docker TAR file is present.
-         
-        For example:
-
-        - `UPGRADE_TARBALL_FILE_PATH="/root/tekton/arcas-tekton-cicd/service_installer_tekton_v15x.tar"`
-            
-        Save the file and exit.
-
-       Note: Using an existing TAR file is not recommended. 
-       However, for setups like Internet-restricted environments where the TAR file can't be generated, you can use an existing TAR file.```
-
-    3. Run the following command.
-     ```shell
-     ./launch.sh --load-upgrade-imgs
-     ```
-
-4. To upgrade all clusters, run the following command.
-
-    ```shell
-    ./launch.sh  --exec-upgrade-all 
-    ```
-
-5. To upgrade only the management cluster, run the following command.
-
-    ```shell
-    ./launch.sh  --exec-upgrade-mgmt 
-    ```
-   
-[Back to Main](./README.md)
+[Back to Main](../README.md)

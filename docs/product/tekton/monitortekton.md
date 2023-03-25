@@ -1,4 +1,4 @@
-# Monitor Tekton Pipeline Runs, Task Runs, and Pipelines
+# Monitor Pipeline Runs, Task Runs, and Pipelines
 
 Use the following commands to monitor Tekton pipeline runs, task runs, and pipelines for Tanzu Kubernetes Grid.
 
@@ -85,4 +85,4 @@ Use the following commands to monitor Tekton pipeline runs, task runs, and pipel
     tkn pr desc <tkgs-bringup-day0-z5qf4>
     ```	
 
-[Back to Main](./README.md)
+[Back to Main](../README.md)
