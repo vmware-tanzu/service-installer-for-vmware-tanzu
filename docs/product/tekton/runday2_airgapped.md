@@ -4,17 +4,17 @@ Complete the following preparatory tasks for upgrading Tanzu Kubernetes Grid in 
 
 ## Prerequisites
 
-- Refer to the `Prerequisites for Tekton Infrastructure` section of [Prepare to Run Day-0 Tekton Pipelines for TKG in Internet-Restricted Environment](./docs/runday0_airgapped.md).
+- Refer to the `Prerequisites for Tekton Infrastructure` section of [Prepare to Run Day-0 Tekton Piplines for TKG in Internet-Restricted Environment](./docs/runday0_airgapped.md).
 - Refer to the `Prepare Internet-Restricted Environment` section of [Prepare to Run Day-0 Tekton Pipelines for TKG in Internet-Restricted Environment](./docs/runday0_airgapped.md).
 
-## Step 1: Download Tanzu Images of Targeted Upgrade TKG Version on Jump Host
+## Step 1: Download Tanzu Images of Targeted Upgrade TKG Version on Jumbox Host
 
 - Refer to the below link to copy Tanzu images to Harbor:
   https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.6/vmware-tanzu-kubernetes-grid-16/GUID-mgmt-clusters-image-copy-airgapped.html
 
 - **Note:** Download Tanzu images for the targeted upgrade Tanzu Kubernetes Grid version.
 
-## Step 2: Prepare Tekton Docker Image of Targeted Upgrade TKG Version on Jump Host
+## Step 2: Prepare Tekton Docker Image of Targeted Upgrade TKG Version on Jumpbox Host
 
 - Refer `Step 2: Prepare Tekton Docker Image on Jumpbox Host` of of [Prepare to Run Day-0 Tekton Pipelines for TKG in Internet-Restricted Environment](./docs/runday0_airgapped.md).
 
@@ -56,4 +56,4 @@ Complete the following preparatory tasks for upgrading Tanzu Kubernetes Grid in 
 3. Refer below section to monitor the pipelines.
    - [Monitor Tekton Pipeline Runs, Task Runs, and Pipelines](./docs/monitortekton.md)
 
-[Back to Main](./README.md)
+[Back to Main](../README.md)

@@ -21,11 +21,11 @@ Complete the following preparatory tasks for running Tekton pipelines for Tanzu 
 - Avi controller OVAs are present in vCenter's content library
 - Photon/Ubuntu OS OVAs are present as template in vCenter
 
-## Step 1: Download Tekton Dependencies tar and Tanzu images on Jump Host
+## Step 1: Download Tekton Dependencies tar and Tanzu images on Jumbox Host
 
 - Perform following steps to download Tekton dependencies tar:
   - Go to the link and download Tekton dependencies tar file: 
-    - https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true/sivt_tekton_airgapped_dependencies.tar  
+    - <TBD: MARKETPLACE_PATH>/sivt_tekton_airgapped_dependencies.tar  
   - Copy this tar to bootstrap VM's $HOME directory using SSH
 - Refer to the below link to copy Tanzu images to Harbor:
   https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.6/vmware-tanzu-kubernetes-grid-16/GUID-mgmt-clusters-image-copy-airgapped.html
@@ -44,7 +44,7 @@ Perform following steps to create the Tekton Docker image.
 5. Run the following commands to generate the Docker image:
    1. `chmod +x airgapped_tkn_docker_img.py`
    2. `python airgapped_tkn_docker_img.py --tkg_version <TKG VERSION> --refresh_token <MARKETPLACE REFRESH TOKEN>`
-      - **Example**: python airgapped_tkn_docker_img.py --tkg_version 1.5.4 --refresh_token <REFRESH TOKEN>
+      - **Example**: python airgapped_tkn_docker_img.py --tkg_version 1.5.4 --refresh_token abcc....asfdf
       - **Output**: Will generate docker image named as `sivt_tekton:v<tkg_version>`. like sivt_tekton:v154
 6. Run the following commands to tag the generated Docker image and save as a TAR file.
    1. `docker image tag sivt_tekton:v<tkg_version> <HARBOR_URL>/tekton_dep/sivt_tekton:v<tkg_version>`
@@ -65,7 +65,7 @@ Perform following steps to create the Tekton Docker image.
 ## Step 4: Prepare Git Environment to Host Tekton Source Code and User Defined Files
 
 1. Create a private Git (GitLab/GitHub) repository.
-2. Clone the code from https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/1.4.1-1.6.0/tekton
+2. Clone the code from https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/tree/<TBD: RELEASE_NUMBER>/tekton.
 3. Create a Git personal access token (PAT) to be used for later stages.
 4. Prepare `deployment-config.json` based on your environment and upload under `config/deployment-config.json` in the private git repo (Refer `sample-json/sample-deployment-config.json`).
 
@@ -139,7 +139,7 @@ This step installs Tekton Pipelines and its dashboard.
 
     Tekton provides a dashboard for monitoring and triggering pipelines from the UI. It is recommended to have the dashboard integrated. This step can be skipped if Tekton dashboard is not required for your environment.
 
-4. Run the following command to deploy the dashboard.
+4. Run the folllowing command to deploy the dashboard.
     
     ```shell
      ./launch.sh --deploy-dashboard --airgapped
