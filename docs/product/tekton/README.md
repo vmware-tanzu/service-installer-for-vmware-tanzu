@@ -1,42 +1,39 @@
-# Service Installer for VMware Tanzu
+# CI/CD Pipelines for Service Installer for VMware Tanzu
 
-Service Installer for VMware Tanzu seeks to provide a one-click automation solution to enable our VMware engineers and field teams to install and configure Tanzu Services across a variety of cloud infrastructures easily and rapidly, and in conformance with prescribed [Tanzu Reference Architecture](https://docs.vmware.com/en/VMware-Tanzu/services/tanzu-reference-architecture/GUID-reference-designs-index.html)
+CI/CD pipeline execution for Service Installer for VMware Tanzu is built upon Tekton framework. Tekton is a cloud-native solution for building CI/CD system which provides the pipelines for Day 0 deployment and Day 2  operations of Tanzu Kubernetes Grid 2.1.0.
 
-​Service Installer for VMware Tanzu:
-1. This project focuses on building reference architectures for Multiple Cloud Endpoints
-2. Simplifies adaption of Tanzu Solutions by automating the deployment of TKO validated architecture
-3. TKO Reference Architectures and automation adapts the best practices of Tanzu
-4. Integrates with multiple SaaS endpoints(TMC, TO and TSM), and Marketplace which brings whole set of new features OOB
-5. Deploys and configures the shared services (Contour, Harbor, FluentBit, Prometheus, Grafana) which is critical for day-day operations
-6. Deploy, configure and integrate with AVI to support advanced load-balancing capabilities
-	
+## Features
 
-## Before you begin
+- Bring up of Tanzu Kubernetes Grid based on Reference Architecture deployments.
+- End-to-end Tanzu Kubernetes Grid deployment and configuration of AVI controller, management, shared services, and workload clusters, plug-ins, extensions
+- End-to-end bring up of vSphere with Tanzu environment with enabling of WCP, supervisor cluster, and workload cluster with plug-ins and extensions 
+- Day 2 operations support of Upgrade, Resize and Scale
+- Day 0 deployment and Day 2 operations for Tanzu Kubernetes Grid through Gitops
 
-* Check out the [contribution guidelines](CONTRIBUTING.md) to learn more about how to contribute
-* Check out this support process document [here](docs/community/support-process.md) to learn more about the process.
 
-## Roadmap
+## Pipeline Support Matrix
+### Day 0 Support Matrix
+| Platform | vSphere with vDS            | vSphere with NSX-T |
+|----------|-----------------------------|--------------------|
+|          | Day 0                        | Day 0               | 
+| Internet | TKG 2.1.0                   | TKG 2.1.0          |
+| Internet | TKGs with vSphere >= 7.0 u2 | NA                 |
 
-Check out the project [Roadmap](ROADMAP.md) and consider contributing!
+### Day 2 Support Matrix
+|Sl.No | Day2 Operations | Status              |
+|-------|-----------------|---------------------|
+| 1     | Upgrade         | Yet to be Supported | 
+| 2     | Rescale         | Supported           |
+| 3     | Resize          | Supported |
 
-## Contributing
+## ReadMe for Preparing CI/CD Pipelines 
+1. [Prerequisites for CI/CD Pipelines For Tanzu Kubernetes Grid](./docs/prerequisites.md)
+2. [Setup CI/CD infra and pipelines](./docs/preparefortektonpipelines.md)
 
-The service-installer-for-vmware-tanzu project team welcomes contributions from the community. Before you start working with service-installer-for-vmware-tanzu, please
-read our [Developer Certificate of Origin](https://cla.vmware.com/dco). All contributions to this repository must be
-signed as described on that page. Your signature certifies that you wrote the patch or have the right to pass it on
-as an open-source patch. For more detailed information, refer to [CONTRIBUTING](CONTRIBUTING.md).
+## Executing Pipelines 
+- [Run Day 0 Deployment Pipelines for Tanzu Kubernetes Grid](./docs/runday0.md)
+- [Run Day 2 Operations Pipelines for Tanzu Kubernetes Grid](./docs/runday2.md)
+- [Trigger Pipelines for Tanzu Kubernetes Grid through GitOps](./docs/triggerpipelinethrugitcommit.md)
 
-## Important Links
-
-1. Getting started with Service Installer for VMware Tanzu 
-- [Product Documentation](docs/product/release/index.md)
-- [TKGm on vSphere backed by VDS](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/docs/product/release/vSphere%20-%20Backed%20by%20VDS/TKGm/TKOonVsphereVDStkg.md)
-- [TKGs on vSphere backed by VDS](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/docs/product/release/vSphere%20-%20Backed%20by%20VDS/TKGs/TKOonVsphereVDStkgs.md)
-- [TKGm on vSphere backed by NSX-T](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/docs/product/release/vSphere%20-%20Backed%20by%20NSX-T/tkoVsphereNSXT.md)
-- [TKGm on VMC](https://github.com/vmware-tanzu/service-installer-for-vmware-tanzu/blob/main/docs/product/release/VMware%20Cloud%20on%20AWS%20-%20VMC/TKOonVMConAWS.md)
-
-2. Service Installer for VMware Tanzu download [link](https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true)
- 
-## Containerizing arcas 
-* Check out this document [here](docs/dev/image-build.md) to learn more about Containerizing arcas  .
+## Monitoring Pipelines 
+- [Monitor Pipeline Runs, Task Runs, and Pipelines](./docs/monitortekton.md)
