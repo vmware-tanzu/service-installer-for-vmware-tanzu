@@ -10,6 +10,7 @@ Service Installer for VMware Tanzu seeks to provide a one-click automation solut
 5. Deploys and configures the shared services (Contour, Harbor, FluentBit, Prometheus, Grafana) which is critical for day-day operations
 6. Deploy, configure and integrate with AVI to support advanced load-balancing capabilities
 	
+
 ## Before you begin
 
 * Check out the [contribution guidelines](CONTRIBUTING.md) to learn more about how to contribute
