@@ -1,0 +1,25 @@
+#@overlay/match by=overlay.subset({"kind":"KubeadmControlPlane"})
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+kind: KubeadmControlPlane
+spec:
+  kubeadmConfigSpec:
+    #@overlay/match missing_ok=True
+    preKubeadmCommands:
+    #! Add nameserver to all k8s nodes
+    #@overlay/append
+    - printf "\nPRIVATE-REGISTRY-IP   PRIVATE-REGISTRY-HOSTNAME" >> /etc/hosts
+
+#@overlay/match by=overlay.subset({"kind":"KubeadmConfigTemplate"})
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1alpha3
+kind: KubeadmConfigTemplate
+spec:
+  template:
+    spec:
+      #@overlay/match missing_ok=True
+      preKubeadmCommands:
+      #! Add nameserver to all k8s nodes
+      #@overlay/append
+      - printf "\nPRIVATE-REGISTRY-IP   PRIVATE-REGISTRY-HOSTNAME" >> /etc/hosts
+

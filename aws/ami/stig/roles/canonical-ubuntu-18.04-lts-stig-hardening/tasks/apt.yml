@@ -1,0 +1,25 @@
+- name: "apt: Unattended-Upgrade::Remove-Unused-Kernel-Packages"
+  lineinfile:
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    regexp: "^(#)?Unattended-Upgrade::Remove-Unused-Kernel-Packages"
+    line: "Unattended-Upgrade{{ '::' }}Remove-Unused-Kernel-Packages \"true\";"
+
+- name: "apt: Unattended-Upgrade::Remove-Unused-Dependencies"
+  lineinfile:
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    regexp: "^(#)?Unattended-Upgrade::Remove-Unused-Dependencies"
+    line: "Unattended-Upgrade{{ '::' }}Remove-Unused-Dependencies \"true\";"
+    state: present
+    create: yes
+    
+- name: "apt: disable planner"
+  lineinfile:
+    path: /etc/apt/apt.conf.d/99_disable_ext_planner
+    line: Dir::Log::Planner "/dev/null";
+    create: yes 
+
+- name: "apt: fix history.log permission"
+  lineinfile:
+    path: /etc/apt/apt.conf.d/100_fix_history_log
+    line: DPkg::Post-Invoke {"/bin/chmod 0640 /var/log/apt/history.log";};
+    create: yes

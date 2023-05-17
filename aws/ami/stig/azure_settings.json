@@ -1,0 +1,7 @@
+{
+  "goss_download_path": "/home/packer/goss-VERSION-linux-ARCH",
+  "private_virtual_network_with_public_ip": "",
+  "virtual_network_name": "",
+  "virtual_network_resource_group_name": "",
+  "virtual_network_subnet_name": ""
+}

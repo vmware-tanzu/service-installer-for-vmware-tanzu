@@ -1,0 +1,14 @@
+{
+  "full_name":
+    {
+      "provisionerName": "default",
+      "clusterName": "${WORK_CLUSTER_NAME}",
+      "managementClusterName": "${MANAGEMENT_CLUSTER_NAME}",
+      "name": "tanzu-observability-saas",
+    },
+  "spec":
+    {
+            "configurations": { "url": "${TO_URL}" },
+            "secrets": { "token": "${TO_TOKEN}" },
+    },
+}

@@ -1,0 +1,58 @@
+---
+update:
+  execute: true
+  tkgm: 1.5.4
+  target_cluster: lab-dev*
+
+resize:
+  execute: true
+  target_cluster: mgmtclustername
+  resize_memory_mb:
+  resize_cpu:
+
+scale:
+  execute: true
+  target_cluster: mgmtclustername
+  control_plane_node_count:
+  worker_node_count:
+
+
+
+Description: >
+
+  !!! NOTE: ONLY ONE TYPE OF DAY2 OPERATION IS SUPPORTED DURING ONE EXECUTION. !!!
+
+  The day2-desired-state.yml file is responsible to refer that what
+  type of day2 operation to be executed on the clusters.
+
+
+
+  target_cluster can be name of the cluster to be upgrade. Target cluster can also be
+  "all" to upgrade all clusters
+
+  resize_memory_mb and resize_cpu SHOULD NOT BE LOWER than the current size.
+  resize_cpu refers to the cpu count
+
+  Specify none if cpu/memory need not be resized against resp.
+
+  control_plane_node_count and worker_node_count SHOULD NOT BE LOWER than the
+  current node count.
+
+  If you initially deployed a development management cluster with
+  one control plane node and you scale it up to 3 control plane nodes,
+
+  Sample TKGm:
+  ---
+  upgrade:
+    tkgm: 1.5.4
+    target_cluster: lab1-mgmt-cluster
+
+  upgrade:
+      tkgm: 1.5.4
+      target_cluster: all
+
+  resize:
+      target_cluster: lab1-mgmt-cluster
+      resize_memory_mb: 8192
+      resize_cpu: 4
+

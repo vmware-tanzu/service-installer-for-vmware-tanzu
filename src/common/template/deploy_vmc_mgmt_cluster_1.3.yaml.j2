@@ -1,0 +1,37 @@
+AVI_CA_DATA_B64: {{ cert }}
+AVI_CLOUD_NAME: tkgvmc-cloud01
+AVI_CONTROLLER: {{ ip }}
+AVI_DATA_NETWORK: tkgvmc-tkgMgmtDataNetwork01
+AVI_DATA_NETWORK_CIDR: {{ wipIpNetmask }}
+AVI_ENABLE: 'true'
+AVI_LABELS: |
+        '{{ avi_label_key }}': '{{ avi_label_value }}'
+AVI_PASSWORD: {{ str_enc_avi }}
+AVI_SERVICE_ENGINE_GROUP: tkgvmc-tkgmgmt-group01
+AVI_USERNAME: admin
+CLUSTER_CIDR: 100.96.0.0/11
+CLUSTER_NAME: {{ config.componentSpec.tkgMgmtSpec.tkgMgmtClusterName }}
+CLUSTER_PLAN: {{ config.componentSpec.tkgMgmtSpec.tkgMgmtDeploymentType }}
+ENABLE_CEIP_PARTICIPATION: 'true'
+ENABLE_MHC: 'true'
+IDENTITY_MANAGEMENT_TYPE: none
+INFRASTRUCTURE_PROVIDER: vsphere
+SERVICE_CIDR: 100.64.0.0/13
+TKG_HTTP_PROXY_ENABLED: false
+VSPHERE_CONTROL_PLANE_DISK_GIB: '40'
+VSPHERE_CONTROL_PLANE_ENDPOINT: {{ vsphere_cntrol_plane_ip }}
+VSPHERE_CONTROL_PLANE_MEM_MIB: '16384'
+DEPLOY_TKG_ON_VSPHERE7: 'true'
+VSPHERE_CONTROL_PLANE_NUM_CPUS: '4'
+VSPHERE_DATACENTER: {{ datacenter }}
+VSPHERE_DATASTORE: {{ datastore_path }}
+VSPHERE_FOLDER: {{ vsphere_folder_path }}
+VSPHERE_NETWORK: {{ config.componentSpec.tkgMgmtSpec.tkgMgmtNetworkName }}
+VSPHERE_PASSWORD: <encoded:{{ vcenter_passwd }}>
+VSPHERE_RESOURCE_POOL: {{ vsphere_rp }}
+VSPHERE_SERVER: {{ vcenter_ip }}
+VSPHERE_SSH_AUTHORIZED_KEY: {{ ssh_key }}
+VSPHERE_USERNAME: {{ vcenter_username }}
+VSPHERE_WORKER_DISK_GIB: '40'
+VSPHERE_WORKER_MEM_MIB: '16384'
+VSPHERE_WORKER_NUM_CPUS: '4'

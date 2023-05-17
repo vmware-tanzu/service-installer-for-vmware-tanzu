@@ -1,0 +1,8 @@
+---
+- name: TKG boootstrap dependencies
+  hosts: 'all'
+  become: yes
+  become_method: sudo
+  tasks:
+  - include_role:
+      name: bootstrap

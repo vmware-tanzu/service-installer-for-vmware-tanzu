@@ -1,0 +1,9 @@
+{
+  "aws_region": "",
+  "ami_regions": "",
+  "subnet_id": "{{env `SUBNET_ID` }}",
+  "vpc_id": "{{env `VPC_ID` }}",
+  "ami_groups": "",
+  "snapshot_groups": "",
+  "redhat_epel_rpm": ""
+}
