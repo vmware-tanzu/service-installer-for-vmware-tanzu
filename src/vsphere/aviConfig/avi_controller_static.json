@@ -1,0 +1,54 @@
+{
+  "DiskProvisioning": "thin",
+  "IPAllocationPolicy": "dhcpPolicy",
+  "IPProtocol": "IPv4",
+  "PropertyMapping": [
+    {
+      "Key": "avi.mgmt-ip.CONTROLLER",
+      "Value": "172.17.10.10"
+    },
+    {
+      "Key": "avi.mgmt-mask.CONTROLLER",
+      "Value": "24"
+    },
+    {
+      "Key": "avi.default-gw.CONTROLLER",
+      "Value": "172.17.10.1"
+    },
+    {
+      "Key": "avi.sysadmin-public-key.CONTROLLER",
+      "Value": ""
+    },
+    {
+      "Key": "avi.nsx-t-node-id.CONTROLLER",
+      "Value": ""
+    },
+    {
+      "Key": "avi.nsx-t-ip.CONTROLLER",
+      "Value": ""
+    },
+    {
+      "Key": "avi.nsx-t-auth-token.CONTROLLER",
+      "Value": ""
+    },
+    {
+      "Key": "avi.nsx-t-thumbprint.CONTROLLER",
+      "Value": ""
+    },
+    {
+      "Key": "avi.hostname.CONTROLLER",
+      "Value": ""
+    }
+  ],
+  "NetworkMapping": [
+    {
+      "Name": "Management",
+      "Network": "tkg-mgmt"
+    }
+  ],
+  "MarkAsTemplate": false,
+  "PowerOn": true,
+  "InjectOvfEnv": false,
+  "WaitForIP": true,
+  "Name": null
+}

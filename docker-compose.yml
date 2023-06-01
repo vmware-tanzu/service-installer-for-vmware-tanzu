@@ -1,0 +1,22 @@
+version: '3'
+services:
+  web:
+    image: sivt-ui:${SIVT_UI_IMAGE_TAG}
+    stdin_open: true # docker run -i
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+     - "8888:8888"
+
+  be:
+    image: arcas-cli:${ARCAS_CLI_IMAGE_TAG}
+    build:
+      context: .
+      dockerfile: Dockerfile.be
+    ports:
+      - "5000:5000"
+    network_mode: "host"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

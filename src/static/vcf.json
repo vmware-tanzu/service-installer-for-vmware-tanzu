@@ -1,0 +1,1061 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "description": "Arcas Configuration apis",
+    "version": "1.0.0",
+    "title": "Arcas"
+  },
+  "servers": [
+    {
+      "url": "http://{SIVT Host}:5000/api/tanzu",
+      "variables": {
+      "SIVT Host": {
+        "default": "127.0.0.1",
+        "description": "Sivt Ip Address"
+      }}
+    }
+  ],
+  "tags": [
+      {
+        "name": "Precheck"
+      },
+      {
+        "name": "Vcf Pre Configuration"
+      },
+      {
+        "name": "AVI Configuration"
+      },
+      {
+        "name": "Management Service"
+      },
+      {
+        "name": "Shared Service"
+      },
+      {
+        "name": "Workload Service"
+      },
+      {
+        "name": "Extensions"
+      }
+      ,
+      {
+        "name": "Configure TKGm"
+      },
+      {
+        "name": "Sample Deployment"
+      },
+      {
+        "name": "Cleanup"
+      }
+    ],
+  "paths":
+  {
+     "/vsphere/alb/vcf_pre_config": {
+         "post": {
+             "tags": [
+                 "Vcf Pre Configuration"
+             ],
+             "summary": "configure vcf",
+             "description": "`--vcf_pre_configuration` : Creates segments, Firewalls rules, Inventory Groups and Services",
+             "parameters": [
+              {
+                  "in": "header",
+                  "name": "env",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "enum": [
+                      "vcf"
+                    ]
+                  }
+                }
+             ],
+            "requestBody": {
+        "description": "Deployment config object",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+               "$ref": "#/components/schemas/tkgmNsxtConfig"
+            }
+          }
+        }
+      },
+             "responses": {
+        "200": {
+          "description": "OK",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/successResponse"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "ERROR.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/errorResponse"
+              }
+            }
+          }
+        }
+      }
+         }
+     },
+     "/vsphere/alb": {
+      "post": {
+        "tags": [
+          "AVI Configuration"
+        ],
+        "summary": "configure avi",
+        "description": "`--avi_configuration` : Deploy and Configure AVI",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "env",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "vcf"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Deployment config object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                 "$ref": "#/components/schemas/tkgmNsxtConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/successResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "ERROR.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vsphere/tkgsharedsvc": {
+      "post": {
+        "tags": [
+          "Shared Service"
+        ],
+        "summary": "configure TKG Shared Services Cluster",
+        "description": "`--shared_service_configuration` : Configure ALB Components and Deploy TKG Shared Service Cluster and Labelling",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "env",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "vcf"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Deployment config object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                 "$ref": "#/components/schemas/tkgmNsxtConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/successResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "ERROR.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vsphere/workload/network-config": {
+      "post": {
+        "tags": [
+          "AVI Configuration"
+        ],
+        "summary": "configure AVI objects for TKG Workload Clusters",
+        "description": "`--workload_preconfig` : Configure ALB for TKG Workload Cluster",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "env",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "vcf"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Deployment config object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                 "$ref": "#/components/schemas/tkgmNsxtConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/successResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "ERROR.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vsphere/workload/config": {
+      "post": {
+        "tags": [
+          "Workload Service"
+        ],
+        "summary": "configure TKG Workload Cluster",
+        "description": "`--workload_deploy` : Deploy Workload Cluster and Add AKO Labels",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "env",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "vcf"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Deployment config object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                 "$ref": "#/components/schemas/tkgmNsxtConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/successResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "ERROR.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vsphere/tkgmgmt": {
+      "post": {
+        "tags": [
+          "Management Service"
+        ],
+        "summary": "configure TKG Management Cluster",
+        "description": "`--tkg_mgmt_configuration` : Configure ALB Components and Deploy TKG Management Cluster",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "env",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "vcf"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Deployment config object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                 "$ref": "#/components/schemas/tkgmNsxtConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/successResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "ERROR.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vmc/tkgm": {
+      "post": {
+        "tags": [
+          "Configure TKGm"
+        ],
+        "summary": "configure tkgm",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "env",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "vcf"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Deployment config object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                 "$ref": "#/components/schemas/tkgmNsxtConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/successResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "ERROR.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vsphere/deployApp": {
+      "post": {
+        "tags": [
+          "Sample Deployment"
+        ],
+        "summary": "deploy sample app",
+      "description": "`--deployapp` : Deploy Sample App",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "env",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "vcf"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Deployment config object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                 "$ref": "#/components/schemas/tkgmNsxtConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/successResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "ERROR.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tanzu/extentions": {
+      "post": {
+        "tags": [
+          "Extensions"
+        ],
+        "summary": "deploy extensions",
+        "description": "`--deploy_extensions` : Deploy extensions",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "env",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "vcf"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Deployment config object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                 "$ref": "#/components/schemas/tkgmNsxtConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/successResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "ERROR.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/precheck": {
+      "post": {
+        "tags": [
+          "Precheck"
+        ],
+        "summary": "Performing prechecks",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "env",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "vcf"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Deployment config object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                 "$ref": "#/components/schemas/tkgmNsxtConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/successResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "ERROR.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cleanup-prompt": {
+      "post": {
+        "tags": [
+          "Cleanup"
+        ],
+        "summary": "cleanup",
+        "description": "`--cleanup` : Cleanup environment",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "env",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "vcf"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Deployment config object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/tkgmNsxtConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/successResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "ERROR.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/errorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+ },
+  "components": {
+    "schemas": {
+      "tkgmNsxtConfig":{
+        "type": "object",
+        "properties": {
+          "envSpec": {
+            "type": "object",
+            "properties": {
+              "vcenterDetails": {
+                "type": "object",
+                "properties": {
+                  "vcenterAddress": { "type": "string" },
+                  "vcenterSsoUser": { "type": "string" },
+                  "vcenterSsoPasswordBase64": { "type": "string" },
+                  "vcenterDatacenter": { "type": "string" },
+                  "vcenterCluster": { "type": "string" },
+                  "vcenterDatastore": { "type": "string" },
+                  "contentLibraryName": { "type": "string" },
+                  "aviOvaName": { "type": "string" },
+                  "resourcePoolName": { "type": "string" },
+                  "nsxtAddress": { "type": "string" },
+                  "nsxtUser": { "type": "string" },
+                  "nsxtUserPasswordBase64": { "type": "string" },
+                  "nsxtTier1RouterDisplayName": { "type": "string" },
+                  "nsxtOverlay": { "type": "string" }
+                }
+              },
+              "envType": { "type": "string" },
+              "marketplaceSpec": { "type": "object", "properties": { "refreshToken": { "type": "string" } } },
+              "ceipParticipation": { "type": "string" },
+              "customRepositorySpec": {
+                "type": "object",
+                "properties": {
+                  "tkgCustomImageRepository": { "type": "string" },
+                  "tkgCustomImageRepositoryPublicCaCert": { "type": "string" }
+                }
+              },
+              "saasEndpoints": {
+                "type": "object",
+                "properties": {
+                  "tmcDetails": {
+                    "type": "object",
+                    "properties": {
+                      "tmcAvailability": { "type": "string" },
+                      "tmcRefreshToken": { "type": "string" },
+                      "tmcInstanceURL": { "type": "string" }
+                    }
+                  },
+                  "tanzuObservabilityDetails": {
+                    "type": "object",
+                    "properties": {
+                      "tanzuObservabilityAvailability": { "type": "string" },
+                      "tanzuObservabilityUrl": { "type": "string" },
+                      "tanzuObservabilityRefreshToken": { "type": "string" }
+                    }
+                  }
+                }
+              },
+              "infraComponents": {
+                "type": "object",
+                "properties": {
+                  "dnsServersIp": { "type": "string" },
+                  "searchDomains": { "type": "string" },
+                  "ntpServers": { "type": "string" }
+                }
+              },
+              "proxySpec": {
+                "type": "object",
+                "properties": {
+                  "arcasVm": {
+                    "type": "object",
+                    "properties": {
+                      "enableProxy": { "type": "string" },
+                      "httpProxy": { "type": "string" },
+                      "httpsProxy": { "type": "string" },
+                      "noProxy": { "type": "string" },
+                      "proxyCert": { "type": "string" }
+                    }
+                  },
+                  "tkgMgmt": {
+                    "type": "object",
+                    "properties": {
+                      "enableProxy": { "type": "string" },
+                      "httpProxy": { "type": "string" },
+                      "httpsProxy": { "type": "string" },
+                      "noProxy": { "type": "string" },
+                      "proxyCert": { "type": "string" }
+                    }
+                  },
+                  "tkgSharedservice": {
+                    "type": "object",
+                    "properties": {
+                      "enableProxy": { "type": "string" },
+                      "httpProxy": { "type": "string" },
+                      "httpsProxy": { "type": "string" },
+                      "noProxy": { "type": "string" },
+                      "proxyCert": { "type": "string" }
+                    }
+                  },
+                  "tkgWorkload": {
+                    "type": "object",
+                    "properties": {
+                      "enableProxy": { "type": "string" },
+                      "httpProxy": { "type": "string" },
+                      "httpsProxy": { "type": "string" },
+                      "noProxy": { "type": "string" },
+                      "proxyCert": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "tkgComponentSpec": {
+            "type": "object",
+            "properties": {
+              "aviMgmtNetwork": {
+                "type": "object",
+                "properties": {
+                  "aviMgmtNetworkName": { "type": "string" },
+                  "aviMgmtNetworkGatewayCidr": { "type": "string" },
+                  "aviMgmtServiceIpStartRange": { "type": "string" },
+                  "aviMgmtServiceIpEndRange": { "type": "string" }
+                }
+              },
+              "tkgClusterVipNetwork": {
+                "type": "object",
+                "properties": {
+                  "tkgClusterVipNetworkName": { "type": "string" },
+                  "tkgClusterVipNetworkGatewayCidr": { "type": "string" },
+                  "tkgClusterVipIpStartRange": { "type": "string" },
+                  "tkgClusterVipIpEndRange": { "type": "string" }
+                }
+              },
+              "aviComponents": {
+                "type": "object",
+                "properties": {
+                  "aviPasswordBase64": { "type": "string" },
+                  "aviBackupPassphraseBase64": { "type": "string" },
+                  "enableAviHa": { "type": "string" },
+                  "aviController01Ip": { "type": "string" },
+                  "aviController01Fqdn": { "type": "string" },
+                  "aviController02Ip": { "type": "string" },
+                  "aviController02Fqdn": { "type": "string" },
+                  "aviController03Ip": { "type": "string" },
+                  "aviController03Fqdn": { "type": "string" },
+                  "aviClusterIp": { "type": "string" },
+                  "aviClusterFqdn": { "type": "string" },
+                  "aviSize": { "type": "string" },
+                  "aviCertPath": { "type": "string" },
+                  "aviCertKeyPath": { "type": "string" }
+                }
+              },
+              "identityManagementSpec": {
+                "type": "object",
+                "properties": {
+                  "identityManagementType": { "type": "string" },
+                  "oidcSpec": {
+                    "type": "object",
+                    "properties": {
+                      "oidcIssuerUrl": { "type": "string" },
+                      "oidcClientId": { "type": "string" },
+                      "oidcClientSecret": { "type": "string" },
+                      "oidcScopes": { "type": "string" },
+                      "oidcUsernameClaim": { "type": "string" },
+                      "oidcGroupsClaim": { "type": "string" }
+                    }
+                  },
+                  "ldapSpec": {
+                    "type": "object",
+                    "properties": {
+                      "ldapEndpointIp": { "type": "string" },
+                      "ldapEndpointPort": { "type": "string" },
+                      "ldapBindPWBase64": { "type": "string" },
+                      "ldapBindDN": { "type": "string" },
+                      "ldapUserSearchBaseDN": { "type": "string" },
+                      "ldapUserSearchFilter": { "type": "string" },
+                      "ldapUserSearchUsername": { "type": "string" },
+                      "ldapGroupSearchBaseDN": { "type": "string" },
+                      "ldapGroupSearchFilter": { "type": "string" },
+                      "ldapGroupSearchUserAttr": { "type": "string" },
+                      "ldapGroupSearchGroupAttr": { "type": "string" },
+                      "ldapGroupSearchNameAttr": { "type": "string" },
+                      "ldapRootCAData": { "type": "string" }
+                    }
+                  }
+                }
+              },
+              "tkgMgmtComponents": {
+                "type": "object",
+                "properties": {
+                  "tkgMgmtNetworkName": { "type": "string" },
+                  "tkgMgmtGatewayCidr": { "type": "string" },
+                  "tkgMgmtClusterName": { "type": "string" },
+                  "tkgMgmtSize": { "type": "string" },
+                  "tkgMgmtCpuSize": { "type": "string" },
+                  "tkgMgmtMemorySize": { "type": "string" },
+                  "tkgMgmtStorageSize": { "type": "string" },
+                  "tkgMgmtDeploymentType": { "type": "string" },
+                  "tkgMgmtClusterCidr": { "type": "string" },
+                  "tkgMgmtServiceCidr": { "type": "string" },
+                  "tkgMgmtBaseOs": { "type": "string" },
+                  "tkgMgmtClusterGroupName": { "type": "string" },
+                  "tkgMgmtRbacUserRoleSpec": {
+                    "type": "object",
+                    "properties": {
+                      "clusterAdminUsers": { "type": "string" },
+                      "adminUsers": { "type": "string" },
+                      "editUsers": { "type": "string" },
+                      "viewUsers": { "type": "string" }
+                    }
+                  }
+                }
+              },
+              "tkgSharedserviceSpec": {
+                "type": "object",
+                "properties": {
+                  "tkgSharedserviceNetworkName": { "type": "string" },
+                  "tkgSharedserviceGatewayCidr": { "type": "string" },
+                  "tkgSharedserviceDhcpStartRange": { "type": "string" },
+                  "tkgSharedserviceDhcpEndRange": { "type": "string" },
+                  "tkgSharedserviceClusterName": { "type": "string" },
+                  "tkgSharedserviceSize": { "type": "string" },
+                  "tkgSharedserviceCpuSize": { "type": "string" },
+                  "tkgSharedserviceMemorySize": { "type": "string" },
+                  "tkgSharedserviceStorageSize": { "type": "string" },
+                  "tkgSharedserviceDeploymentType": { "type": "string" },
+                  "tkgSharedserviceWorkerMachineCount": { "type": "string" },
+                  "tkgSharedserviceClusterCidr": { "type": "string" },
+                  "tkgSharedserviceServiceCidr": { "type": "string" },
+                  "tkgSharedserviceBaseOs": { "type": "string" },
+                  "tkgSharedserviceKubeVersion": { "type": "string" },
+                  "tkgSharedserviceRbacUserRoleSpec": {
+                    "type": "object",
+                    "properties": {
+                      "clusterAdminUsers": { "type": "string" },
+                      "adminUsers": { "type": "string" },
+                      "editUsers": { "type": "string" },
+                      "viewUsers": { "type": "string" }
+                    }
+                  },
+                  "tkgSharedserviceClusterGroupName": { "type": "string" },
+                  "tkgSharedserviceEnableDataProtection": { "type": "string" },
+                  "tkgSharedClusterCredential": { "type": "string" },
+                  "tkgSharedClusterBackupLocation": { "type": "string" }
+                }
+              }
+            }
+          },
+          "tkgMgmtDataNetwork": {
+            "type": "object",
+            "properties": {
+              "tkgMgmtDataNetworkName": { "type": "string" },
+              "tkgMgmtDataNetworkGatewayCidr": { "type": "string" },
+              "tkgMgmtAviServiceIpStartRange": { "type": "string" },
+              "tkgMgmtAviServiceIpEndRange": { "type": "string" }
+            }
+          },
+          "tkgWorkloadDataNetwork": {
+            "type": "object",
+            "properties": {
+              "tkgWorkloadDataNetworkName": { "type": "string" },
+              "tkgWorkloadDataNetworkGatewayCidr": { "type": "string" },
+              "tkgWorkloadAviServiceIpStartRange": { "type": "string" },
+              "tkgWorkloadAviServiceIpEndRange": { "type": "string" }
+            }
+          },
+          "tkgWorkloadComponents": {
+            "type": "object",
+            "properties": {
+              "tkgWorkloadNetworkName": { "type": "string" },
+              "tkgWorkloadGatewayCidr": { "type": "string" },
+              "tkgWorkloadDhcpStartRange": { "type": "string" },
+              "tkgWorkloadDhcpEndRange": { "type": "string" },
+              "tkgWorkloadClusterName": { "type": "string" },
+              "tkgWorkloadSize": { "type": "string" },
+              "tkgWorkloadCpuSize": { "type": "string" },
+              "tkgWorkloadMemorySize": { "type": "string" },
+              "tkgWorkloadStorageSize": { "type": "string" },
+              "tkgWorkloadDeploymentType": { "type": "string" },
+              "tkgWorkloadWorkerMachineCount": { "type": "string" },
+              "tkgWorkloadClusterCidr": { "type": "string" },
+              "tkgWorkloadServiceCidr": { "type": "string" },
+              "tkgWorkloadBaseOs": { "type": "string" },
+              "tkgWorkloadKubeVersion": { "type": "string" },
+              "tkgWorkloadRbacUserRoleSpec": {
+                "type": "object",
+                "properties": {
+                  "clusterAdminUsers": { "type": "string" },
+                  "adminUsers": { "type": "string" },
+                  "editUsers": { "type": "string" },
+                  "viewUsers": { "type": "string" }
+                }
+              },
+              "tkgWorkloadTsmIntegration": { "type": "string" },
+              "namespaceExclusions": {
+                "type": "object",
+                "properties": { "exactName": { "type": "string" }, "startsWith": { "type": "string" } }
+              },
+              "tkgWorkloadClusterGroupName": { "type": "string" },
+              "tkgWorkloadEnableDataProtection": { "type": "string" },
+              "tkgWorkloadClusterCredential": { "type": "string" },
+              "tkgWorkloadClusterBackupLocation": { "type": "string" }
+            }
+          },
+          "harborSpec": {
+            "type": "object",
+            "properties": {
+              "enableHarborExtension": { "type": "string" },
+              "harborFqdn": { "type": "string" },
+              "harborPasswordBase64": { "type": "string" },
+              "harborCertPath": { "type": "string" },
+              "harborCertKeyPath": { "type": "string" }
+            }
+          },
+          "tanzuExtensions": {
+            "type": "object",
+            "properties": {
+              "enableExtensions": { "type": "string" },
+              "tkgClustersName": { "type": "string" },
+              "logging": {
+                "type": "object",
+                "properties": {
+                  "syslogEndpoint": {
+                    "type": "object",
+                    "properties": {
+                      "enableSyslogEndpoint": { "type": "string" },
+                      "syslogEndpointAddress": { "type": "string" },
+                      "syslogEndpointPort": { "type": "string" },
+                      "syslogEndpointMode": { "type": "string" },
+                      "syslogEndpointFormat": { "type": "string" }
+                    }
+                  },
+                  "httpEndpoint": {
+                    "type": "object",
+                    "properties": {
+                      "enableHttpEndpoint": { "type": "string" },
+                      "httpEndpointAddress": { "type": "string" },
+                      "httpEndpointPort": { "type": "string" },
+                      "httpEndpointUri": { "type": "string" },
+                      "httpEndpointHeaderKeyValue": { "type": "string" }
+                    }
+                  },
+                  "kafkaEndpoint": {
+                    "type": "object",
+                    "properties": {
+                      "enableKafkaEndpoint": { "type": "string" },
+                      "kafkaBrokerServiceName": { "type": "string" },
+                      "kafkaTopicName": { "type": "string" }
+                    }
+                  }
+                }
+              },
+              "monitoring": {
+                "type": "object",
+                "properties": {
+                  "enableLoggingExtension": { "type": "string" },
+                  "prometheusFqdn": { "type": "string" },
+                  "prometheusCertPath": { "type": "string" },
+                  "prometheusCertKeyPath": { "type": "string" },
+                  "grafanaFqdn": { "type": "string" },
+                  "grafanaCertPath": { "type": "string" },
+                  "grafanaCertKeyPath": { "type": "string" },
+                  "grafanaPasswordBase64": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "successResponse": {
+        "type": "object",
+        "properties": {
+          "responseType": {
+            "type": "string",
+            "example": "SUCCESS"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "STATUS_CODE": {
+            "type": "integer",
+            "example": 200
+          }
+        }
+      },
+      "errorResponse": {
+        "type": "object",
+        "properties": {
+          "responseType": {
+            "type": "string",
+            "example": "ERROR"
+          },
+          "msg": {
+            "type": "string"
+          },
+          "STATUS_CODE": {
+            "type": "integer",
+            "example": 500
+          }
+        }
+      }
+    }
+  }
+}

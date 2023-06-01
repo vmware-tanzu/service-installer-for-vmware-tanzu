@@ -1,0 +1,7 @@
+- name: update trusted ca debian
+  command: update-ca-certificates
+  when: ansible_os_family == "Debian"
+
+- name: update trusted ca redhat
+  command: /bin/update-ca-trust enable
+  when: ansible_os_family == "RedHat"

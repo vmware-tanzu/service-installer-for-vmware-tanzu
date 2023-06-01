@@ -1,0 +1,27 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: upgrade-workflow
+spec:
+  serviceAccountName: git-bot
+  workspaces:
+    - name: pipeline-shared-data
+      volumeClaimTemplate:
+        metadata:
+          name: arcas-pvc-pr
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+  pipelineRef:
+    name: upgrade-pipeline
+  params:
+  - name: giturl
+    value: ""
+  - name: branch
+    value: ""
+  - name: message
+    value: "exec_upgrade"
+  timeout: 2h0m0s

@@ -1,0 +1,17 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: tkgs-git-commit-task
+spec:
+  workspaces:
+    - name: task-shared-data
+
+  steps:
+    - name: run-git-commit
+      image: tekton_worker
+      imagePullPolicy: "Never"
+      script: |
+        cd /workspace/task-shared-data
+        set -x
+        dst_dir=`pwd`
+

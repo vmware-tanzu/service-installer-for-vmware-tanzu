@@ -1,0 +1,24 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: tkgm-upgrade-day2-
+spec:
+  pipelineRef:
+    name: tekton-upgrade-pipeline
+  params:
+    - name: giturl
+      value: #@ "https://" + data.values.git.host + "/" + data.values.git.repository
+    - name: branch
+      value: #@ data.values.git.branch
+    - name: message
+      value: "exec_upgrade"
+  timeout: 2h0m0s
+  workspaces:
+    - name: pipeline-shared-data
+      persistentVolumeClaim:
+        claimName: tekton-day2
+  serviceAccountName: git-bot
+
+

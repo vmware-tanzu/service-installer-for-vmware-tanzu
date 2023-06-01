@@ -1,0 +1,36 @@
+- name: "[Common] sysctl"
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    reload: yes
+  with_items: 
+  - name: kernel.randomize_va_space
+    value: 2
+  - name: net.ipv4.tcp_syncookies
+    value: 1
+  tags:
+  - V-219330
+  - V-219342
+
+- name: "sysctl: --protect-kernel-defaults"
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    reload: yes
+  with_items:
+  - name: vm.overcommit_memory
+    value: 1
+  - name: kernel.panic
+    value: 10
+  - name: kernel.panic_on_oops
+    value: 1
+  when:
+    install_protect_kernel_defaults: true
+
+- name: "sysctl: fs.suid_dumpable"
+  blockinfile:
+    dest: /etc/systemd/coredump.conf
+    block: |
+      Storage=none
+      ProcessSizeMax=0
+    create: yes

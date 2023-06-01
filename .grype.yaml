@@ -1,0 +1,4 @@
+fail-on-severity: "High"
+only-fixed: true
+ignore:
+  - vulnerability: GHSA-776f-qx25-q3cc
