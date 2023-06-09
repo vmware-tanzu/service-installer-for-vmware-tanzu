@@ -1,27 +1,38 @@
-# Service Installer for VMware Tanzu 2.2.0.1 Release Notes
+# Service Installer for VMware Tanzu 2.2.0.x Release Notes
 
-## What's New
+Except where noted, these release notes apply to all v2.2.x patch versions of Service Installer for VMware Tanzu (SIVT).
 
-- Service Installer for VMware Tanzu (SIVT) now supports v1alpha3 APIs on vSphere 8.0 for TKG Service deployments.
-- SIVT ova now supports Tanzu Kubernetes Grid (TKG) 2.2.0
-- SIVT now supports Essentials along with Enterprise license for NSX ALB for TKGm and TKGs VDS platforms
-- Code refactored to remove TMC CLI for TMC related operations, SIVT now uses TMC APIs
-  - TMC API code changes are ported to VMC along with other code enhancements
-  - TMC API: Worker node count passed as control plane node count to API payload for shared and workload cluster
-- SIVT now supports version control for deployment JSON file generated from User Interface.
-- SIVT now supports TKG 2.1.1 for non-compliant deployment on AWS and TKG 1.6.1 (FIPS) for compliant deployment
+## What's New in 2.2.0.1
+The following new features and support are added in 2.2.0.1:
 
-NOTE: SIVT Azure will be supporting the older version of Tanzu Kubernetes Grid [support matrix](index.md/##Service Installer for VMware Tanzu Support Matrix).
+- Support for v1alpha3 APIs on vSphere 8.0 for TKG service deployments.
+
+This release resolves the following issues:
+
+- Deployments of TKG Service using Tanzu Standard License with 60 days Evaluation mode are allowed.
+- UI: Fixes on Configure and Upload flows for VMC.
+
+## What's New in 2.2.0
+The following new features and support are added in 2.2.0.
+
+- Service Installer for VMware Tanzu (SIVT) adds support for the following:
+  - Tanzu Kubernetes Grid (TKG) 2.2.0.
+  - NSX ALB Essentials license in addition to the existing support for the Enterprise license for Tanzu Kubernetes Grid (TKG) standalone management and Supervisor on VDS platforms.
+  - Version control for the deployment JSON file generated from the SIVT user interface.
+  - TKG 2.1.1 for non-compliant deployment on AWS and TKG 1.6.1 (FIPS) for compliant deployment.
+- Use of TMC APIs for TMC related operations. This release does not use TMC CLI. 
+  - TMC API code changes are ported to VMC along with other code enhancements.
+  - TMC API: Worker node count passed as control plane node count to API payload for shared and workload cluster.
+
+> **Note** For deployments on Azure, SIVT supports older versions of Tanzu Kubernetes Grid. For supported TKG versions, see [Service Installer for VMware Tanzu Support Matrix](index.md#sivt-support).
 
 ## Resolved Issues
-- SIVT will allow deployments of TKG Service using Tanzu Standard License with 60 days Evaluation mode.
-- Backend Check for Kubernetes OVA version of Shared and Workload clusters in JSON files is missing
-- Fluent-bit extension failing for TKGs proxy
+- Backend Check for Kubernetes OVA version of Shared and Workload clusters in JSON files is missing.
+- Fluent-bit extension failing for TKGs proxy.
 - UI: VDS Configure options has a bug on Custom repo page leading to AVI not getting loaded.
-- Inconsistent naming of networks / port groups in docs
+- Inconsistent naming of networks / port groups in docs.
 - Activating AVI L7 on vSphere with NSXT environments over NodePortLocal mode fails to bring-up AKO pods.
-- Implement pre-check to handle 'AKO POD deployment failure if cluster name has more than 25 characters'
-- UI: Fixes on Configure and Upload flows for VMC.
+- Implement pre-check to handle 'AKO POD deployment failure if cluster name has more than 25 characters.'
 
 ## Known Issues
 - Integration of TMC with vSphere 8.0 is not supported with SIVT due to limited support for cluster classes.
@@ -63,3 +74,4 @@ NOTE: SIVT Azure will be supporting the older version of Tanzu Kubernetes Grid [
 ## Download
 
 - Download the Service Installer OVA and AWS solutions from [VMware Marketplace: Service Installer for VMware Tanzu](https://marketplace.cloud.vmware.com/services/details/service-installer-for-vmware-tanzu-1?slug=true).
+

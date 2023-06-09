@@ -1,4 +1,4 @@
-# Service Installer for VMware Tanzu 2.2.0
+# Service Installer for VMware Tanzu 2.2.0.x
 
 Service Installer for VMware Tanzu automates the deployment of the reference designs for Tanzu on the following platforms:
 
@@ -44,8 +44,8 @@ For the download location, see [Release Notes](WhatsNew.md).
    To access the Service Installer CLI, log in over SSH. Enter `ssh root@<Service-Installer-VM-IP>`.
 
 
-## Service Installer for VMware Tanzu Support Matrix
-
+## <a id=sivt-support> </a> Service Installer for VMware Tanzu Support Matrix
+The following describe the SIVT support for Tanzu Kubernetes Grid (TKG), vSphere with Tanzu, VMware Cloud Director, and Tekton. 
 
 ### Tanzu Kubernetes Grid Support Matrix
 
@@ -77,3 +77,4 @@ For the download location, see [Release Notes](WhatsNew.md).
 |          | Day 0                       | Day 0               |
 | Internet | TKG 2.1.0                   | TKG 2.1.0          |
 | Internet | TKGs with vSphere >= 7.0 u2 | NA                 |
+
