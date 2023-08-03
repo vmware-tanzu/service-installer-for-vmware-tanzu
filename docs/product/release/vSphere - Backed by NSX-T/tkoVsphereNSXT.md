@@ -235,7 +235,7 @@ Expected Output:
    Updated package install 'grafana' in namespace 'my-packages'
    ```
 
-For information about updating, see [Update a Package](https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.5/vmware-tanzu-kubernetes-grid-15/GUID-packages-cli-reference-packages.html#update-a-package-13).
+For information about updating, see [Update a Package](https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/2.3/using-tkg/workload-packages-ref.html).
 
 ## <a id="sample-input-file"> </a> Sample Input File
 Service Installer generates the JSON file based on your inputs and saves it to **/opt/vmware/arcas/src/** in the installer VM. Files are named based on the environment you are using.

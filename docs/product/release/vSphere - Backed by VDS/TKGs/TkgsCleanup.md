@@ -19,7 +19,7 @@ The following table describes the cleanup_option parameter values:
 For selective cleanup, run the following commands:
 >**Note** components need to be cleaned up in reverse order of how they are deployed.
 
-For more information about `vsphere-dvs-tkgs-wcp.json` and `vsphere-dvs-tkgs-namespace.json` sample files, see [TKGs](../vSphere%20-%20Backed%20by%20VDS/TKGs/TKOonVsphereVDStkgs.md).
+For more information about `vsphere-dvs-tkgs-wcp.json` and `vsphere-dvs-tkgs-namespace.json` sample files, see [TKGs](./TKOonVsphereVDStkgs.md).
 
 **End-to-end TKGs deployment cleanup**
 ```
