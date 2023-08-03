@@ -1,0 +1,70 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: day2-upgrade-pipeline
+spec:
+  description: >-
+    The Pipline to capture git event and trigger tasks
+
+  workspaces:
+    - name: pipeline-shared-data
+
+  results:
+    - name: imagename
+      description: obtained imagename from worker
+      value: $(tasks.prepare-workspace.results.theimagename)
+
+  params:
+    
+    - name: giturl
+      description: The full http git path
+    - name: branch
+      description: the branch to clone from. By default, it is set to master.
+      default: alpha
+    - name: message
+      description: The commit message
+      default: exec_upgrade
+
+  tasks:
+    - name: prepare-workspace
+      when:
+        - input: "$(params.message)"
+          operator: in
+          values:  [ "exec_upgrade" ]
+      taskRef:
+        name: git-pvtclone
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+
+        - name: giturl
+          value: "$(params.giturl)"
+        - name: branch
+          value: "$(params.branch)"
+
+    - name: validate-day2-operation
+      taskRef:
+        name: validate-day2-task
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: $(tasks.prepare-workspace.results.theimagename)
+      runAfter:
+          - prepare-workspace
+
+    - name: start-upgrade
+      taskRef:
+        name: upgrade-workflow
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: $(tasks.prepare-workspace.results.theimagename)
+      runAfter:
+          - validate-day2-operation
+
+

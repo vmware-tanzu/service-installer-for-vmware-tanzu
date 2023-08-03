@@ -1,0 +1,10 @@
+{
+  "aws_region": "",
+  "ami_regions": "",
+  "subnet_id": "",
+  "ami_groups": "",
+  "snapshot_groups": "",
+  "non_airgapped": "true",
+  "tkg_version": "{{env `TKG_VERSION`}}",
+  "tkr_version": "{{env `TKR_VERSION`}}"
+}

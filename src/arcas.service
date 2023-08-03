@@ -1,0 +1,9 @@
+[Unit]
+Description=Arcas Service
+[Service]
+Restart=always
+Environment="PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+WorkingDirectory=/opt/vmware/arcas/src
+ExecStart=python3 /opt/vmware/arcas/src/python_server.py
+[Install]
+WantedBy=multi-user.target

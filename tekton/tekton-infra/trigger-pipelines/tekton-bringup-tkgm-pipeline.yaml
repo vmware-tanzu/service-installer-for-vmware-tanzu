@@ -1,0 +1,118 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: tekton-bringup-pipeline
+spec:
+  description: >-
+    The Pipline to capture git event and trigger tasks
+
+  workspaces:
+    - name: pipeline-shared-data
+
+  results:
+    - name: imagename
+      description: obtained imagename from worker
+      value: $(tasks.prepare-workspace.results.theimagename)
+
+  params:
+    - name: imagename
+      description: "The image used Example: sivt_tekton:154"
+    - name: giturl
+      description: The full http git path
+    - name: branch
+      description: the branch to clone from. By default, it is set to master.
+      default: alpha
+    - name: message
+      description: The commit message
+
+  tasks:
+    - name: prepare-workspace
+      when:
+        - input: "$(params.message)"
+          operator: in
+          values:  [ "exec_bringup" ]
+      taskRef:
+        name: git-pvtclone
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: giturl
+          value: "$(params.giturl)"
+        - name: branch
+          value: "$(params.branch)"
+
+    - name: avi-configuration
+      taskRef:
+        name: avi-setup-task
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+      runAfter:
+          - prepare-workspace
+
+    - name: mgmt-cluster-creation
+      taskRef:
+        name: mgmt-create
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+      runAfter:
+            - avi-configuration
+
+    - name: shared-services-cluster-creation
+      taskRef:
+        name: sharedcluster-create
+      workspaces:
+        - name: task-shared-data
+          workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+      runAfter:
+            - mgmt-cluster-creation
+
+    - name: workload-cluster-creation
+      taskRef:
+        name: workload-create
+      workspaces:
+          - name: task-shared-data
+            workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+      runAfter:
+            - shared-services-cluster-creation
+
+    - name: extensions-deploy
+      taskRef:
+        name: extns-setup
+      workspaces:
+          - name: task-shared-data
+            workspace: pipeline-shared-data
+      params:
+        - name: imagename
+          value: "$(params.imagename)"
+      runAfter:
+            - workload-cluster-creation
+
+  finally:
+      - name: ops-git-commit
+        taskRef:
+            name: git-commit-task
+        workspaces:
+          - name: task-shared-data
+            workspace: pipeline-shared-data
+        params:
+
+          - name: branch
+            value: "$(params.branch)"
+
+
+

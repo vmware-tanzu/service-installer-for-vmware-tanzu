@@ -1,0 +1,45 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: git-pvtclone
+spec:
+  workspaces:
+    - name: task-shared-data
+  results:
+    - name: theimagename
+      description: The value of image to be used.
+  params:
+    - name: giturl
+      description: the git path
+    - name: branch
+      description: the branch to clone from
+      default: alpha
+  steps:
+    - name: step-gitclone
+      image: tekton_worker
+      imagePullPolicy: "Never"
+      script: |
+        cd /workspace/task-shared-data/
+        rm -rf *
+        rm -rf .tmp
+        set -x
+        git clone $(params.giturl) -b $(params.branch) arcas-tekton-cicd
+        src_dir="arcas-tekton-cicd"
+        cp -rf $src_dir/config .
+        cp -rf $src_dir/deployment-state .
+        cp -rf $src_dir/desired-state .
+        cp -rf $src_dir/kubeconfig-repo .
+        cp -rf /scripts $src_dir/
+        ls -la
+        tkg_type=`cat arcas-tekton-cicd/desired-state/day0-desired-state.yml| grep tkg | head -1|awk '{print $1}' | cut -d ":" -f 1` 
+        if [ $tkg_type == "tkgs" ]
+        then
+          img_version="sivt_tekton:v"$(cat arcas-tekton-cicd/desired-state/day0-desired-state.yml| grep tkg | head -1|awk '{print $2 0}'| sed 's/\.//g')
+        elif [ $tkg_type == "tkgm" ]
+        then
+           img_version="sivt_tekton:v"$(cat arcas-tekton-cicd/desired-state/day0-desired-state.yml| grep tkg | head -1|awk '{print $2}'| sed 's/\.//g')
+        else
+           echo "Invalid tkg type provided: $tkg_type"
+        fi
+        echo -e "$img_version"
+        echo -n $img_version | tee $(results.theimagename.path)   

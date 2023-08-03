@@ -1,0 +1,117 @@
+<form [formGroup]="formGroup">
+    <h3 aria-level="2"> Set Default CNI</h3>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    DEFAULT CNI FOR TANZU KUBERNETES CLUSTERS
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                The selected CNI will be set as default CNI for the workload clusters, the value can be overridden during Namespace and Workload Cluster configuration step.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect name="defaultCNI" formControlName="defaultCNI">
+                    <ng-container *ngFor="let cni of this.apiClient.AllSupportedCNI">
+                        <option [value]="cni">
+                            {{cni}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+            </clr-select-container>
+        </div>
+    </div>
+
+    <h3 aria-level="2">Trusted CA</h3>
+    <div class="clr-row">
+        <div *ngIf="this.apiClient.tkgsAdditionalCerts?.size; then hasCerts"></div>
+        <ng-template #hasCerts>
+            <ng-container *ngFor="let cert of this.apiClient.tkgsAdditionalCerts | keyvalue">
+                <div class="clr-col-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <input clrInput [value]="cert.value" [disabled]="true" placeholder="" autocomplete="off"/>
+                    </clr-input-container>
+                    <clr-control-helper></clr-control-helper>
+                </div>
+                <div class="clr-col-4">
+                    <clr-input-container [attr.data-step-metadata]="formName">
+                        <input clrInput [value]="cert.key" [disabled]="true" placeholder="" autocomplete="off"/>
+                    </clr-input-container>
+                    <clr-control-helper></clr-control-helper>
+                </div>
+                <div class="clr-col-4">
+                    <button id="label-delete-{{cert.key}}"
+                        class="btn btn-sm btn-label btn-delete"
+                        role="button"
+                        aria-label="delete label"
+                        (click)="deleteCert(cert.key)">
+                        <clr-icon shape="trash" size="12"></clr-icon>
+                    </button>
+                </div>
+            </ng-container>
+        </ng-template>
+   </div>
+
+   <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="datacenter label">
+                    PATH OR ENDPOINT
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                Either specify the path of the SIVT VM where the certs are present or specify the endpoint, Endpoint should be reachable from the SIVT VM.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <select clrSelect #newCertType name="newCertType" formControlName="newCertType">
+                    <ng-container *ngFor="let type of this.apiClient.TkgsCertTypes">
+                        <option [value]="type">
+                            {{type}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+            </clr-select-container>
+        </div>
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-input-container [attr.data-step-metadata]="formName">
+                <label class="hidden" i18n="load balancer template label">
+                    {{newCertType.value}}
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                While specifying endpoints, please provide the port as well ex: https://url:PORT
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                </label>
+                <input clrInput #newCertValue formControlName="newCertValue" placeholder="path or endpoint" autocomplete="off"/>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error i18n="http proxy url required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    Whitespace present on the ends!
+                </clr-control-error>
+            </clr-input-container>
+        </div>
+        <div class="clr-col-2">
+            <button id="label-delete-{{newCertValue.value}}"
+                class="btn btn-sm btn-label btn-delete"
+                role="button"
+                aria-label="Add label"
+                (click)="addCert(newCertType.value, newCertValue.value)">
+                <clr-icon shape="plus-circle" class="is-solid" size="16"></clr-icon>
+            </button>
+        </div>
+        
+    </div>
+</form>

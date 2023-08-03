@@ -1,0 +1,31 @@
+- name: "chrony: check chrony.conf"
+  stat:
+    path: "/etc/chrony/chrony.conf"
+  register: chrony_conf
+
+- name: "chrony: remove timesources"
+  lineinfile:
+    path: "/etc/chrony/chrony.conf"
+    regex: ^(pool|server)\s+
+    state: absent
+  when:
+    - chrony_conf.stat.exists | bool
+
+- name: "chrony: set timesources"
+  lineinfile:
+    path: "/etc/chrony/chrony.conf"
+    line: "server {{ item }} iburst maxpoll = 17"
+    state: present
+    insertafter: EOF
+  when:
+    - chrony_conf.stat.exists | bool
+  with_items: "{{ chrony_time_sources }}"
+
+- name: "chrony: makestep"
+  lineinfile:
+    dest: "/etc/chrony/chrony.conf"
+    regexp: '^makestep\s+\d+\s+\d+'
+    line: 'makestep 1 -1'
+    state: present
+  when:
+    - chrony_conf.stat.exists | bool

@@ -1,0 +1,19 @@
+FROM ubuntu
+RUN apt-get update
+RUN apt-get -y install systemctl
+RUN apt install -y nginx
+COPY /ui /test
+
+
+RUN mkdir -p /home/app
+COPY /photon/rpm/tools/arcas-ui.service  /home/app
+COPY photon/rpm/tools/arcas-ui-service.conf  /home/app
+RUN cp /home/app/arcas-ui.service /etc/systemd/system
+RUN cp  /home/app/arcas-ui-service.conf /etc/systemd/system
+RUN mkdir -p /opt/vmware
+RUN tar -xvf /test/dist/arcas-ui.tar --directory /opt/vmware
+
+RUN mkdir -p /log/arcas/nginx
+RUN mkdir -p /data/logs/nginx
+CMD systemctl enable nginx.service;systemctl start nginx.service;systemctl enable arcas-ui.service;systemctl start arcas-ui.service;/bin/bash
+EXPOSE 8888

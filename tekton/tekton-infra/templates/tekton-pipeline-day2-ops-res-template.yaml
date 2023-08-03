@@ -1,0 +1,28 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: polling.tekton.dev/v1alpha1
+kind: Repository
+metadata:
+  name: monitor-day2-ops-mesage
+spec:
+  url: #@ "https://" + data.values.git.host + "/" + data.values.git.repository
+  ref: #@ data.values.git.branch
+  frequency: 2m
+  type: gitlab
+  pipelineRef:
+    name: tekton-day2-ops-pipeline
+    params:
+    - name: message
+      expression: commit.message
+    workspaces:
+      - name: pipeline-shared-data
+        persistentVolumeClaim:
+          claimName: tekton-day0
+
+  auth:
+    secretRef:
+      name: git-user-pass
+    key: password
+
+
+

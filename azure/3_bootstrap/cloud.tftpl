@@ -1,0 +1,47 @@
+#cloud-config
+# Copyright 2021 VMware, Inc
+# SPDX-License-Identifier: BSD-2-Clause
+apt:
+  sources:
+    packages-microsoft-prod:
+      # Check the keyid if it changed
+      # curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg
+      source: "deb https://packages.microsoft.com/ubuntu/20.04/prod $RELEASE main"
+      keyid: "BC528686B50D79E339D3721CEB3E94ADBE1229CF"
+    docker.list:
+      # Check the keyid if it changed
+      # curl -sL https://download.docker.com/linux/ubuntu/gpg | gpg
+      source: "deb [arch=amd64] https://download.docker.com/linux/ubuntu $RELEASE stable"
+      keyid: "9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
+package_update: true
+package_upgrade: true
+packages: 
+  - wget
+  - software-properties-common
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - jq
+  - moreutils
+  - gnupg
+  - lsb-release
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - azure-cli
+  - powershell
+groups:
+  - docker
+system_info: 
+  default_user:
+    groups: [docker]
+write_files:
+  - path: /etc/environment
+    content: |
+      http_proxy="${http_proxy}"
+      https_proxy="${https_proxy}"
+      no_proxy="${no_proxy}"
+    append: true
+runcmd:
+  - "echo y | apt autoremove"
+  - "chown -R ${user}:${user} /home/${user}"
