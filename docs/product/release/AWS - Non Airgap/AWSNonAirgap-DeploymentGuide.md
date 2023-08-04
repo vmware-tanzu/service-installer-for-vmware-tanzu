@@ -222,7 +222,7 @@ These prerequisites are applicable only if you use manually pre-created VPC for 
       export OIDC_IDENTITY_PROVIDER_USERNAME_CLAIM=<The name of your username claim>
       ```
 
-    For more information on these variables, see [Tanzu CLI Configuration File Variable Reference](https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.5/vmware-tanzu-kubernetes-grid-15/GUID-tanzu-config-reference.html).
+    For more information on these variables, see [Tanzu CLI Configuration File Variable Reference](https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/2.1/tkg-deploy-mc-21/mgmt-deploy-file.html).
 
 1. Configure integration with SaaS offerings.
     - To register master and workload cluster to Tanzu Mission Control (TMC), provide TMC refresh token by running the following command.

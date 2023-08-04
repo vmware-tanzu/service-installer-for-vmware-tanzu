@@ -193,7 +193,7 @@ Before deploying Tanzu Kubernetes Grid on AWS using Service Installer for VMware
       export LDAP_GROUP_SEARCH_BASE_DN=<The point from which to start the LDAP search>
       ```
 
-   For more information on these variables, see [Tanzu CLI Configuration File Variable Reference](https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.5/vmware-tanzu-kubernetes-grid-15/GUID-tanzu-config-reference.html).
+   For more information on these variables, see [Tanzu CLI Configuration File Variable Reference](https://docs.vmware.com/en/VMware-Tanzu-Kubernetes-Grid/1.6/vmware-tanzu-kubernetes-grid-16/GUID-tanzu-config-reference.html).
 
 1. Install Tanzu Kubernetes Grid.
 
