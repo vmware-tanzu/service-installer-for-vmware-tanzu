@@ -72,9 +72,15 @@ The following describe the SIVT support for Tanzu Kubernetes Grid (TKG), vSphere
 
 ### Tekton Support Matrix
 
+#### Day 0 Support Matrix
 | Platform | vSphere with vDS            | vSphere with NSX-T |
 |----------|-----------------------------|--------------------|
-|          | Day 0                       | Day 0               |
 | Internet | TKG 2.1.0                   | TKG 2.1.0          |
 | Internet | TKGs with vSphere >= 7.0 u2 | NA                 |
+| Airgap   | Not supported               | Not supported      |
 
+#### Day 2 Support Matrix
+|Sl.No  | Day2 Operations | Status              |
+|-------|-----------------|---------------------|
+| 1     | Rescale         | Supported           |
+| 2     | Resize          | Supported           |
