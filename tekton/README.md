@@ -7,24 +7,23 @@ CI/CD pipeline execution for Service Installer for VMware Tanzu is built upon Te
 - Bring up of Tanzu Kubernetes Grid based on Reference Architecture deployments.
 - End-to-end Tanzu Kubernetes Grid deployment and configuration of AVI controller, management, shared services, and workload clusters, plug-ins, extensions
 - End-to-end bring up of vSphere with Tanzu environment with enabling of WCP, supervisor cluster, and workload cluster with plug-ins and extensions 
-- Day 2 operations support of Upgrade, Resize and Scale
+- Day 2 operations support of Resize and Rescale
 - Day 0 deployment and Day 2 operations for Tanzu Kubernetes Grid through Gitops
 
 
 ## Pipeline Support Matrix
 ### Day 0 Support Matrix
 | Platform | vSphere with vDS            | vSphere with NSX-T |
-|----------|-----------------------------|--------------------|
-|          | Day 0                        | Day 0               | 
+|----------|-----------------------------|--------------------| 
 | Internet | TKG 2.1.0                   | TKG 2.1.0          |
 | Internet | TKGs with vSphere >= 7.0 u2 | NA                 |
+| Airgap   | Not supported               | Not supported      |
 
 ### Day 2 Support Matrix
-|Sl.No | Day2 Operations | Status              |
+|Sl.No  | Day2 Operations | Status              |
 |-------|-----------------|---------------------|
-| 1     | Upgrade         | Yet to be Supported | 
-| 2     | Rescale         | Supported           |
-| 3     | Resize          | Supported |
+| 1     | Rescale         | Supported           |
+| 2     | Resize          | Supported           |
 
 ## ReadMe for Preparing CI/CD Pipelines 
 1. [Prerequisites for CI/CD Pipelines For Tanzu Kubernetes Grid](./docs/prerequisites.md)
