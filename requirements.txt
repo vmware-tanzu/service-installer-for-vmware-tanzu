@@ -116,7 +116,7 @@ typing==3.6.6
 typing_extensions==4.4.0
 tzlocal==1.5.1
 unittest-xml-reporting==3.2.0
-urllib3==1.26.13
+urllib3==1.26.17
 vcd-api-schemas-type==10.3.0.dev72
 vcd-cli==24.1.0
 
