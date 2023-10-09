@@ -1,0 +1,173 @@
+<!--
+    Copyright 2021 VMware, Inc
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<ng-container *ngIf="showErrorAlert">
+    <clr-alert [clrAlertType]="'danger'">
+    <clr-alert-item>
+        <span class="alert-text">
+            {{errorAlertMessage}}
+        </span>
+    </clr-alert-item>
+</clr-alert>
+</ng-container>
+<div class="clr-row" *ngIf="isStageIsWcp()">
+
+    <div class="clr-col-12">
+        <h3 i18n="deploy progress page welcome title" aria-level="1">TKGs WCP Enablement</h3>
+    </div>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+     <clr-timeline [clrLayout]="ClrTimelineLayout.VERTICAL" >
+        <clr-timeline-step [clrState]="preCheckStageStatus()">
+            <clr-timeline-step-header></clr-timeline-step-header>
+            <clr-timeline-step-title>Pre-check Configuration</clr-timeline-step-title>
+            <clr-timeline-step-description>Verifies the JSON input data. Performs configuration checks, such as validating the NTP,<br/>
+                the DNS server, validation of vCenter infrastructure and pining the network gateways.
+            </clr-timeline-step-description>
+        </clr-timeline-step>
+        <clr-timeline-step [clrState]="aviConfigStageStatus()">
+            <clr-timeline-step-header></clr-timeline-step-header>
+            <clr-timeline-step-title>AVI Configuration</clr-timeline-step-title>
+            <clr-timeline-step-description>Creates the resource pool and folders for the NSX Advanced Load Balancer Controller.<br/>
+                Deploys the AVI Control Plane, and generates and replaces the certificates <br/>
+                and performs the initital configuration (NTP and DNS).
+            </clr-timeline-step-description>
+        </clr-timeline-step>
+        <clr-timeline-step [clrState]="aviWCPStageStatus()">
+            <clr-timeline-step-header></clr-timeline-step-header>
+            <clr-timeline-step-title>AVI WCP Configuration</clr-timeline-step-title>
+            <clr-timeline-step-description>Configures AVI Cloud, Network, and SE for the Workload Control Plane (WCP) configuration.</clr-timeline-step-description>
+            </clr-timeline-step>
+        <clr-timeline-step [clrState]="enableWCPStageStatus()">
+            <clr-timeline-step-header></clr-timeline-step-header>
+            <clr-timeline-step-title>Enablement of workload control plane</clr-timeline-step-title>
+            <clr-timeline-step-description>Enables the Workload Control Plane on a vSphere Cluster.</clr-timeline-step-description>
+        </clr-timeline-step>
+    </clr-timeline>
+
+</div>
+<br/>
+<div class="clr-row" *ngIf="isStageIsNamespace()" >
+    <div class="clr-col-12">
+        <h3 i18n="deploy progress page welcome title" aria-level="1">TKGs Supervisor Namespace creation as well as workload cluster deployment with extensions</h3>
+    </div>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <clr-timeline [clrLayout]="ClrTimelineLayout.VERTICAL">
+        <clr-timeline-step [clrState]="supervisorNamespaceStageStatus()">
+            <clr-timeline-step-header></clr-timeline-step-header>
+            <clr-timeline-step-title>Supervisor Namespace</clr-timeline-step-title>
+            <clr-timeline-step-description>Creates a Supervisor Namespace.</clr-timeline-step-description>
+        </clr-timeline-step>
+        <clr-timeline-step [clrState]="workloadClusterStageStatus()">
+            <clr-timeline-step-header></clr-timeline-step-header>
+            <clr-timeline-step-title>Create Workload Clusters</clr-timeline-step-title>
+            <clr-timeline-step-description>Creates Tanzu Kubernetes Clusters (TKC).</clr-timeline-step-description>
+        </clr-timeline-step>
+        <clr-timeline-step [clrState]="extensionDeploymentStageStatus()">
+            <clr-timeline-step-header></clr-timeline-step-header>
+            <clr-timeline-step-title>Extension Deployment on Workload Clusters</clr-timeline-step-title>
+            <clr-timeline-step-description>Deploys extensions (Harbor, Prometheus, Fluent-bit and Grafana).</clr-timeline-step-description>
+            </clr-timeline-step>
+    </clr-timeline>
+
+</div>
+<br/>
+<div class="clr-row">
+    <div class="btn-container clr-justify-content-left">
+        <clr-tooltip>
+            <button clrTooltipTrigger class="btn btn-primary" (click)="downloadLogFile()"
+            i18n="support bundle btn">
+            Support Bundle
+            </button>
+            <clr-tooltip-content clrPosition="top-right" clrSize="md" *clrIfOpen="true">
+                <span>
+                    Download the entire log file from the ARCAS VM
+                </span>
+            </clr-tooltip-content>
+        </clr-tooltip>
+        <clr-tooltip>
+            <button clrTooltipTrigger class="btn btn-primary" (click)="startStreamingLogs()"
+                    i18n="run time logs btn" [disabled]="getLogsButtonDisabled()">
+                Run time logs
+            </button>
+            <clr-tooltip-content clrPosition="top-right" clrSize="md" *clrIfOpen="true">
+                <span>
+                    Stream the runtime deployment logs
+                </span>
+            </clr-tooltip-content>
+        </clr-tooltip>
+        <clr-tooltip>
+            <button clrTooltipTrigger class="btn btn-success" (click)="deployFromUI()" [disabled]="getStartbuttonDisabled()"
+            i18n="start deployment btn">
+            Start DEPLOYMENT
+            </button>
+            <clr-tooltip-content clrPosition="top-right" clrSize="md" *clrIfOpen>
+                <span>
+                    Start the TKGs deployment
+                </span>
+            </clr-tooltip-content>
+        </clr-tooltip>
+        <clr-tooltip>
+            <button clrTooltipTrigger class="btn btn-danger" (click)="stopModal()" [disabled]="getStopbuttonDisabled()"
+            i18n="stop deployment btn" >
+             Stop Deployment
+            </button>
+            <ng-container *ngIf="stopDeploymentTriggered; else isRunningDeployment">
+                <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                    <span>
+                        Stop Deployment has been triggered, so not allowed.
+                    </span>
+                </clr-tooltip-content>
+            </ng-container>
+            <ng-template #isRunningDeployment>
+                <clr-tooltip-content clrPosition="top-right" clrSize="sm" *clrIfOpen>
+                    <span>
+                        Stop the ongoing deployment
+                    </span>
+                </clr-tooltip-content>
+            </ng-template>
+        </clr-tooltip>
+    </div>
+</div>
+<clr-modal [(clrModalOpen)]="viewStreamingLogs" [clrModalClosable]="false" [clrModalSize]="'lg'" >
+        <h3 class="modal-title">Deployment Logs </h3>
+        <div class="modal-body">
+            <log-monitor
+                theme="light"
+                [animated]="false"
+                [icons]="false"
+                title="Run time Deployment TKGs Deployment1 logs"
+                timestamp="false"
+                [logStream]="logStream$ | async"
+                [history]="startingLogs"
+                 >
+            </log-monitor>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-danger" (click)="stopStreamingLogs()">
+                <clr-icon shape="window-close" size="18"></clr-icon>
+                Close
+            </button>
+        </div>
+</clr-modal>
+
+<clr-modal [(clrModalOpen)]="stopDeploymentModal" [clrModalClosable]="true" [clrModalSize]="'small'" >
+    <h3 class="modal-title">Stop Deployment </h3>
+    <div class="modal-body">
+        <p>Do you want to stop the deployment?<br/>
+        The deployment process will be stopped after the current stage of deployment finishes.
+        </p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-danger" (click)="stopDeployment()">
+            <clr-icon shape="window-stop" size="18"></clr-icon>
+            Stop Deployment
+        </button>
+    </div>
+</clr-modal>

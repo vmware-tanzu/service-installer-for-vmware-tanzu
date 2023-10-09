@@ -1,0 +1,54 @@
+#! ---------------------------------------------------------------------
+#! non proxy env configs
+#! ---------------------------------------------------------------------
+CLUSTER_CIDR: 172.20.0.0/16
+CLUSTER_NAME: {{ sharedClusterName }}
+CLUSTER_PLAN: {{ clusterPlan }}
+ENABLE_CEIP_PARTICIPATION: 'true'
+ENABLE_MHC: 'true'
+IDENTITY_MANAGEMENT_TYPE: none
+INFRASTRUCTURE_PROVIDER: vsphere
+SERVICE_CIDR: 10.96.0.0/16
+TKG_HTTP_PROXY_ENABLED: false
+VSPHERE_CONTROL_PLANE_ENDPOINT: {{ sharedClusterEndPoint }}
+DEPLOY_TKG_ON_VSPHERE7: 'true'
+VSPHERE_DATACENTER: {{ datacenter }}
+VSPHERE_DATASTORE: {{ dataStorePath }}
+VSPHERE_FOLDER: {{ folderPath }}
+VSPHERE_NETWORK: {{ mgmt_network }}
+VSPHERE_PASSWORD: {{ vspherePassword }}
+VSPHERE_RESOURCE_POOL: {{ sharedClusterResourcePool }}
+VSPHERE_SERVER: {{ vsphereServer }}
+VSPHERE_SSH_AUTHORIZED_KEY: {{ sshKey }}
+VSPHERE_USERNAME: {{ vsphereUseName }}
+CONTROLPLANE_SIZE: {{ controlPlaneSize }}
+WORKER_MACHINE_COUNT: {{ machineCount }}
+WORKER_SIZE: {{ workerSize }}
+VSPHERE_INSECURE: 'true'
+
+#! ---------------------------------------------------------------------
+#! proxy env configs
+#! ---------------------------------------------------------------------
+{% if type == "shared" and config.envSpec.proxySpec.tkgSharedservice.enableProxy == "true"  %}
+TKG_HTTP_PROXY: {{ config.envSpec.proxySpec.tkgSharedservice.httpProxy }}
+TKG_HTTPS_PROXY: {{ config.envSpec.proxySpec.tkgSharedservice.httpsProxy }}
+TKG_NO_PROXY: {{ config.envSpec.proxySpec.tkgSharedservice.noProxy }}
+{% endif %}
+{% if type == "workload" and config.envSpec.proxySpec.tkgWorkload.enableProxy == "true" %}
+TKG_HTTP_PROXY: {{ config.envSpec.proxySpec.tkgWorkload.httpProxy }}
+TKG_HTTPS_PROXY: {{ config.envSpec.proxySpec.tkgWorkload.httpsProxy }}
+TKG_NO_PROXY: {{ config.envSpec.proxySpec.tkgWorkload.noProxy }}
+{% endif %}
+
+#! ---------------------------------------------------------------------
+#! airgapped env configs
+#! ---------------------------------------------------------------------
+{% if config.customRepositorySpec.tkgCustomImageRepository == "true" %}
+tkgCustomImageRepository: {{ air_gapped_repo }}
+{% if config.envSpec.customRepositorySpec.tkgCustomImageRepositoryPublicCaCert.lower() == "false" %}
+tkgCustomImageRepository_SKIP_TLS_VERIFY: False
+tkgCustomImageRepository_CA_CERTIFICATE: {{ repo_certificate }}
+{% else %}
+tkgCustomImageRepository_SKIP_TLS_VERIFY: False
+{% endif %}
+{% endif %}

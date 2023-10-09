@@ -1,0 +1,4 @@
+{
+  "is_compliant": "{{env `COMPLIANT_DEPLOYMENT`}}",
+  "ansible_common_vars": "disable_public_repos={{user `disable_public_repos`}} extra_repos={{user `extra_repos`}} bin_url={{user `bin_url`}} package_url={{user `package_url`}} tanzu_bundle_url={{user `tanzu_bundle_url`}} non_airgapped={{user `non_airgapped`}} is_compliant={{user `is_compliant`}}"
+}

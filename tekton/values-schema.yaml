@@ -1,0 +1,15 @@
+#@data/values-schema
+---
+git:
+  host: ""
+  repository: ""
+  branch: ""
+  username: ""
+  password: ""
+refreshToken: None
+harbor_url: ""
+#@schema/nullable
+searchdomains:
+- ""
+nameservers:
+- ""

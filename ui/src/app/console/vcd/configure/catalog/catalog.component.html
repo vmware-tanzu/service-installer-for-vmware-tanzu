@@ -1,0 +1,134 @@
+<!--
+    Copyright 2021 VMware, Inc
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<form [formGroup]="formGroup">
+    <div *ngIf="this.dataService.catalogNamesErrorMessage" class="alert alert-danger" role="alert">
+        <div class="alert-items">
+            <div class="alert-item static">
+                <div class="alert-icon-wrapper">
+                    <clr-icon class="alert-icon" shape="exclamation-circle"></clr-icon>
+                </div>
+                <span class="alert-text">
+                    {{ this.dataService.catalogNamesErrorMessage }}
+                </span>
+            </div>
+        </div>
+        <button (click)="this.dataService.catalogNamesErrorMessage = null" type="button" class="close" aria-label="Close">
+            <clr-icon aria-hidden="true" shape="close"></clr-icon>
+        </button>
+    </div>
+
+    <h4 aria-level="2">Catalogs for the Service Organization</h4>
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="cseOvaCatalogName label">
+                    CSE OVA CATALOG
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                You can use a catalog for sharing vApp templates and media with other users in your organization. You can also have a private catalog for vApp templates and media that you frequently use.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                    <div style="display:inline-block"><clr-icon shape="refresh" size="18" role="button" (click)="fetchCatalogsFromVCD()"></clr-icon></div>
+                </label>
+                <select clrSelect name="cseOvaCatalogName" formControlName="cseOvaCatalogName">
+                    <option [value]="'CREATE NEW'">CREATE NEW</option>
+                    <ng-container *ngFor="let cseOvaCatalogName of this.dataService.catalogNames">
+                        <option [value]="cseOvaCatalogName">
+                            {{cseOvaCatalogName}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error>Catalog name is required!</clr-control-error>
+            </clr-select-container>
+        </div>
+        <ng-container *ngIf="formGroup.value.cseOvaCatalogName === 'CREATE NEW'">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="newCseOvaCatalogName label" clr-control-label aria-describedby="tooltip-newCseOvaCatalogName">
+                        NEW CSE CATALOG NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    The name for creating a new CSE Catalog
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="newCseOvaCatalogName" placeholder="Name" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="newCseOvaCatalogName required msg" *clrIfError="validatorEnum.REQUIRED">
+                        CSE catalog name is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="newCseOvaCatalogName whitespace msg" *clrIfError="validatorEnum.WHITESPACE">
+                        CSE catalog name has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+        </ng-container>
+    </div>
+
+    <div class="clr-row">
+        <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+            <clr-select-container [attr.data-step-metadata]="formName">
+                <label i18n="k8sTemplatCatalogName label">
+                    K8s TEMPLATE CATALOG NAME
+                    <clr-tooltip>
+                        <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                        <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                            <span>
+                                You can use a catalog for sharing vApp templates and media with other users in your organization. You can also have a private catalog for vApp templates and media that you frequently use.
+                            </span>
+                        </clr-tooltip-content>
+                    </clr-tooltip>
+                    <div style="display:inline-block"><clr-icon shape="refresh" size="18" role="button" (click)="fetchCatalogsFromVCD()"></clr-icon></div>
+                </label>
+                <select clrSelect name="k8sTemplatCatalogName" formControlName="k8sTemplatCatalogName">
+                    <option [value]="'CREATE NEW'">CREATE NEW</option>
+                    <ng-container *ngFor="let k8sTemplatCatalogName of this.dataService.catalogNames">
+                        <option [value]="k8sTemplatCatalogName">
+                            {{k8sTemplatCatalogName}}
+                        </option>
+                    </ng-container>
+                </select>
+                <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                <clr-control-helper></clr-control-helper>
+                <clr-control-error>K8s Template Catalog name is required!</clr-control-error>
+            </clr-select-container>
+        </div>
+        <ng-container *ngIf="formGroup.value.k8sTemplatCatalogName === 'CREATE NEW'">
+            <div class="clr-col-12 clr-col-sm-6 clr-col-lg-4">
+                <clr-input-container [attr.data-step-metadata]="formName">
+                    <label i18n="newK8sTemplatCatalogName label" clr-control-label aria-describedby="tooltip-newK8sTemplatCatalogName">
+                        NEW K8s TEMPLATE CATALOG NAME
+                        <clr-tooltip>
+                            <clr-icon aria-live="assertive" a11yTooltipTrigger shape="info-circle" size="22"></clr-icon>
+                            <clr-tooltip-content clrPosition="top-right" clrSize="lg" *clrIfOpen>
+                                <span>
+                                    The name for creating a new K8s template catalog.
+                                </span>
+                            </clr-tooltip-content>
+                        </clr-tooltip>
+                    </label>
+                    <input clrInput formControlName="newK8sTemplatCatalogName" placeholder="Name" />
+                    <!-- Add a empty helper to avoid accessiblity aria-describeby issue -->
+                    <clr-control-helper></clr-control-helper>
+                    <clr-control-error i18n="newK8sTemplatCatalogName required msg" *clrIfError="validatorEnum.REQUIRED">
+                        k8s template catalog name is required!
+                    </clr-control-error>
+                    <clr-control-error i18n="newK8sTemplatCatalogName whitespace msg" *clrIfError="validatorEnum.WHITESPACE">
+                        k8s template catalog name has whitespaces on ends!
+                    </clr-control-error>
+                </clr-input-container>
+            </div>
+        </ng-container>
+    </div>
+</form>

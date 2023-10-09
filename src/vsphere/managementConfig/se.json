@@ -1,0 +1,69 @@
+{
+  "DiskProvisioning": "thin",
+  "IPAllocationPolicy": "dhcpPolicy",
+  "IPProtocol": "IPv4",
+  "PropertyMapping": [{
+    "Key": "AVICNTRL",
+    "Value": "172.17.113.3"
+  }, {
+    "Key": "AVISETYPE",
+    "Value": "NETWORK_ADMIN"
+  }, {
+    "Key": "AVICNTRL_AUTHTOKEN",
+    "Value": "c06d5ed6-3b1d-4dc4-89ee-29ffaa3f08b0"
+  }, {
+    "Key": "AVICNTRL_CLUSTERUUID",
+    "Value": "cluster-47267ced-4f9e-44b6-85d5-ba0b1d443f75"
+  }, {
+    "Key": "avi.mgmt-ip.SE",
+    "Value": ""
+  }, {
+    "Key": "avi.mgmt-mask.SE",
+    "Value": ""
+  }, {
+    "Key": "avi.default-gw.SE",
+    "Value": ""
+  }, {
+    "Key": "avi.DNS.SE",
+    "Value": ""
+  }, {
+    "Key": "avi.sysadmin-public-key.SE",
+    "Value": ""
+  }],
+  "NetworkMapping": [{
+    "Name": "Management",
+    "Network": "AVI-Management-Segment_automation"
+  }, {
+    "Name": "Data Network 1",
+    "Network": "AVI-Data-Segment-01_automation"
+  }, {
+    "Name": "Data Network 2",
+    "Network": "TKG-SharedService-Segment_automation"
+  }, {
+    "Name": "Data Network 3",
+    "Network": "TKG-Workload1-Segment_automation"
+  }, {
+    "Name": "Data Network 4",
+    "Network": "TKG-Workload1-Segment_automation"
+  }, {
+    "Name": "Data Network 5",
+    "Network": "TKG-Workload1-Segment_automation"
+  }, {
+    "Name": "Data Network 6",
+    "Network": "TKG-Workload1-Segment_automation"
+  }, {
+    "Name": "Data Network 7",
+    "Network": "TKG-Workload1-Segment_automation"
+  }, {
+    "Name": "Data Network 8",
+    "Network": "TKG-Workload1-Segment_automation"
+  }, {
+    "Name": "Data Network 9",
+    "Network": "TKG-Workload1-Segment_automation"
+  }],
+  "MarkAsTemplate": false,
+  "PowerOn": false,
+  "InjectOvfEnv": false,
+  "WaitForIP": false,
+  "Name": "avi-se01"
+}

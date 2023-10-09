@@ -1,0 +1,8 @@
+[Unit]
+Description=Monitor klog paths
+[Path]
+PathChanged=/var/log/kubernetes/
+PathChanged=/var/log/antrea/
+Unit=klog-fix.service
+[Install]
+WantedBy=multi-user.target

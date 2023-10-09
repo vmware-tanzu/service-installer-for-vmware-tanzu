@@ -1,0 +1,103 @@
+#! --------------------------------------------------------------------
+#! Create Calico Config : Must be used only when user opts for Calico CNI
+#! --------------------------------------------------------------------
+apiVersion: "cni.tanzu.vmware.com/v1alpha1"
+kind: "CalicoConfig"
+metadata:
+  name: "sivt-calicoconfig"
+spec:
+  calico:
+    config:
+      vethMTU: 0
+#! --------------------------------------------------------------------
+#! Create Calico ClusterBootstrap : Must be used only when user opts for Calico CNI
+#! --------------------------------------------------------------------
+{% if cni == "calico" %}
+apiVersion: "run.tanzu.vmware.com/v1alpha3"
+kind: "ClusterBootstrap"
+metadata:
+  annotations:
+    tkg.tanzu.vmware.com/add-missing-fields-from-tkr: {{ tkr_name }}
+  name: {{ workload_name }}
+spec:
+  cni:
+    refName: {{ calico_ref_name }}
+    valuesFrom:
+      providerRef:
+        apiGroup: "cni.tanzu.vmware.com"
+        kind: "CalicoConfig"
+        name: "sivt-calicoconfig"
+{% endif %}
+#! ---------------------------------------------------------------------
+#! Default Env Configs
+#! ---------------------------------------------------------------------
+apiVersion: "cluster.x-k8s.io/v1beta1"
+kind: "Cluster"
+metadata:
+  name: {{ workload_name }}
+  namespace: {{ name_space }}
+spec:
+  clusterNetwork:
+    services:
+      cidrBlocks: {{ service_cidr }}
+    pods:
+      cidrBlocks: {{ pod_cidr }}
+    serviceDomain: "cluster.local"
+  topology:
+    class: "tanzukubernetescluster"
+    version: {{ tkr_name }}
+    controlPlane:
+      replicas: {{ control_plane_count }}
+      {% if tkr_os_type == "ubuntu" %}
+      metadata:
+        annotations:
+          run.tanzu.vmware.com/resolve-os-image: os-name=ubuntu
+      {% endif %}
+    workers:
+      machineDeployments:
+        - class: "node-pool"
+          name: "node-pool-1"
+          replicas: {{ worker_node_count }}
+          {% if tkr_os_type == "ubuntu" %}
+          metadata:
+            annotations:
+              run.tanzu.vmware.com/resolve-os-image: os-name=ubuntu
+          {% endif %}
+          variables:
+            overrides:
+            - name: "vmClass"
+              value: {{ worker_vm_class }}
+            - name: "storageClass"
+              value: {{ node_storage_class }}
+    variables:
+      - name: "vmClass"
+        value: {{ control_plane_vm_class }}
+      - name: "storageClass"
+        value: {{ node_storage_class }}
+      - name: "storageClasses"
+        value: {{ allowed_storage_classes }}
+      - name: "defaultStorageClass"
+        value: {{ default_classes }}
+      {% if worker_volume_present == "true" %}
+      - name: "nodePoolVolumes"
+        value:
+          {% for worker_volume in worker_volumes %}
+          - name: {{ worker_volume.name }}
+            capacity:
+              storage: {{ worker_volume.storage }}
+            mountPath: {{ worker_volume.mountPath }}
+            storageClass: {{ worker_volume.storageClass }}
+          {% endfor %}
+      {% endif %}
+      {% if proxy_enabled == "true" %}
+      - name: proxy
+        value:
+          httpProxy: {{ http_proxy }}
+          httpsProxy: {{ https_proxy }}
+          noProxy: {{ no_proxy_list }}
+      {% endif %}
+      {% if additional_certs_present == "true" %}
+        {% for cert in additional_certs %}
+        - name: cert.name
+        {% endfor %}
+      {% endif %}

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tmc-lcm-config
+  namespace: vmware-system-tmc
+data:
+  TKG_CUSTOM_COMPATIBILITY_IMAGE_PATH: fips/tkg-compatibility

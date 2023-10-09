@@ -1,0 +1,56 @@
+<!--
+    Copyright 2021 VMware, Inc
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+
+<div class="login-wrapper">
+    <form class="login" clrForm [formGroup]="loginForm">
+        <section class="title">
+            <h3 class="welcome">Welcome to</h3>
+            Service Installer for VMware Tanzu
+            <h5 class="hint">Use your vCenter username to sign in</h5>
+        </section>
+
+        <div class="login-group">
+            <clr-input-container>
+                <label class="clr-sr-only">vCenter FQDN</label>
+                <input type="text" formControlName="fqdn" clrInput placeholder="vCenter FQDN"/>
+                <clr-control-helper>IP address or hostname of the vCenter server that manages your vSphere infrastructure.</clr-control-helper>
+                <clr-control-error i18n="vcenter server addr required msg" *clrIfError="validatorEnum.REQUIRED">
+                    vCenter Server address cannot be empty
+                </clr-control-error>
+                <clr-control-error i18n="vcenter server addr valid msg" *clrIfError="validatorEnum.VALID_IP_OR_FQDN">
+                    Enter a valid IP address or FQDN
+                </clr-control-error>
+                <clr-control-error i18n="vcenter server addr required msg" *clrIfError="validatorEnum.WHITESPACE">
+                    vCenter Server address has whitespaces on ends!
+                </clr-control-error>
+            </clr-input-container>
+
+            <clr-input-container>
+                <label class="clr-sr-only">Username</label>
+                <input type="text" formControlName="username" clrInput placeholder="Username"/>
+                <clr-control-error>Username is required!</clr-control-error>
+            </clr-input-container>
+            <clr-password-container>
+                <label class="clr-sr-only">Password</label>
+                <input type="password" formControlName="password" clrPassword placeholder="Password"/>
+                <clr-control-error>Password is required!</clr-control-error>
+            </clr-password-container>
+
+            <div *ngIf="displayError" class="error active">
+                Invalid user name or password
+            </div>
+
+            <button
+              class="btn btn-primary btn-primary-tkgm"
+              id="btn-landing-page"
+              (click)="login()"
+              [clrLoading]="loginLoadingState"
+              [attr.aria-label]="'navigate to landing'">
+              LOGIN
+            </button>
+
+        </div>
+    </form>
+</div>

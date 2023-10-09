@@ -1,0 +1,15 @@
+- name: "apparmor: apt install"
+  apt:
+    name:
+    - apparmor
+    - apparmor-profiles
+    - apparmor-utils
+    - libpam-apparmor
+    state: present
+    force_apt_get: yes
+
+- name: "apparmor: disabled apparmor profile: delete"
+  file: 
+    path: "{{ item }}"
+    state: absent
+  with_items: "{{ diabled_apparmor_profile }}"

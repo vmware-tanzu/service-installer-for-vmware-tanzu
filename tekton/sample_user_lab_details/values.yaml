@@ -1,0 +1,41 @@
+#@data/values
+---
+git:
+  host: <FQDN/IP OF GIT>
+  repository: <GITREPO>
+  branch: <BRANCH>
+  username: <USER WITH GIT ACCESS FOR THE REPO>
+  password: <GIT PAT>
+refreshToken: <MARKETPLACE TOKEN>
+
+
+#! Description: >
+#!   The values.yaml file is used to feed the input from user.
+
+#!   git:
+#!       host: <FQDN/IP OF GIT>
+#!       repository: <GITREPO>
+#!       branch: <BRANCH>
+#!       username: <USER WITH GIT ACCESS FOR THE REPO>
+#!      password: <GIT PAT (Personal Access Token)>
+
+#!   # For Non-Airgapped Setup
+#!    imagename: sivt_tekton:v15x                          # sivt_tekton:tkg_version, replace x with desired state version
+#!    dindimagename: docker:dind                           # docker:dind image
+#!    imagepullpolicy: IfNotPresent                        # Don't Change
+#!    refreshToken: <MARKETPLACE REFRESH TOKEN>            # Market place token
+
+
+#!  # For Airgapped Setup
+#!    imagename: <HARBOR_URL>/tekton_dep/sivt_tekton:v15x   # harbor url to be replaced with actual value
+#!    dindimagename: <HARBOR_URL>/tekton_dep/docker:dind    # harbor url to be replaced with actual value
+#!    imagepullpolicy: IfNotPresent                         # Don't Change
+#!    refreshToken: None                                    # Market Place token should be None for airgapped setups
+#!    harbor_url: <HARBOR_URL>                              # harbor url to be replaced with actual value
+#!    nameservers:                                          # Nameservers to be added as per setup
+#!    - 172.16.10.2                                           # first entry should be of local 172.xx series
+#!    - 10.96.0.10                                            # Any additional naemservers to be added
+#!    searchdomains:                                        # Search domains to be added as per setup
+#!    - "svc.cluster.local"                                   # Search domains to be added
+#!    - "cluster.local"
+#!    - "tanzu.lab"
