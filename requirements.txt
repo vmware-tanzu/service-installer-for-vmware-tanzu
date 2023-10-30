@@ -116,7 +116,7 @@ tqdm==4.62.3
 
 
 
-Twisted==22.10.0rc1
+Twisted==23.10.0rc1
 typing==3.6.6
 typing_extensions==4.4.0
 tzlocal==1.5.1
