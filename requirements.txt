@@ -1,5 +1,5 @@
 aniso8601==9.0.1
-ansible==7.0.0
+ansible==8.5.0
 asn1crypto==0.24.0
 atomicwrites==1.2.1
 attrs==18.2.0
