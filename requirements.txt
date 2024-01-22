@@ -62,7 +62,7 @@ oauthlib==3.2.2
 packaging==22.0
 paramiko==3.4.0
 pexpect==4.6.0
-pillow==10.0.1
+pillow==10.2.0
 ply==3.11
 polling==0.5.0
 prettytable==0.7.2
