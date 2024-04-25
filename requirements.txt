@@ -76,7 +76,7 @@ pycparser==2.21
 
 pycryptodome==3.19.1
 
-pydantic==1.9.0
+pydantic==1.10.13
 
 Pygments==2.15.0
 PyHamcrest==1.9.0
